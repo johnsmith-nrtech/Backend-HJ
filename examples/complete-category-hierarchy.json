@@ -1,0 +1,360 @@
+[
+  {
+    "name": "Sofa Beds",
+    "slug": "sofa-beds",
+    "description": "Comfortable and stylish convertible sofas that transform into beds",
+    "order": 1,
+    "subcategories": [
+      {
+        "name": "Corner Sofa Beds",
+        "slug": "corner-sofa-beds",
+        "description": "L-shaped sofa beds perfect for maximizing seating and sleeping space",
+        "order": 1,
+        "subcategories": [
+          {
+            "name": "Fabric Sofas",
+            "slug": "corner-fabric-sofa-beds",
+            "description": "Corner sofa beds upholstered in premium fabrics",
+            "order": 1,
+            "subcategories": [
+              {
+                "name": "With Storage > In Stock",
+                "slug": "corner-fabric-sofa-beds-with-storage-in-stock",
+                "description": "Corner fabric sofa beds with built-in storage, available for immediate delivery",
+                "order": 1
+              }
+            ]
+          },
+          {
+            "name": "Faux Leather",
+            "slug": "corner-faux-leather-sofa-beds",
+            "description": "Corner sofa beds upholstered in high-quality faux leather",
+            "order": 2,
+            "subcategories": [
+              {
+                "name": "Recliner > Limited Stock",
+                "slug": "corner-faux-leather-sofa-beds-recliner-limited-stock",
+                "description": "Corner faux leather sofa beds with recliner function, limited availability",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "U-Shaped Sofa Beds",
+        "slug": "u-shaped-sofa-beds",
+        "description": "Expansive U-shaped sofa beds ideal for large living spaces",
+        "order": 2,
+        "subcategories": [
+          {
+            "name": "Faux Leather",
+            "slug": "u-shaped-faux-leather-sofa-beds",
+            "description": "U-shaped sofa beds upholstered in faux leather",
+            "order": 1,
+            "subcategories": [
+              {
+                "name": "Recliner > Limited Stock",
+                "slug": "u-shaped-faux-leather-sofa-beds-recliner-limited-stock",
+                "description": "U-shaped faux leather sofa beds with recliner function, limited availability",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Corner Sofas",
+    "slug": "corner-sofas",
+    "description": "L-shaped sofas designed to maximize seating in your living space",
+    "order": 2,
+    "subcategories": [
+      {
+        "name": "L-Shaped Sofas",
+        "slug": "l-shaped-sofas",
+        "description": "Traditional L-configuration corner sofas",
+        "order": 1,
+        "subcategories": [
+          {
+            "name": "Velvet",
+            "slug": "l-shaped-velvet-sofas",
+            "description": "L-shaped sofas with luxurious velvet upholstery",
+            "order": 1,
+            "subcategories": [
+              {
+                "name": "With Storage > In Stock",
+                "slug": "l-shaped-velvet-sofas-with-storage-in-stock",
+                "description": "L-shaped velvet sofas with storage compartments, available now",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Chaise End Sofas",
+        "slug": "chaise-end-sofas",
+        "description": "Corner sofas with a chaise lounge extension",
+        "order": 2,
+        "subcategories": [
+          {
+            "name": "Genuine Leather",
+            "slug": "chaise-end-genuine-leather-sofas",
+            "description": "Chaise end sofas upholstered in genuine leather",
+            "order": 1,
+            "subcategories": [
+              {
+                "name": "Manual Recliner > Pre-Order",
+                "slug": "chaise-end-genuine-leather-manual-recliner-pre-order",
+                "description": "Chaise end genuine leather sofas with manual recliner function, available on pre-order",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "U-Shaped Sofas",
+    "slug": "u-shaped-sofas",
+    "description": "Spacious U-configuration sofas perfect for large family rooms",
+    "order": 3,
+    "subcategories": [
+      {
+        "name": "4 Seater",
+        "slug": "4-seater-u-shaped-sofas",
+        "description": "4-seater U-shaped sofas for medium-sized living rooms",
+        "order": 1,
+        "subcategories": [
+          {
+            "name": "Mixed Materials",
+            "slug": "4-seater-u-shaped-mixed-materials-sofas",
+            "description": "4-seater U-shaped sofas featuring a combination of materials",
+            "order": 1,
+            "subcategories": [
+              {
+                "name": "Customizable > Pre-Order",
+                "slug": "4-seater-u-shaped-mixed-materials-customizable-pre-order",
+                "description": "Customizable 4-seater U-shaped sofas with mixed materials, available on pre-order",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Modular Sofas",
+    "slug": "modular-sofas",
+    "description": "Configurable sofas that can be arranged in multiple layouts",
+    "order": 4,
+    "subcategories": [
+      {
+        "name": "Chaise End",
+        "slug": "modular-chaise-end-sofas",
+        "description": "Modular sofas with chaise end configuration",
+        "order": 1,
+        "subcategories": [
+          {
+            "name": "Velvet",
+            "slug": "modular-chaise-end-velvet-sofas",
+            "description": "Modular chaise end sofas in velvet upholstery",
+            "order": 1,
+            "subcategories": [
+              {
+                "name": "Modular > Pre-Order",
+                "slug": "modular-chaise-end-velvet-modular-pre-order",
+                "description": "Fully modular velvet chaise end sofas, available on pre-order",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Recliner Sofas",
+    "slug": "recliner-sofas",
+    "description": "Comfortable sofas with reclining functionality",
+    "order": 5,
+    "subcategories": [
+      {
+        "name": "3 Seater",
+        "slug": "3-seater-recliner-sofas",
+        "description": "3-seater sofas with recliner function",
+        "order": 1,
+        "subcategories": [
+          {
+            "name": "Faux Leather",
+            "slug": "3-seater-recliner-faux-leather-sofas",
+            "description": "3-seater recliner sofas upholstered in faux leather",
+            "order": 1,
+            "subcategories": [
+              {
+                "name": "Power Recliner > In Stock",
+                "slug": "3-seater-recliner-faux-leather-power-recliner-in-stock",
+                "description": "3-seater faux leather sofas with electric power recliner, in stock now",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Sofa Sets",
+    "slug": "sofa-sets",
+    "description": "Complete matching sofa combinations for coordinated living rooms",
+    "order": 6,
+    "subcategories": [
+      {
+        "name": "3+2 Seater Sets",
+        "slug": "3-2-seater-sets",
+        "description": "Matching 3-seater and 2-seater sofa combinations",
+        "order": 1,
+        "subcategories": [
+          {
+            "name": "Chenille",
+            "slug": "3-2-seater-chenille-sets",
+            "description": "3+2 seater sofa sets upholstered in durable chenille fabric",
+            "order": 1,
+            "subcategories": [
+              {
+                "name": "With Cushions > In Stock",
+                "slug": "3-2-seater-chenille-sets-with-cushions-in-stock",
+                "description": "3+2 seater chenille sofa sets including decorative cushions, available now",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Loveseats & Armchairs",
+    "slug": "loveseats-armchairs",
+    "description": "Compact seating options for smaller spaces or accent pieces",
+    "order": 7,
+    "subcategories": [
+      {
+        "name": "2 Seater",
+        "slug": "2-seater-loveseats",
+        "description": "Cozy 2-seater loveseats perfect for intimate seating",
+        "order": 1,
+        "subcategories": [
+          {
+            "name": "Bouclé",
+            "slug": "2-seater-boucle-loveseats",
+            "description": "2-seater loveseats upholstered in textured bouclé fabric",
+            "order": 1,
+            "subcategories": [
+              {
+                "name": "Without Storage > Clearance Sale",
+                "slug": "2-seater-boucle-loveseats-without-storage-clearance-sale",
+                "description": "2-seater bouclé loveseats without storage, available at clearance prices",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Chesterfield Sofas",
+    "slug": "chesterfield-sofas",
+    "description": "Classic button-tufted sofas with rolled arms and deep seat",
+    "order": 8,
+    "subcategories": [
+      {
+        "name": "3 Seater",
+        "slug": "3-seater-chesterfield-sofas",
+        "description": "Traditional 3-seater Chesterfield sofas",
+        "order": 1,
+        "subcategories": [
+          {
+            "name": "Leather",
+            "slug": "3-seater-leather-chesterfield-sofas",
+            "description": "3-seater Chesterfield sofas upholstered in genuine leather",
+            "order": 1,
+            "subcategories": [
+              {
+                "name": "In Stock",
+                "slug": "3-seater-leather-chesterfield-sofas-in-stock",
+                "description": "Classic 3-seater leather Chesterfield sofas, ready for immediate delivery",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Beds & Spring Boxes",
+    "slug": "beds-spring-boxes",
+    "description": "Premium beds and spring box foundations for optimal sleep",
+    "order": 9,
+    "subcategories": [
+      {
+        "name": "Double",
+        "slug": "double-beds",
+        "description": "Standard double beds to fit smaller bedrooms",
+        "order": 1,
+        "subcategories": [
+          {
+            "name": "Fabric",
+            "slug": "double-fabric-beds",
+            "description": "Double beds with fabric upholstery",
+            "order": 1,
+            "subcategories": [
+              {
+                "name": "Pre-Order",
+                "slug": "double-fabric-beds-pre-order",
+                "description": "Double fabric beds available for pre-order",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Ex-Display & Clearance Sofas",
+    "slug": "ex-display-clearance-sofas",
+    "description": "Discounted sofas from our showroom and clearance inventory",
+    "order": 10,
+    "subcategories": [
+      {
+        "name": "Corner Sofa",
+        "slug": "ex-display-corner-sofa",
+        "description": "Ex-display corner sofas at reduced prices",
+        "order": 1,
+        "subcategories": [
+          {
+            "name": "Mixed Materials",
+            "slug": "ex-display-corner-sofa-mixed-materials",
+            "description": "Ex-display corner sofas with mixed material upholstery",
+            "order": 1,
+            "subcategories": [
+              {
+                "name": "Ex-Display > Limited Stock",
+                "slug": "ex-display-corner-sofa-mixed-materials-limited-stock",
+                "description": "Ex-display corner sofas with mixed materials, limited quantities available",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
