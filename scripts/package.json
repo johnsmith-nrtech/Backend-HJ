@@ -1,0 +1,23 @@
+{
+  "name": "myairbridge-product-uploader",
+  "version": "1.0.0",
+  "description": "Automated product upload script for MyAirBridge products",
+  "main": "upload-myairbridge-products.js",
+  "scripts": {
+    "upload": "node upload-myairbridge-products.js",
+    "test-upload": "node test-upload.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "form-data": "^4.0.0"
+  },
+  "keywords": [
+    "product-upload",
+    "ecommerce",
+    "automation",
+    "sofa-deal"
+  ],
+  "author": "SofaDeal Development Team",
+  "license": "MIT"
+} 

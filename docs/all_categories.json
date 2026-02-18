@@ -1,0 +1,713 @@
+[
+    {
+        "name": "Bedroom Furniture 2",
+        "slug": "bedroom-furniture neq",
+        "description": "Elegant furniture for your bedroom",
+        "created_at": "2025-05-22T08:13:39.468229+00:00",
+        "updated_at": "2025-05-22T08:13:39.468229+00:00",
+        "order": 0,
+        "id": "a9a52307-e05b-40ab-ad3d-0fa7876fed4c",
+        "parent_id": null,
+        "image_url": "https://img.freepik.com/free-photo/3d-rendering-luxury-bedroom-suite-hotel-with-tv-cabinet-wardrobe_105762-2286.jpg?semt=ais_items_boosted&w=740",
+        "featured": false,
+        "subcategories": []
+    },
+    {
+        "name": "Sofa Beds",
+        "slug": "sofa-beds",
+        "description": "Comfortable and stylish convertible sofas that transform into beds",
+        "created_at": "2025-05-20T18:50:19.167604+00:00",
+        "updated_at": "2025-05-20T18:50:19.167604+00:00",
+        "order": 1,
+        "id": "7405b6c7-677d-4299-9bd9-6cf99680d55e",
+        "parent_id": null,
+        "image_url": null,
+        "featured": false,
+        "subcategories": [
+            {
+                "name": "Corner Sofa Beds",
+                "slug": "corner-sofa-beds",
+                "description": "L-shaped sofa beds perfect for maximizing seating and sleeping space",
+                "created_at": "2025-05-20T18:50:19.731478+00:00",
+                "updated_at": "2025-05-20T18:50:19.731478+00:00",
+                "order": 1,
+                "id": "400f9f0b-395e-44ea-a5e5-ea423d316851",
+                "parent_id": "7405b6c7-677d-4299-9bd9-6cf99680d55e",
+                "image_url": null,
+                "featured": false,
+                "subcategories": [
+                    {
+                        "name": "Fabric Sofas",
+                        "slug": "corner-fabric-sofa-beds",
+                        "description": "Corner sofa beds upholstered in premium fabrics",
+                        "created_at": "2025-05-20T18:50:20.260055+00:00",
+                        "updated_at": "2025-05-20T18:50:20.260055+00:00",
+                        "order": 1,
+                        "id": "495fc2f0-51b0-4327-9196-62167e25cec7",
+                        "parent_id": "400f9f0b-395e-44ea-a5e5-ea423d316851",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "With Storage > In Stock",
+                                "slug": "corner-fabric-sofa-beds-with-storage-in-stock",
+                                "description": "Corner fabric sofa beds with built-in storage, available for immediate delivery",
+                                "created_at": "2025-05-20T18:50:20.687826+00:00",
+                                "updated_at": "2025-05-20T18:50:20.687826+00:00",
+                                "order": 1,
+                                "id": "e04a4c4a-8738-4ea4-9c17-d02144155626",
+                                "parent_id": "495fc2f0-51b0-4327-9196-62167e25cec7",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Faux Leather",
+                        "slug": "corner-faux-leather-sofa-beds",
+                        "description": "Corner sofa beds upholstered in high-quality faux leather",
+                        "created_at": "2025-05-20T18:50:20.328195+00:00",
+                        "updated_at": "2025-05-20T18:50:20.328195+00:00",
+                        "order": 2,
+                        "id": "be60aff9-1e25-4f88-8a04-554cb8e46c9a",
+                        "parent_id": "400f9f0b-395e-44ea-a5e5-ea423d316851",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "Recliner > Limited Stock",
+                                "slug": "corner-faux-leather-sofa-beds-recliner-limited-stock",
+                                "description": "Corner faux leather sofa beds with recliner function, limited availability",
+                                "created_at": "2025-05-20T18:50:20.752044+00:00",
+                                "updated_at": "2025-05-20T18:50:20.752044+00:00",
+                                "order": 1,
+                                "id": "cf9ab5d6-c0d5-4cf1-9472-58a18dda65fe",
+                                "parent_id": "be60aff9-1e25-4f88-8a04-554cb8e46c9a",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "U-Shaped Sofa Beds",
+                "slug": "u-shaped-sofa-beds",
+                "description": "Expansive U-shaped sofa beds ideal for large living spaces",
+                "created_at": "2025-05-20T18:50:19.667793+00:00",
+                "updated_at": "2025-05-20T18:50:19.667793+00:00",
+                "order": 2,
+                "id": "d4f86b3e-098f-47a6-aab6-f7b5547b1e45",
+                "parent_id": "7405b6c7-677d-4299-9bd9-6cf99680d55e",
+                "image_url": null,
+                "featured": false,
+                "subcategories": [
+                    {
+                        "name": "Faux Leather",
+                        "slug": "u-shaped-faux-leather-sofa-beds",
+                        "description": "U-shaped sofa beds upholstered in faux leather",
+                        "created_at": "2025-05-20T18:50:20.30334+00:00",
+                        "updated_at": "2025-05-20T18:50:20.30334+00:00",
+                        "order": 1,
+                        "id": "c9ee692d-60e5-423f-b109-4ba38c832be2",
+                        "parent_id": "d4f86b3e-098f-47a6-aab6-f7b5547b1e45",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "Recliner > Limited Stock",
+                                "slug": "u-shaped-faux-leather-sofa-beds-recliner-limited-stock",
+                                "description": "U-shaped faux leather sofa beds with recliner function, limited availability",
+                                "created_at": "2025-05-20T18:50:20.75561+00:00",
+                                "updated_at": "2025-05-20T18:50:20.75561+00:00",
+                                "order": 1,
+                                "id": "b9f90b51-fc2d-4e64-afcf-a3470ae0026f",
+                                "parent_id": "c9ee692d-60e5-423f-b109-4ba38c832be2",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "new cate",
+        "slug": "new-cate-dewr",
+        "description": "asas",
+        "created_at": "2025-05-22T14:45:01.542085+00:00",
+        "updated_at": "2025-05-22T14:45:01.542085+00:00",
+        "order": 2,
+        "id": "9d41f64a-dff5-4afe-b921-ac5f25545ce5",
+        "parent_id": null,
+        "image_url": null,
+        "featured": false,
+        "subcategories": []
+    },
+    {
+        "name": "new cate",
+        "slug": "new-cate",
+        "description": "new des",
+        "created_at": "2025-05-22T08:56:53.182761+00:00",
+        "updated_at": "2025-05-22T08:56:53.182761+00:00",
+        "order": 2,
+        "id": "f87e4233-9dd6-4bf8-b38c-cf1918181988",
+        "parent_id": null,
+        "image_url": null,
+        "featured": false,
+        "subcategories": []
+    },
+    {
+        "name": "Corner Sofas",
+        "slug": "corner-sofas",
+        "description": "L-shaped sofas designed to maximize seating in your living space",
+        "created_at": "2025-05-20T18:51:43.890684+00:00",
+        "updated_at": "2025-05-20T18:51:43.890684+00:00",
+        "order": 2,
+        "id": "945e50b8-3606-473c-961e-b9de946b70f5",
+        "parent_id": null,
+        "image_url": null,
+        "featured": false,
+        "subcategories": [
+            {
+                "name": "L-Shaped Sofas",
+                "slug": "l-shaped-sofas",
+                "description": "Traditional L-configuration corner sofas",
+                "created_at": "2025-05-20T18:51:44.486168+00:00",
+                "updated_at": "2025-05-20T18:51:44.486168+00:00",
+                "order": 1,
+                "id": "77084952-9167-4246-9fb4-06ce5de41150",
+                "parent_id": "945e50b8-3606-473c-961e-b9de946b70f5",
+                "image_url": null,
+                "featured": false,
+                "subcategories": [
+                    {
+                        "name": "Velvet",
+                        "slug": "l-shaped-velvet-sofas",
+                        "description": "L-shaped sofas with luxurious velvet upholstery",
+                        "created_at": "2025-05-20T18:51:44.916346+00:00",
+                        "updated_at": "2025-05-20T18:51:44.916346+00:00",
+                        "order": 1,
+                        "id": "6813bbfb-f6b2-4b71-a413-fc75602d5907",
+                        "parent_id": "77084952-9167-4246-9fb4-06ce5de41150",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "With Storage > In Stock",
+                                "slug": "l-shaped-velvet-sofas-with-storage-in-stock",
+                                "description": "L-shaped velvet sofas with storage compartments, available now",
+                                "created_at": "2025-05-20T18:51:45.354966+00:00",
+                                "updated_at": "2025-05-20T18:51:45.354966+00:00",
+                                "order": 1,
+                                "id": "3edebbb8-45eb-4661-921a-63689dfc1a91",
+                                "parent_id": "6813bbfb-f6b2-4b71-a413-fc75602d5907",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "Chaise End Sofas",
+                "slug": "chaise-end-sofas",
+                "description": "Corner sofas with a chaise lounge extension",
+                "created_at": "2025-05-20T18:51:44.370736+00:00",
+                "updated_at": "2025-05-20T18:51:44.370736+00:00",
+                "order": 2,
+                "id": "061b7ee7-e31c-4c1b-9d7f-320b793b83b8",
+                "parent_id": "945e50b8-3606-473c-961e-b9de946b70f5",
+                "image_url": null,
+                "featured": false,
+                "subcategories": [
+                    {
+                        "name": "Genuine Leather",
+                        "slug": "chaise-end-genuine-leather-sofas",
+                        "description": "Chaise end sofas upholstered in genuine leather",
+                        "created_at": "2025-05-20T18:51:44.797113+00:00",
+                        "updated_at": "2025-05-20T18:51:44.797113+00:00",
+                        "order": 1,
+                        "id": "0902d9ef-2c5c-4908-8865-dacaf2816037",
+                        "parent_id": "061b7ee7-e31c-4c1b-9d7f-320b793b83b8",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "Manual Recliner > Pre-Order",
+                                "slug": "chaise-end-genuine-leather-manual-recliner-pre-order",
+                                "description": "Chaise end genuine leather sofas with manual recliner function, available on pre-order",
+                                "created_at": "2025-05-20T18:51:45.236513+00:00",
+                                "updated_at": "2025-05-20T18:51:45.236513+00:00",
+                                "order": 1,
+                                "id": "f2fabb6d-0400-4ffb-ad0a-ead4f232992f",
+                                "parent_id": "0902d9ef-2c5c-4908-8865-dacaf2816037",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "U-Shaped Sofas",
+        "slug": "u-shaped-sofas",
+        "description": "Spacious U-configuration sofas perfect for large family rooms",
+        "created_at": "2025-05-20T18:51:59.631801+00:00",
+        "updated_at": "2025-05-20T18:51:59.631801+00:00",
+        "order": 3,
+        "id": "839444cc-eee6-4d69-b0cc-ca046a0cd8ed",
+        "parent_id": null,
+        "image_url": null,
+        "featured": false,
+        "subcategories": [
+            {
+                "name": "4 Seater",
+                "slug": "4-seater-u-shaped-sofas",
+                "description": "4-seater U-shaped sofas for medium-sized living rooms",
+                "created_at": "2025-05-20T18:52:00.096852+00:00",
+                "updated_at": "2025-05-20T18:52:00.096852+00:00",
+                "order": 1,
+                "id": "2b043dfb-460e-4784-9ade-eda3bb5a43ae",
+                "parent_id": "839444cc-eee6-4d69-b0cc-ca046a0cd8ed",
+                "image_url": null,
+                "featured": false,
+                "subcategories": [
+                    {
+                        "name": "Mixed Materials",
+                        "slug": "4-seater-u-shaped-mixed-materials-sofas",
+                        "description": "4-seater U-shaped sofas featuring a combination of materials",
+                        "created_at": "2025-05-20T18:52:00.558378+00:00",
+                        "updated_at": "2025-05-20T18:52:00.558378+00:00",
+                        "order": 1,
+                        "id": "1f89b715-9e5e-4472-b5dc-c7a283b7a61a",
+                        "parent_id": "2b043dfb-460e-4784-9ade-eda3bb5a43ae",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "Customizable > Pre-Order",
+                                "slug": "4-seater-u-shaped-mixed-materials-customizable-pre-order",
+                                "description": "Customizable 4-seater U-shaped sofas with mixed materials, available on pre-order",
+                                "created_at": "2025-05-20T18:52:01.352811+00:00",
+                                "updated_at": "2025-05-20T18:52:01.352811+00:00",
+                                "order": 1,
+                                "id": "ed61458f-7176-4fa5-a883-25695b3f6c24",
+                                "parent_id": "1f89b715-9e5e-4472-b5dc-c7a283b7a61a",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Modular Sofas",
+        "slug": "modular-sofas",
+        "description": "Configurable sofas that can be arranged in multiple layouts",
+        "created_at": "2025-05-20T18:52:18.871262+00:00",
+        "updated_at": "2025-05-20T18:52:18.871262+00:00",
+        "order": 4,
+        "id": "72d3b84e-6bd1-4199-a561-ca76c4ae252c",
+        "parent_id": null,
+        "image_url": null,
+        "featured": false,
+        "subcategories": [
+            {
+                "name": "Chaise End",
+                "slug": "modular-chaise-end-sofas",
+                "description": "Modular sofas with chaise end configuration",
+                "created_at": "2025-05-20T18:52:19.401065+00:00",
+                "updated_at": "2025-05-20T18:52:19.401065+00:00",
+                "order": 1,
+                "id": "f5d57585-0233-44bb-b45d-52ad39d22f49",
+                "parent_id": "72d3b84e-6bd1-4199-a561-ca76c4ae252c",
+                "image_url": null,
+                "featured": false,
+                "subcategories": [
+                    {
+                        "name": "Velvet",
+                        "slug": "modular-chaise-end-velvet-sofas",
+                        "description": "Modular chaise end sofas in velvet upholstery",
+                        "created_at": "2025-05-20T18:52:20.107263+00:00",
+                        "updated_at": "2025-05-20T18:52:20.107263+00:00",
+                        "order": 1,
+                        "id": "5c5a1313-03bd-4831-8b80-b2e566bf67d6",
+                        "parent_id": "f5d57585-0233-44bb-b45d-52ad39d22f49",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "Modular > Pre-Order",
+                                "slug": "modular-chaise-end-velvet-modular-pre-order",
+                                "description": "Fully modular velvet chaise end sofas, available on pre-order",
+                                "created_at": "2025-05-20T18:52:20.647018+00:00",
+                                "updated_at": "2025-05-20T18:52:20.647018+00:00",
+                                "order": 1,
+                                "id": "299048e1-6ad5-4ab2-93d0-bb4268348f52",
+                                "parent_id": "5c5a1313-03bd-4831-8b80-b2e566bf67d6",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Recliner Sofas",
+        "slug": "recliner-sofas",
+        "description": "Comfortable sofas with reclining functionality",
+        "created_at": "2025-05-20T18:52:29.944089+00:00",
+        "updated_at": "2025-05-20T18:52:29.944089+00:00",
+        "order": 5,
+        "id": "bafaaf6a-5f8f-4c05-bce2-664e224447ea",
+        "parent_id": null,
+        "image_url": null,
+        "featured": false,
+        "subcategories": [
+            {
+                "name": "3 Seater",
+                "slug": "3-seater-recliner-sofas",
+                "description": "3-seater sofas with recliner function",
+                "created_at": "2025-05-20T18:52:30.369515+00:00",
+                "updated_at": "2025-05-20T18:52:30.369515+00:00",
+                "order": 1,
+                "id": "b37a61e8-e52f-45d1-85a0-68119dd526f9",
+                "parent_id": "bafaaf6a-5f8f-4c05-bce2-664e224447ea",
+                "image_url": null,
+                "featured": false,
+                "subcategories": [
+                    {
+                        "name": "Faux Leather",
+                        "slug": "3-seater-recliner-faux-leather-sofas",
+                        "description": "3-seater recliner sofas upholstered in faux leather",
+                        "created_at": "2025-05-20T18:52:30.773998+00:00",
+                        "updated_at": "2025-05-20T18:52:30.773998+00:00",
+                        "order": 1,
+                        "id": "9188a1bb-7e83-4453-99e0-4d44fc4f16d6",
+                        "parent_id": "b37a61e8-e52f-45d1-85a0-68119dd526f9",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "Power Recliner > In Stock",
+                                "slug": "3-seater-recliner-faux-leather-power-recliner-in-stock",
+                                "description": "3-seater faux leather sofas with electric power recliner, in stock now",
+                                "created_at": "2025-05-20T18:52:31.195353+00:00",
+                                "updated_at": "2025-05-20T18:52:31.195353+00:00",
+                                "order": 1,
+                                "id": "dc16a6dc-8a46-4e94-95e0-bb0cd3bf10f8",
+                                "parent_id": "9188a1bb-7e83-4453-99e0-4d44fc4f16d6",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Sofa Sets",
+        "slug": "sofa-sets",
+        "description": "Complete matching sofa combinations for coordinated living rooms",
+        "created_at": "2025-05-20T18:52:42.530996+00:00",
+        "updated_at": "2025-05-20T18:52:42.530996+00:00",
+        "order": 6,
+        "id": "7b523d62-056e-4d76-a600-acc92e34c1df",
+        "parent_id": null,
+        "image_url": null,
+        "featured": false,
+        "subcategories": [
+            {
+                "name": "3+2 Seater Sets",
+                "slug": "3-2-seater-sets",
+                "description": "Matching 3-seater and 2-seater sofa combinations",
+                "created_at": "2025-05-20T18:52:42.978024+00:00",
+                "updated_at": "2025-05-20T18:52:42.978024+00:00",
+                "order": 1,
+                "id": "8ac96cb3-aab1-4c39-a15b-848f09b18ff1",
+                "parent_id": "7b523d62-056e-4d76-a600-acc92e34c1df",
+                "image_url": null,
+                "featured": false,
+                "subcategories": [
+                    {
+                        "name": "Chenille",
+                        "slug": "3-2-seater-chenille-sets",
+                        "description": "3+2 seater sofa sets upholstered in durable chenille fabric",
+                        "created_at": "2025-05-20T18:52:43.480605+00:00",
+                        "updated_at": "2025-05-20T18:52:43.480605+00:00",
+                        "order": 1,
+                        "id": "ef1f735d-e301-4fe5-89b6-14a25d7cdb27",
+                        "parent_id": "8ac96cb3-aab1-4c39-a15b-848f09b18ff1",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "With Cushions > In Stock",
+                                "slug": "3-2-seater-chenille-sets-with-cushions-in-stock",
+                                "description": "3+2 seater chenille sofa sets including decorative cushions, available now",
+                                "created_at": "2025-05-20T18:52:43.993709+00:00",
+                                "updated_at": "2025-05-20T18:52:43.993709+00:00",
+                                "order": 1,
+                                "id": "ea8b4433-2c43-47f5-baf6-ac329c1e2510",
+                                "parent_id": "ef1f735d-e301-4fe5-89b6-14a25d7cdb27",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Loveseats & Armchairs",
+        "slug": "loveseats-armchairs",
+        "description": "Compact seating options for smaller spaces or accent pieces",
+        "created_at": "2025-05-20T18:52:54.300581+00:00",
+        "updated_at": "2025-05-20T18:52:54.300581+00:00",
+        "order": 7,
+        "id": "162a62f1-2c55-4398-8575-4838c980d283",
+        "parent_id": null,
+        "image_url": null,
+        "featured": false,
+        "subcategories": [
+            {
+                "name": "2 Seater",
+                "slug": "2-seater-loveseats",
+                "description": "Cozy 2-seater loveseats perfect for intimate seating",
+                "created_at": "2025-05-20T18:52:54.781291+00:00",
+                "updated_at": "2025-05-20T18:52:54.781291+00:00",
+                "order": 1,
+                "id": "9fc48001-8d9c-435e-963f-73a18d36484b",
+                "parent_id": "162a62f1-2c55-4398-8575-4838c980d283",
+                "image_url": null,
+                "featured": false,
+                "subcategories": [
+                    {
+                        "name": "Bouclé",
+                        "slug": "2-seater-boucle-loveseats",
+                        "description": "2-seater loveseats upholstered in textured bouclé fabric",
+                        "created_at": "2025-05-20T18:52:55.210304+00:00",
+                        "updated_at": "2025-05-20T18:52:55.210304+00:00",
+                        "order": 1,
+                        "id": "f96a149f-585f-4375-8d12-db152c6223fc",
+                        "parent_id": "9fc48001-8d9c-435e-963f-73a18d36484b",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "Without Storage > Clearance Sale",
+                                "slug": "2-seater-boucle-loveseats-without-storage-clearance-sale",
+                                "description": "2-seater bouclé loveseats without storage, available at clearance prices",
+                                "created_at": "2025-05-20T18:52:55.742859+00:00",
+                                "updated_at": "2025-05-20T18:52:55.742859+00:00",
+                                "order": 1,
+                                "id": "9b420a42-2f64-472d-a988-c09f87171484",
+                                "parent_id": "f96a149f-585f-4375-8d12-db152c6223fc",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Chesterfield Sofas",
+        "slug": "chesterfield-sofas",
+        "description": "Classic button-tufted sofas with rolled arms and deep seat",
+        "created_at": "2025-05-20T18:53:04.528104+00:00",
+        "updated_at": "2025-05-20T18:53:04.528104+00:00",
+        "order": 8,
+        "id": "86f1f3c2-2431-4b69-92a1-1e10680361aa",
+        "parent_id": null,
+        "image_url": null,
+        "featured": false,
+        "subcategories": [
+            {
+                "name": "3 Seater",
+                "slug": "3-seater-chesterfield-sofas",
+                "description": "Traditional 3-seater Chesterfield sofas",
+                "created_at": "2025-05-20T18:53:04.977533+00:00",
+                "updated_at": "2025-05-20T18:53:04.977533+00:00",
+                "order": 1,
+                "id": "513962ea-1cd1-44c3-b9d6-14fed3beec9c",
+                "parent_id": "86f1f3c2-2431-4b69-92a1-1e10680361aa",
+                "image_url": null,
+                "featured": false,
+                "subcategories": [
+                    {
+                        "name": "Leather",
+                        "slug": "3-seater-leather-chesterfield-sofas",
+                        "description": "3-seater Chesterfield sofas upholstered in genuine leather",
+                        "created_at": "2025-05-20T18:53:05.449663+00:00",
+                        "updated_at": "2025-05-20T18:53:05.449663+00:00",
+                        "order": 1,
+                        "id": "47819ef5-f9ca-4952-af1f-4bfe21291d86",
+                        "parent_id": "513962ea-1cd1-44c3-b9d6-14fed3beec9c",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "In Stock",
+                                "slug": "3-seater-leather-chesterfield-sofas-in-stock",
+                                "description": "Classic 3-seater leather Chesterfield sofas, ready for immediate delivery",
+                                "created_at": "2025-05-20T18:53:07.527148+00:00",
+                                "updated_at": "2025-05-20T18:53:07.527148+00:00",
+                                "order": 1,
+                                "id": "e4d9d2e2-a729-4c6a-97a9-c3d9476ae2e7",
+                                "parent_id": "47819ef5-f9ca-4952-af1f-4bfe21291d86",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Beds & Spring Boxes",
+        "slug": "beds-spring-boxes",
+        "description": "Premium beds and spring box foundations for optimal sleep",
+        "created_at": "2025-05-20T18:53:13.889909+00:00",
+        "updated_at": "2025-05-20T18:53:13.889909+00:00",
+        "order": 9,
+        "id": "af1758c8-2765-4e09-bbb0-5309f6293b6b",
+        "parent_id": null,
+        "image_url": null,
+        "featured": false,
+        "subcategories": [
+            {
+                "name": "Double",
+                "slug": "double-beds",
+                "description": "Standard double beds to fit smaller bedrooms",
+                "created_at": "2025-05-20T18:53:14.472514+00:00",
+                "updated_at": "2025-05-20T18:53:14.472514+00:00",
+                "order": 1,
+                "id": "4241392b-862d-4387-909c-04d7c5f24f35",
+                "parent_id": "af1758c8-2765-4e09-bbb0-5309f6293b6b",
+                "image_url": null,
+                "featured": false,
+                "subcategories": [
+                    {
+                        "name": "Fabric",
+                        "slug": "double-fabric-beds",
+                        "description": "Double beds with fabric upholstery",
+                        "created_at": "2025-05-20T18:53:15.002823+00:00",
+                        "updated_at": "2025-05-20T18:53:15.002823+00:00",
+                        "order": 1,
+                        "id": "92bf6269-2080-4b94-b3b2-730bccf3fef7",
+                        "parent_id": "4241392b-862d-4387-909c-04d7c5f24f35",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "Pre-Order",
+                                "slug": "double-fabric-beds-pre-order",
+                                "description": "Double fabric beds available for pre-order",
+                                "created_at": "2025-05-20T18:53:15.517933+00:00",
+                                "updated_at": "2025-05-20T18:53:15.517933+00:00",
+                                "order": 1,
+                                "id": "19a2305f-02d0-43d9-8c53-f9e0990b0e79",
+                                "parent_id": "92bf6269-2080-4b94-b3b2-730bccf3fef7",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Ex-Display & Clearance Sofas",
+        "slug": "ex-display-clearance-sofas",
+        "description": "Discounted sofas from our showroom and clearance inventory",
+        "created_at": "2025-05-20T18:53:23.559631+00:00",
+        "updated_at": "2025-05-20T18:53:23.559631+00:00",
+        "order": 10,
+        "id": "553ea8a9-e213-4278-bc5c-468fc8178e08",
+        "parent_id": null,
+        "image_url": null,
+        "featured": false,
+        "subcategories": [
+            {
+                "name": "Corner Sofa",
+                "slug": "ex-display-corner-sofa",
+                "description": "Ex-display corner sofas at reduced prices",
+                "created_at": "2025-05-20T18:53:24.04792+00:00",
+                "updated_at": "2025-05-20T18:53:24.04792+00:00",
+                "order": 1,
+                "id": "188119f8-965a-4611-a678-e5e0b8502323",
+                "parent_id": "553ea8a9-e213-4278-bc5c-468fc8178e08",
+                "image_url": null,
+                "featured": false,
+                "subcategories": [
+                    {
+                        "name": "Mixed Materials",
+                        "slug": "ex-display-corner-sofa-mixed-materials",
+                        "description": "Ex-display corner sofas with mixed material upholstery",
+                        "created_at": "2025-05-20T18:53:24.842457+00:00",
+                        "updated_at": "2025-05-20T18:53:24.842457+00:00",
+                        "order": 1,
+                        "id": "bde12be8-457a-47a4-858d-472a6aa68972",
+                        "parent_id": "188119f8-965a-4611-a678-e5e0b8502323",
+                        "image_url": null,
+                        "featured": false,
+                        "subcategories": [
+                            {
+                                "name": "Ex-Display > Limited Stock",
+                                "slug": "ex-display-corner-sofa-mixed-materials-limited-stock",
+                                "description": "Ex-display corner sofas with mixed materials, limited quantities available",
+                                "created_at": "2025-05-20T18:53:25.344966+00:00",
+                                "updated_at": "2025-05-20T18:53:25.344966+00:00",
+                                "order": 1,
+                                "id": "c4880c8c-fc21-4ef5-a1f3-a2bbd3de98dc",
+                                "parent_id": "bde12be8-457a-47a4-858d-472a6aa68972",
+                                "image_url": null,
+                                "featured": false,
+                                "subcategories": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Bedroom Furniture test",
+        "slug": "bedroom-furniture",
+        "description": "Elegant furniture for your bedroom added for testing",
+        "created_at": "2025-07-02T06:11:54.563672+00:00",
+        "updated_at": "2025-07-02T06:11:54.563672+00:00",
+        "order": 12,
+        "id": "a6cd3e2b-c966-4cb3-833a-09fd82dad828",
+        "parent_id": null,
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUiivoU3GOQ57zitrXs_SjVPjUITCqVLkE7A&s",
+        "featured": true,
+        "subcategories": []
+    }
+]
