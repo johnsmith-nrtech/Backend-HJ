@@ -25,7 +25,6 @@ import { ProductCsvRow } from './entities/product-csv-row.entity';
 import { ProductImportResultDto } from './dto/product-import.dto';
 import { ImageOptimizationService } from '../../common/services/image-optimization.service';
 import * as fs from 'fs';
-import { Discount } from '../discounts/entities/discount.entity';
 
 // Define interfaces for category objects with parent relationships
 interface CategoryWithParent extends Category {
@@ -828,7 +827,7 @@ export class ProductsService {
         .getClient()
         .from('products')
         .select(
-          'id, name, category_id, base_price, discount_offer, created_at, main_image:product_images!inner(id, url, type, order)',
+          'id, name, category_id, base_price, created_at, main_image:product_images!inner(id, url, type, order)',
         )
         .in('id', featuredProductIds)
         .eq('product_images.type', 'main') // Only get main images
@@ -853,7 +852,7 @@ export class ProductsService {
           .getClient()
           .from('product_variants')
           .select(
-            'id, product_id, sku, price, discount_offer, color, size, stock, featured, assemble_charges, delivery_time_days',
+            'id, product_id, sku, price, color, size, stock, featured, assemble_charges, delivery_time_days',
           )
           .in('product_id', productIds)
           .order('featured', { ascending: false }) // Featured variants first
@@ -1306,7 +1305,7 @@ export class ProductsService {
       sku: defaultSku,
       price:
         createProductDto.base_price > 0 ? createProductDto.base_price : null,
-      discount_offer: createProductDto.discount_offer || 0,
+        discount_offer: createProductDto.discount_offer || null,
       color: createProductDto.default_color || null,
       size: createProductDto.default_size || null,
       stock: createProductDto.initial_stock || 0,
@@ -2971,7 +2970,7 @@ export class ProductsService {
           WHERE 
             p.is_visible = true ${timeConstraint}
           GROUP BY 
-            p.id, p.name, p.base_price, p.discount_offer, p.category_id
+            p.id, p.name, p.base_price, p.category_id
           ORDER BY 
             total_units_sold DESC
           LIMIT ${limit}
@@ -3020,7 +3019,7 @@ export class ProductsService {
         await this.supabaseService
           .getClient()
           .from('product_variants')
-          .select('id, product_id, sku, price, discount_offer, color, size, stock, featured')
+          .select('id, product_id, sku, price, color, size, stock, featured')
           .in('product_id', productIds)
           .order('created_at', { ascending: true });
 
@@ -3074,7 +3073,6 @@ export class ProductsService {
             name: product.name,
             category_id: product.category_id,
             base_price: product.base_price,
-            discount_offer: product.discount_offer,
             main_image: mainImage
               ? {
                   id: mainImage.id,
@@ -3170,7 +3168,7 @@ export class ProductsService {
         .getClient()
         .from('products')
         .select(
-          'id, name, category_id, base_price, discount_offer, created_at, main_image:product_images!inner(id, url, type, order)',
+          'id, name, category_id, base_price, discount_offer,  created_at, main_image:product_images!inner(id, url, type, order)',
         )
         .eq('product_images.type', 'main') // Only get main images
         .eq('is_visible', true) // Only show visible products
@@ -3204,7 +3202,7 @@ export class ProductsService {
         await this.supabaseService
           .getClient()
           .from('product_variants')
-          .select('id, product_id, sku, price, discount_offer, color, size, stock, featured')
+          .select('id, product_id, sku, price, color, size, stock, featured')
           .in('product_id', productIds)
           .order('featured', { ascending: false }) // Featured variants first
           .order('created_at', { ascending: true });
@@ -3255,7 +3253,6 @@ export class ProductsService {
             name: product.name,
             category_id: product.category_id,
             base_price: product.base_price,
-            discount_offer: product.discount_offer,
             created_at: product.created_at,
             main_image: mainImage
               ? {
@@ -3844,13 +3841,6 @@ export class ProductsService {
           throw new Error('Valid base price is required');
         }
 
-        if (!row.discount_offer || isNaN(parseFloat(row.discount_offer.toString()))) {
-          console.error(
-            `Validation failed for "${row.name}": Invalid discount offer`,
-          );
-          throw new Error('Valid discount offer is required');
-        }
-
         // Check for stock
         if (!row.stock || isNaN(parseInt(row.stock.toString()))) {
           console.error(
@@ -3904,7 +3894,6 @@ export class ProductsService {
             name: row.name,
             description: row.description || null,
             base_price: parseFloat(row.base_price.toString()),
-            discount_offer: row.discount_offer ? parseFloat(row.discount_offer.toString()) : null,
             category_id: categoryId,
           };
 
