@@ -76,6 +76,19 @@ export class UpdateProductDto {
   base_price?: number;
 
   /**
+   * Discount_Offer of the product
+   */
+  @ApiProperty({
+    description: 'Discount Offer of the product',
+    example: 10.5,
+    required: false,
+  })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @IsOptional()
+  discount_offer?: number;
+
+  /**
    * Delivery information
    */
   @ApiProperty({

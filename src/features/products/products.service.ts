@@ -904,6 +904,7 @@ export class ProductsService {
             name: product.name,
             category_id: product.category_id,
             base_price: product.base_price,
+            discount_offer: product.discount_offer,
             main_image: mainImage
               ? {
                   id: mainImage.id,
@@ -1269,6 +1270,7 @@ export class ProductsService {
         description: createProductDto.description,
         category_id: createProductDto.category_id,
         base_price: createProductDto.base_price,
+        discount_offer: createProductDto.discount_offer,
       })
       .select()
       .single();
@@ -1303,6 +1305,7 @@ export class ProductsService {
       sku: defaultSku,
       price:
         createProductDto.base_price > 0 ? createProductDto.base_price : null,
+        discount_offer: createProductDto.discount_offer || null,
       color: createProductDto.default_color || null,
       size: createProductDto.default_size || null,
       stock: createProductDto.initial_stock || 0,
@@ -1500,6 +1503,9 @@ export class ProductsService {
         }),
         ...(updateProductDto.base_price !== undefined && {
           base_price: updateProductDto.base_price,
+        }),
+        ...(updateProductDto.discount_offer !== undefined && {
+          discount_offer: updateProductDto.discount_offer,
         }),
         ...(updateProductDto.tags !== undefined && {
           tags: updateProductDto.tags,
@@ -2951,6 +2957,7 @@ export class ProductsService {
             p.id, 
             p.name, 
             p.base_price,
+            p.discount_offer,
             p.category_id,
             COUNT(oi.id) as order_count,
             SUM(oi.quantity) as total_units_sold
@@ -2993,7 +3000,7 @@ export class ProductsService {
           .getClient()
           .from('products')
           .select(
-            'id, name, category_id, base_price, main_image:product_images!inner(id, url, type, order)',
+            'id, name, category_id, base_price, discount_offer, main_image:product_images!inner(id, url, type, order)',
           )
           .in('id', productIds)
           .eq('is_visible', true) // Only show visible products
@@ -3161,7 +3168,7 @@ export class ProductsService {
         .getClient()
         .from('products')
         .select(
-          'id, name, category_id, base_price, created_at, main_image:product_images!inner(id, url, type, order)',
+          'id, name, category_id, base_price, discount_offer,  created_at, main_image:product_images!inner(id, url, type, order)',
         )
         .eq('product_images.type', 'main') // Only get main images
         .eq('is_visible', true) // Only show visible products

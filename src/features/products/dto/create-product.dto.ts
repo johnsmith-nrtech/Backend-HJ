@@ -100,6 +100,18 @@ export class CreateProductDto {
   @Min(0)
   base_price: number;
 
+   /**
+   * Discount offer for the product (in percentage)
+   */
+  @ApiProperty({
+    description: 'Discount offer for the product (in percentage)',
+    example: 15.0,
+    required: true,
+  })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  discount_offer: number;
+
   /**
    * Delivery information
    */

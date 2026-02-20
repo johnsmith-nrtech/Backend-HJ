@@ -6,13 +6,17 @@ import {
 } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CartItemDto, UpdateCartItemDto } from './dto';
+import { MailService } from '../mail/mail.service';
+
 
 @Injectable()
 export class CartService {
   private readonly logger = new Logger(CartService.name);
 
-  constructor(private readonly supabaseService: SupabaseService) {}
-
+  constructor(private readonly supabaseService: SupabaseService,
+              private readonly mailService: MailService,
+              ) {}
+  
   /**
    * Get cart items for authenticated user with detailed variant and product information
    */
@@ -23,8 +27,7 @@ export class CartService {
       const cartId = await this.getOrCreateUserCart(userId);
 
       // Remove items from cart that have been purchased in paid orders
-      //? Why this method was addded??? Why can't a user purchase the same item again???
-      // await this.removePurchasedItemsFromCart(userId, cartId);
+      await this.removePurchasedItemsFromCart(userId, cartId);
 
       // Fetch cart items with detailed variant and product information
       const { data: items, error: itemsError } = await supabase
@@ -365,102 +368,101 @@ export class CartService {
     }
   }
 
+  private isOlderThan24Hours(date: string): boolean {
+  const createdAt = new Date(date).getTime();
+  const now = Date.now();
+  const diffHours = (now - createdAt) / (1000 * 60 * 60);
+  return diffHours >= 24;
+}
+
+
   /**
    * Sync cart with server
    */
-  async syncCart(userId: string, items: CartItemDto[]) {
-    try {
-      const supabase = this.supabaseService.getClient();
+async syncCart(userId: string, items: CartItemDto[]) {
+  const supabase = this.supabaseService.getClient();
 
-      // Verify that all product variants exist and have enough stock.
-      for (const item of items) {
-        const { data: variant, error: variantError } = await supabase
-          .from('product_variants')
-          .select('id, stock')
-          .eq('id', item.variant_id)
-          .single();
+  // 1️⃣ Validate stock
+  for (const item of items) {
+    const { data: variant } = await supabase
+      .from('product_variants')
+      .select('id, stock')
+      .eq('id', item.variant_id)
+      .single();
 
-        if (variantError || !variant) {
-          throw new NotFoundException(
-            `Product variant not found: ${item.variant_id}`,
-          );
-        }
-
-        // Check stock availability
-        if (variant.stock < item.quantity) {
-          throw new BadRequestException(
-            `Not enough stock available for variant ${item.variant_id}. Available: ${variant.stock}`,
-          );
-        }
-      }
-
-      // Get or create the user's cart
-      const cartId = await this.getOrCreateUserCart(userId);
-
-      // If variant exists in cart, update quantity; else add new item
-      for (const item of items) {
-        const { data: existingItem, error: existingError } = await supabase
-          .from('cart_items')
-          .select('id, quantity')
-          .eq('cart_id', cartId)
-          .eq('variant_id', item.variant_id)
-          .maybeSingle();
-
-        if (existingError) {
-          this.logger.error(
-            `Error checking existing item during sync: ${existingError.message}`,
-          );
-          throw new BadRequestException('Failed to check existing cart item');
-        }
-
-        if (existingItem) {
-          // Update existing item quantity
-          const { error: updateError } = await supabase
-            .from('cart_items')
-            .update({
-              quantity: item.quantity,
-              updated_at: new Date().toISOString(),
-              assembly_required: item.assembly_required ?? false,
-            })
-            .eq('id', existingItem.id)
-            .select('id, cart_id, variant_id, quantity, created_at, updated_at')
-            .single();
-
-          if (updateError) {
-            this.logger.error(
-              `Error updating cart item during sync: ${updateError.message}`,
-            );
-            throw new BadRequestException('Failed to update cart item');
-          }
-        } else {
-          // Add new item to cart
-          const { error: addError } = await supabase
-            .from('cart_items')
-            .insert({
-              cart_id: cartId,
-              variant_id: item.variant_id,
-              quantity: item.quantity,
-              assembly_required: item.assembly_required ?? false,
-            })
-            .single();
-
-          if (addError) {
-            this.logger.error(
-              `Error adding to cart during sync: ${addError.message}`,
-            );
-            throw new BadRequestException('Failed to add item to cart');
-          }
-        }
-      }
-
-      return {
-        success: true,
-        message: 'Cart synced successfully',
-      };
-    } catch (error) {
-      console.log(error);
+    if (!variant || variant.stock < item.quantity) {
+      throw new BadRequestException('Stock issue');
     }
   }
+
+  // 2️⃣ Get or create cart
+  const cartId = await this.getOrCreateUserCart(userId);
+
+  // 3️⃣ Sync items
+  for (const item of items) {
+    const { data: existingItem } = await supabase
+      .from('cart_items')
+      .select('id')
+      .eq('cart_id', cartId)
+      .eq('variant_id', item.variant_id)
+      .maybeSingle();
+
+    if (existingItem) {
+      await supabase.from('cart_items').update({
+        quantity: item.quantity,
+        assembly_required: item.assembly_required ?? false,
+        updated_at: new Date().toISOString(),
+      }).eq('id', existingItem.id);
+    } else {
+      await supabase.from('cart_items').insert({
+        cart_id: cartId,
+        variant_id: item.variant_id,
+        quantity: item.quantity,
+        assembly_required: item.assembly_required ?? false,
+      });
+    }
+  }
+
+  // 4️⃣ Fetch cart items
+  const { data: cartItems } = await supabase
+    .from('cart_items')
+    .select('id, created_at')
+    .eq('cart_id', cartId);
+
+  // 5️⃣ Check for items older than 24h
+  const hasOldItem =
+    cartItems &&
+    cartItems.length >= 1 &&
+    cartItems.some(item => this.isOlderThan24Hours(item.created_at));
+
+  if (hasOldItem) {
+    // get user info
+    const { data: user } = await supabase
+      .from('users')
+      .select('email, name')
+      .eq('id', userId)
+      .single();
+
+    if (user?.email) {
+      const cartUrl = `${process.env.FRONTEND_URL}/cart`;
+
+      // ✅ Use MailService properly
+      await this.mailService.sendAbandonedCartEmail(
+        user.email,
+        user.name ?? 'Customer',
+        cartUrl
+      );
+    }
+  }
+
+  return {
+    success: true,
+    message: 'Cart synced successfully',
+  };
+}
+
+
+
 
   /**
    * @private

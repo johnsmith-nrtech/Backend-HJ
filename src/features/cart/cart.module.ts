@@ -3,17 +3,16 @@ import { SupabaseModule } from '../supabase/supabase.module';
 import { CartController } from './cart.controller';
 import { CartService } from './cart.service';
 import { AuthModule } from '../auth/auth.module';
+import { MailModule } from '../mail/mail.module'; // 👈 import MailModule
 
-/**
- * Cart module for handling shopping cart functionality for both authenticated and guest users
- */
 @Module({
   imports: [
     SupabaseModule,
-    AuthModule, // For auth guards and service
+    AuthModule,
+    MailModule, // 👈 now MailService will be available
   ],
   controllers: [CartController],
   providers: [CartService],
   exports: [CartService],
 })
-export class CartModule {} 
+export class CartModule {}

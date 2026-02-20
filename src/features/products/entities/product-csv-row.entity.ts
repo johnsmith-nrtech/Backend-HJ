@@ -7,6 +7,7 @@ export interface ProductCsvRow {
   name: string;
   description?: string;
   base_price: number;
+  discount_offer?: number; // New field for discount offer
   
   // Category information (can be name or path)
   category_name: string; // Category name with optional path e.g. "Furniture/Living Room/Sofas"

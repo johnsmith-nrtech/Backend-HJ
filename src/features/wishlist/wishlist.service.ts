@@ -95,7 +95,7 @@ export class WishlistService {
    */
   async getUserWishlist(userId: string) {
     try {
-      this.logger.log(`Getting wishlist for user ID: ${userId}`);
+      // this.logger.log(`Getting wishlist for user ID: ${userId}`);
       const supabase = this.supabaseService.getClient();
       
       // Fetch wishlist items with detailed variant and product information

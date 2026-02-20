@@ -65,6 +65,20 @@ export class CreateVariantDto {
   @Type(() => Number)
   price?: number;
 
+
+  /**
+   * Discount of this specific variant (overrides base discount if set)
+   */
+  @ApiProperty({
+    description: 'Discount of this specific variant (overrides base discount if set)',
+    example: 10.5,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  @Type(() => Number)
+  discount_offer?: number;
   /**
    * Original/Compare price for showing discounts
    */

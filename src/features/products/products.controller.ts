@@ -331,6 +331,7 @@ export class ProductsController {
             example: '123e4567-e89b-12d3-a456-426614174111',
           },
           base_price: { type: 'number', example: 799.99 },
+          discount_offer: { type: 'number', example: 10.5 },
           created_at: { type: 'string', example: '2023-12-01T10:30:00Z' },
           main_image: {
             type: 'object',
@@ -354,6 +355,7 @@ export class ProductsController {
               },
               sku: { type: 'string', example: 'SOFA-001-RED-L' },
               price: { type: 'number', example: 899.99 },
+              discount_offer: { type: 'number', example: 10.5 },
               color: { type: 'string', example: 'Red' },
               size: { type: 'string', example: 'Large' },
               stock: { type: 'number', example: 10 },
