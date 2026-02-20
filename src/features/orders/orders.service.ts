@@ -1359,6 +1359,10 @@ export class OrdersService {
         );
       }
 
+       let discountAmount = createPaymentDto.discount_amount || 0;
+    let couponCode = createPaymentDto.coupon_code;
+    
+
       // Step 2: Create order record
       const order = await this.createOrderRecord(
         createPaymentDto,
@@ -1366,6 +1370,8 @@ export class OrdersService {
         zone,
         totalAmount,
         userId,
+        discountAmount,  // ← PASS DISCOUNT AMOUNT
+      couponCode,      // ← PASS COUPON CODE
       );
 
       // Step 3: Create order items
@@ -1484,12 +1490,18 @@ export class OrdersService {
         );
       }
 
+      let discountAmount = createPaymentDto.discount_amount || 0;
+    let couponCode = createPaymentDto.coupon_code;
+
+
       const order = await this.createOrderRecord(
         createPaymentDto,
         floor,
         zone,
         totalAmount,
         userId,
+        discountAmount,  // ← PASS DISCOUNT AMOUNT
+      couponCode,      // ← PASS COUPON CODE
       );
       await this.createOrderItems(
         order.id,
@@ -1650,6 +1662,8 @@ export class OrdersService {
     zone: { zone_name: string; zip_code: string; delivery_charges: number },
     totalAmount: number,
     userId?: string | null,
+    discountAmount?: number, // ADD THIS PARAMETER
+    couponCode?: string,     // ADD THIS PARAMETER
   ) {
     const billingAddress = createPaymentDto.use_different_billing_address
       ? createPaymentDto.billing_address
@@ -1666,7 +1680,8 @@ export class OrdersService {
         createPaymentDto.use_different_billing_address,
       order_notes: createPaymentDto.order_notes,
       total_amount: totalAmount,
-      discount_amount: 0, // Phase 1: No discounts
+      discount_amount: discountAmount || 0, // ← FIXED: Use the passed discount amount
+      coupon_code: couponCode || null,      // ← ADD THIS
       shipping_cost: 0, // Phase 1: No shipping
       tax_amount: 0, // Phase 1: No tax
       status: 'pending',
