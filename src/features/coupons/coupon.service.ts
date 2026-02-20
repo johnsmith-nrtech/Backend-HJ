@@ -129,17 +129,34 @@ export class CouponService {
     return data;
   }
 
-  // Increment used count after successful order
   async incrementUsedCount(id: string) {
-    const { error } = await this.supabaseAdmin
-      .from('coupons')
-      .update({ 
-        used_count: this.supabaseAdmin.rpc('increment', { amount: 1 }) 
-      })
-      .eq('id', id);
+  console.log('🔥 INCREMENT CALLED FOR ID:', id);
+  
+  // First fetch current value
+  const { data: coupon, error: fetchError } = await this.supabaseAdmin
+    .from('coupons')
+    .select('used_count')
+    .eq('id', id)
+    .single();
 
-    if (error) throw new BadRequestException(error.message);
+  if (fetchError || !coupon) {
+    throw new BadRequestException('Coupon not found');
   }
+
+  console.log('📊 Current used_count:', coupon.used_count);
+
+  const { error } = await this.supabaseAdmin
+    .from('coupons')
+    .update({ 
+      used_count: (coupon.used_count || 0) + 1,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id);
+
+  if (error) throw new BadRequestException(error.message);
+  
+  console.log('✅ used_count incremented to:', (coupon.used_count || 0) + 1);
+}
 
   // Validate coupon without applying
   async validateCoupon(code: string) {

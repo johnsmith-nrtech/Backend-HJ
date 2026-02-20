@@ -27,6 +27,7 @@ import { Request } from 'express';
 import { Floor } from '../floor/entities/floor.entity';
 import { Zone } from '../zones/entities/zones.entity';
 import { ZonesService } from '../zones/zones.service';
+import { CouponService } from '../coupons/coupon.service'; 
 // Import other necessary services like ProductsService, CartService if needed for logic
 
 /**
@@ -117,6 +118,7 @@ export class OrdersService {
     private readonly configService: ConfigService,
     private readonly mailService: MailService,
     private readonly zonesService: ZonesService,
+    private readonly couponService: CouponService,
     // private readonly productsService: ProductsService, // Example
     // private readonly cartService: CartService,       // Example
   ) {}
@@ -1374,6 +1376,25 @@ export class OrdersService {
       couponCode,      // ← PASS COUPON CODE
       );
 
+      if (couponCode && discountAmount > 0) {
+  try {
+    // Get coupon ID
+    const { data: coupon } = await this.supabaseService
+      .getClient()
+      .from('coupons')
+      .select('id')
+      .eq('code', couponCode)
+      .single();
+      
+    if (coupon) {
+      await this.couponService.incrementUsedCount(coupon.id);
+      console.log('✅ Coupon incremented:', couponCode);
+    }
+  } catch (err) {
+    console.error('❌ Coupon increment failed:', err);
+  }
+}
+
       // Step 3: Create order items
       await this.createOrderItems(
         order.id,
@@ -1453,89 +1474,206 @@ export class OrdersService {
   /**
    * Creates an order using Cash on Delivery (COD)
    */
-  async createCodOrder(
-    createPaymentDto: CreatePaymentDto,
-    req: Request,
-  ): Promise<{
-    success: boolean;
-    order_id: string;
-    total_amount: number;
-    currency: string;
-    message: string;
-    error?: string;
-  }> {
-    try {
-      const userId = await this.extreactUserIdFromRequest(req);
+  // async createCodOrder(
+  //   createPaymentDto: CreatePaymentDto,
+  //   req: Request,
+  // ): Promise<{
+  //   success: boolean;
+  //   order_id: string;
+  //   total_amount: number;
+  //   currency: string;
+  //   message: string;
+  //   error?: string;
+  // }> {
+  //   try {
+  //     const userId = await this.extreactUserIdFromRequest(req);
 
-      this.logger.log('Creating COD order', {
-        customerEmail: createPaymentDto.contact_email,
-        itemCount: createPaymentDto.cart_items.length,
-        userId: userId || 'guest',
-      });
+  //     this.logger.log('Creating COD order', {
+  //       customerEmail: createPaymentDto.contact_email,
+  //       itemCount: createPaymentDto.cart_items.length,
+  //       userId: userId || 'guest',
+  //     });
 
-      const { variants, totalAmount } =
-        await this.validateCartAndCalculateTotal(createPaymentDto.cart_items);
+  //     const { variants, totalAmount } =
+  //       await this.validateCartAndCalculateTotal(createPaymentDto.cart_items);
 
-      const floor = await this.fetchFloorInfo(
-        createPaymentDto.shipping_address.floor_id,
+  //     const floor = await this.fetchFloorInfo(
+  //       createPaymentDto.shipping_address.floor_id,
+  //     );
+
+  //     const zone = await this.zonesService.findByZipCode(
+  //       createPaymentDto.shipping_address.postal_code,
+  //     );
+
+  //     if (!zone) {
+  //       throw new BadRequestException(
+  //         `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
+  //       );
+  //     }
+
+  //     let discountAmount = createPaymentDto.discount_amount || 0;
+  //   let couponCode = createPaymentDto.coupon_code;
+
+
+  //     const order = await this.createOrderRecord(
+  //       createPaymentDto,
+  //       floor,
+  //       zone,
+  //       totalAmount,
+  //       userId,
+  //       discountAmount,  // ← PASS DISCOUNT AMOUNT
+  //     couponCode,      // ← PASS COUPON CODE
+  //     );
+  //     await this.createOrderItems(
+  //       order.id,
+  //       createPaymentDto.cart_items,
+  //       variants,
+  //     );
+  //     await this.createInitialCodPaymentRecord(
+  //       order.id,
+  //       totalAmount + floor.charges + (zone ? zone.delivery_charges : 0),
+  //     );
+
+  //     return {
+  //       success: true,
+  //       order_id: order.id,
+  //       total_amount: totalAmount,
+  //       currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
+  //       message: 'COD order created successfully',
+  //     };
+  //   } catch (error) {
+  //     this.logger.error('Failed to create COD order', {
+  //       error: error.message,
+  //       customerEmail: createPaymentDto.contact_email,
+  //     });
+
+  //     return {
+  //       success: false,
+  //       order_id: '',
+  //       total_amount: 0,
+  //       currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
+  //       message: 'Failed to create COD order',
+  //       error: error.message || 'Failed to create COD order',
+  //     };
+  //   }
+  // }
+
+/**
+ * Creates an order using Cash on Delivery (COD)
+ */
+async createCodOrder(
+  createPaymentDto: CreatePaymentDto,
+  req: Request,
+): Promise<{
+  success: boolean;
+  order_id: string;
+  total_amount: number;
+  currency: string;
+  message: string;
+  error?: string;
+}> {
+  try {
+    const userId = await this.extreactUserIdFromRequest(req);
+
+    this.logger.log('Creating COD order', {
+      customerEmail: createPaymentDto.contact_email,
+      itemCount: createPaymentDto.cart_items.length,
+      userId: userId || 'guest',
+    });
+
+    const { variants, totalAmount } =
+      await this.validateCartAndCalculateTotal(createPaymentDto.cart_items);
+
+    const floor = await this.fetchFloorInfo(
+      createPaymentDto.shipping_address.floor_id,
+    );
+
+    const zone = await this.zonesService.findByZipCode(
+      createPaymentDto.shipping_address.postal_code,
+    );
+
+    if (!zone) {
+      throw new BadRequestException(
+        `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
       );
+    }
 
-      const zone = await this.zonesService.findByZipCode(
-        createPaymentDto.shipping_address.postal_code,
-      );
-
-      if (!zone) {
-        throw new BadRequestException(
-          `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
-        );
-      }
-
-      let discountAmount = createPaymentDto.discount_amount || 0;
+    let discountAmount = createPaymentDto.discount_amount || 0;
     let couponCode = createPaymentDto.coupon_code;
 
+    // Create the order
+    const order = await this.createOrderRecord(
+      createPaymentDto,
+      floor,
+      zone,
+      totalAmount,
+      userId,
+      discountAmount,
+      couponCode,
+    );
+    
+    // Create order items
+    await this.createOrderItems(
+      order.id,
+      createPaymentDto.cart_items,
+      variants,
+    );
+    
+    // Create payment record
+    await this.createInitialCodPaymentRecord(
+      order.id,
+      totalAmount + floor.charges + (zone ? zone.delivery_charges : 0),
+    );
 
-      const order = await this.createOrderRecord(
-        createPaymentDto,
-        floor,
-        zone,
-        totalAmount,
-        userId,
-        discountAmount,  // ← PASS DISCOUNT AMOUNT
-      couponCode,      // ← PASS COUPON CODE
-      );
-      await this.createOrderItems(
-        order.id,
-        createPaymentDto.cart_items,
-        variants,
-      );
-      await this.createInitialCodPaymentRecord(
-        order.id,
-        totalAmount + floor.charges + (zone ? zone.delivery_charges : 0),
-      );
+    // ✅ FIX: INCREMENT COUPON USAGE FOR COD ORDERS
+    if (couponCode && discountAmount > 0) {
+      try {
+        this.logger.log(`🔍 Attempting to increment coupon for COD: ${couponCode}`);
+        
+        // First get the coupon ID from the code
+        const { data: coupon, error: couponError } = await this.supabaseService
+          .getClient()
+          .from('coupons')
+          .select('id')
+          .eq('code', couponCode)
+          .single();
 
-      return {
-        success: true,
-        order_id: order.id,
-        total_amount: totalAmount,
-        currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
-        message: 'COD order created successfully',
-      };
-    } catch (error) {
-      this.logger.error('Failed to create COD order', {
-        error: error.message,
-        customerEmail: createPaymentDto.contact_email,
-      });
-
-      return {
-        success: false,
-        order_id: '',
-        total_amount: 0,
-        currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
-        message: 'Failed to create COD order',
-        error: error.message || 'Failed to create COD order',
-      };
+        if (couponError) {
+          this.logger.error('❌ Error finding coupon for COD order:', couponError);
+        } else if (coupon) {
+          // Call the increment method from coupon service
+          await this.couponService.incrementUsedCount(coupon.id);
+          this.logger.log(`✅ Coupon ${couponCode} usage incremented via couponService for COD order ${order.id}`);
+        }
+      } catch (couponErr) {
+        this.logger.error('💥 Failed to increment coupon usage for COD:', couponErr);
+        // Don't fail the order if coupon increment fails
+      }
     }
+
+    return {
+      success: true,
+      order_id: order.id,
+      total_amount: totalAmount,
+      currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
+      message: 'COD order created successfully',
+    };
+  } catch (error) {
+    this.logger.error('Failed to create COD order', {
+      error: error.message,
+      customerEmail: createPaymentDto.contact_email,
+    });
+
+    return {
+      success: false,
+      order_id: '',
+      total_amount: 0,
+      currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
+      message: 'Failed to create COD order',
+      error: error.message || 'Failed to create COD order',
+    };
   }
+}
 
   /**
    * Handles webhook notifications from Tyl payment gateway
@@ -1879,107 +2017,218 @@ export class OrdersService {
   /**
    * Handles payment success redirect from Tyl
    */
-  async handlePaymentSuccess(paymentData: any, res: any): Promise<void> {
-    try {
-      this.logger.log('Received payment success redirect', {
-        orderId: paymentData.oid,
-        status: paymentData.status,
-        approvalCode: paymentData.approval_code?.substring(0, 10) + '...',
-      });
+  // async handlePaymentSuccess(paymentData: any, res: any): Promise<void> {
+  //   try {
+  //     this.logger.log('Received payment success redirect', {
+  //       orderId: paymentData.oid,
+  //       status: paymentData.status,
+  //       approvalCode: paymentData.approval_code?.substring(0, 10) + '...',
+  //     });
+      
 
-      const frontendBaseUrl =
-        this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
-      const redirectUrl = `${frontendBaseUrl}/payment/success?orderId=${paymentData.oid}&status=${paymentData.status}&ref=${paymentData.refnumber || ''}`;
+  //     const frontendBaseUrl =
+  //       this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
+  //     const redirectUrl = `${frontendBaseUrl}/payment/success?orderId=${paymentData.oid}&status=${paymentData.status}&ref=${paymentData.refnumber || ''}`;
 
-      const { data: order } = await this.supabaseService
-        .getClient()
-        .from('orders')
-        .select('user_id')
-        .eq('id', paymentData.oid)
-        .single();
+  //     const { data: order } = await this.supabaseService
+  //       .getClient()
+  //       .from('orders')
+  //       .select('user_id, coupon_code, discount_amount')
+  //       .eq('id', paymentData.oid)
+  //       .single();
 
-      if (!order) {
-        this.logger.warn('Order not found for payment success redirect', {
-          orderId: paymentData.oid,
-        });
-        res.redirect(302, redirectUrl);
-        return;
+  //     if (!order) {
+  //       this.logger.warn('Order not found for payment success redirect', {
+  //         orderId: paymentData.oid,
+  //       });
+  //       res.redirect(302, redirectUrl);
+  //       return;
+  //     }
+
+  //     const { data: userEmail } = await this.supabaseService
+  //       .getClient()
+  //       .from('users')
+  //       .select('email')
+  //       .eq('id', order.user_id)
+  //       .limit(1);
+
+  //     if (!userEmail || userEmail.length === 0) {
+  //       this.logger.warn(
+  //         'User email not found for order in payment success redirect',
+  //         {
+  //           orderId: paymentData.oid,
+  //           userId: order.user_id,
+  //         },
+  //       );
+  //       res.redirect(302, redirectUrl);
+  //       return;
+  //     }
+
+  //     const orderData = await this.supabaseService
+  //       .getClient()
+  //       .from('orders')
+  //       .select('*')
+  //       .eq('id', paymentData.oid)
+  //       .single();
+
+  //     const html = `
+  //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+  //       <h2 style="color: #333;">Your Order #${paymentData.oid} Has Been Successfully Placed! 🛍</h2>
+        
+  //       <p>Hi there,</p>
+        
+  //       <p>Thank you for shopping with us! 🎉</p>
+        
+  //       <p>Your order #${paymentData.oid} has been successfully placed and is now being processed.</p>
+        
+  //       <p>You'll receive another update once your items are ready to ship.</p>
+        
+  //       <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+  //         <h3 style="color: #333; margin-top: 0;">Order Summary:</h3>
+  //         <p><strong>Order ID:</strong> ${paymentData.oid}</p>
+  //         <p><strong>Total Amount:</strong> ${orderData.data.total_amount} ${orderData.data.currency}</p>
+  //       </div>
+        
+  //       <p>Thanks for choosing us!</p>
+        
+  //       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+  //         <p><strong>Sofa Deal</strong></p>
+  //         <p>Phone: +44 7306 127481</p>
+  //       </div>
+  //     </div>
+  //     `;
+
+  //     await this.mailService.sendEmail(
+  //       userEmail[0].email,
+  //       'Order Placed Successfully',
+  //       html,
+  //     );
+
+  //     res.redirect(302, redirectUrl);
+  //   } catch (error) {
+  //     console.log(error);
+
+  //     this.logger.error('Failed to handle payment success redirect', {
+  //       error: error.message,
+  //       orderId: paymentData.oid,
+  //     });
+
+  //     const frontendBaseUrl =
+  //       this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
+  //     const errorUrl = `${frontendBaseUrl}/payment/failure?error=redirect_failed`;
+  //     res.redirect(302, errorUrl);
+  //   }
+  // }
+
+/**
+ * Handles payment success redirect from Tyl
+ */
+async handlePaymentSuccess(paymentData: any, res: any): Promise<void> {
+  try {
+    this.logger.log('Received payment success redirect', {
+      orderId: paymentData.oid,
+      status: paymentData.status,
+    });
+
+    const frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
+    const redirectUrl = `${frontendBaseUrl}/payment/success?orderId=${paymentData.oid}`;
+
+    // Get order details
+    const { data: orderDetails, error: orderError } = await this.supabaseService
+      .getClient()
+      .from('orders')
+      .select('user_id, coupon_code, discount_amount')
+      .eq('id', paymentData.oid)
+      .single();
+
+    if (orderError || !orderDetails) {
+      this.logger.warn('Order not found');
+      res.redirect(302, redirectUrl);
+      return;
+    }
+
+    this.logger.log(`🔍 Order details:`, {
+      coupon_code: orderDetails.coupon_code,
+      discount_amount: orderDetails.discount_amount,
+      order_id: paymentData.oid
+    });
+
+    // ✅ FIX: INCREMENT COUPON USAGE FOR CARD PAYMENTS
+    if (orderDetails.coupon_code && orderDetails.discount_amount > 0) {
+      try {
+        this.logger.log(`🔍 Attempting to increment coupon: ${orderDetails.coupon_code}`);
+        
+        // First get the coupon ID from the code
+        const { data: coupon, error: couponError } = await this.supabaseService
+          .getClient()
+          .from('coupons')
+          .select('id')
+          .eq('code', orderDetails.coupon_code)
+          .single();
+
+        if (couponError) {
+          this.logger.error('❌ Error finding coupon:', couponError);
+        } else if (coupon) {
+          // Call the increment method from coupon service
+          await this.couponService.incrementUsedCount(coupon.id);
+          this.logger.log(`✅ Coupon ${orderDetails.coupon_code} usage incremented via couponService`);
+        }
+      } catch (couponErr) {
+        this.logger.error('💥 Failed to increment coupon:', couponErr);
+        // Don't fail the order if coupon increment fails
       }
+    }
 
-      const { data: userEmail } = await this.supabaseService
-        .getClient()
-        .from('users')
-        .select('email')
-        .eq('id', order.user_id)
-        .limit(1);
+    // Get user email for notification
+    const { data: userEmail } = await this.supabaseService
+      .getClient()
+      .from('users')
+      .select('email')
+      .eq('id', orderDetails.user_id)
+      .limit(1);
 
-      if (!userEmail || userEmail.length === 0) {
-        this.logger.warn(
-          'User email not found for order in payment success redirect',
-          {
-            orderId: paymentData.oid,
-            userId: order.user_id,
-          },
-        );
-        res.redirect(302, redirectUrl);
-        return;
-      }
+    if (!userEmail || userEmail.length === 0) {
+      this.logger.warn('User email not found for order');
+      res.redirect(302, redirectUrl);
+      return;
+    }
 
-      const orderData = await this.supabaseService
-        .getClient()
-        .from('orders')
-        .select('*')
-        .eq('id', paymentData.oid)
-        .single();
+    // Get full order data for email
+    const { data: orderData } = await this.supabaseService
+      .getClient()
+      .from('orders')
+      .select('*')
+      .eq('id', paymentData.oid)
+      .single();
 
-      const html = `
+    const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #333;">Your Order #${paymentData.oid} Has Been Successfully Placed! 🛍</h2>
-        
         <p>Hi there,</p>
-        
         <p>Thank you for shopping with us! 🎉</p>
-        
-        <p>Your order #${paymentData.oid} has been successfully placed and is now being processed.</p>
-        
-        <p>You'll receive another update once your items are ready to ship.</p>
-        
+        <p>Your order has been successfully placed and is now being processed.</p>
         <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
           <h3 style="color: #333; margin-top: 0;">Order Summary:</h3>
           <p><strong>Order ID:</strong> ${paymentData.oid}</p>
-          <p><strong>Total Amount:</strong> ${orderData.data.total_amount} ${orderData.data.currency}</p>
+          <p><strong>Total Amount:</strong> ${orderData?.total_amount || 0} ${orderData?.currency || 'GBP'}</p>
         </div>
-        
         <p>Thanks for choosing us!</p>
-        
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-          <p><strong>Sofa Deal</strong></p>
-          <p>Phone: +44 7306 127481</p>
-        </div>
       </div>
-      `;
+    `;
 
-      await this.mailService.sendEmail(
-        userEmail[0].email,
-        'Order Placed Successfully',
-        html,
-      );
+    await this.mailService.sendEmail(
+      userEmail[0].email,
+      'Order Placed Successfully',
+      html
+    );
 
-      res.redirect(302, redirectUrl);
-    } catch (error) {
-      console.log(error);
-
-      this.logger.error('Failed to handle payment success redirect', {
-        error: error.message,
-        orderId: paymentData.oid,
-      });
-
-      const frontendBaseUrl =
-        this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
-      const errorUrl = `${frontendBaseUrl}/payment/failure?error=redirect_failed`;
-      res.redirect(302, errorUrl);
-    }
+    res.redirect(302, redirectUrl);
+  } catch (error) {
+    this.logger.error('Failed to handle payment success:', error);
+    const frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
+    res.redirect(302, `${frontendBaseUrl}/payment/failure`);
   }
+}
 
   /**
    * Handles payment failure redirect from Tyl
