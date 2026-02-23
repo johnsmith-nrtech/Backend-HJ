@@ -1305,7 +1305,7 @@ export class ProductsService {
       sku: defaultSku,
       price:
         createProductDto.base_price > 0 ? createProductDto.base_price : null,
-        discount_offer: createProductDto.discount_offer || null,
+        // discount_offer: createProductDto.discount_offer || null,
       color: createProductDto.default_color || null,
       size: createProductDto.default_size || null,
       stock: createProductDto.initial_stock || 0,
