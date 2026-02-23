@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   Put,
+  Patch,
   Query,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -424,6 +425,11 @@ export class ProductsController {
       includeImages,
       includeCategory,
     );
+  }
+
+  @Patch('admin/bulk-discount')
+  async bulkApplyDiscount(@Body() body: { productIds: string[], discount_offer: number }) {
+    return this.productsService.bulkApplyDiscount(body.productIds, body.discount_offer);
   }
 
   /**

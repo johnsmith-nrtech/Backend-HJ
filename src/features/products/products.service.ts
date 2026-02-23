@@ -4253,6 +4253,18 @@ export class ProductsService {
     }
   }
 
+
+  async bulkApplyDiscount(productIds: string[], discount_offer: number): Promise<void> {
+    const { error } = await this.supabaseService
+      .getClient()
+      .from('products')
+      .update({ discount_offer })
+      .in('id', productIds);
+
+    if (error) throw error;
+  }
+
+
   /**
    * Get the size of uploads directory and file count
    */
