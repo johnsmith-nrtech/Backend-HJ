@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your Exclusive Coupon – Sofa Deal</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f4f1ec;
+      font-family: Georgia, 'Times New Roman', serif;
+    "
+  >
+    <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="background-color: #f4f1ec; padding: 40px 16px"
+    >
+      <tr>
+        <td align="center">
+          <table
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            style="
+              max-width: 600px;
+              width: 100%;
+              background-color: #ffffff;
+              border-radius: 2px;
+              overflow: hidden;
+              box-shadow: 0 4px 32px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                style="
+                  background-color: #1a1a1a;
+                  padding: 36px 48px 28px;
+                  text-align: center;
+                "
+              >
+                <p
+                  style="
+                    margin: 0 0 6px 0;
+                    font-family: Georgia, serif;
+                    font-size: 11px;
+                    letter-spacing: 4px;
+                    text-transform: uppercase;
+                    color: #c9a96e;
+                  "
+                >
+                  Sofa Deal
+                </p>
+                <h1
+                  style="
+                    margin: 0;
+                    font-family: Georgia, serif;
+                    font-size: 28px;
+                    font-weight: normal;
+                    color: #ffffff;
+                    letter-spacing: 1px;
+                  "
+                >
+                  A Gift, Just for You
+                </h1>
+                <div
+                  style="
+                    width: 40px;
+                    height: 1px;
+                    background-color: #c9a96e;
+                    margin: 20px auto 0;
+                  "
+                ></div>
+              </td>
+            </tr>
+
+            <!-- Greeting -->
+            <tr>
+              <td style="padding: 40px 48px 0">
+                <p
+                  style="
+                    margin: 0 0 16px 0;
+                    font-size: 16px;
+                    color: #1a1a1a;
+                    line-height: 1.6;
+                  "
+                >
+                  Dear <strong>{{recipientName}}</strong>,
+                </p>
+                <p
+                  style="
+                    margin: 0;
+                    font-size: 15px;
+                    color: #555;
+                    line-height: 1.8;
+                  "
+                >
+                  We're delighted to share an exclusive coupon with you. As a
+                  valued member of the Sofa Deal family, this discount is our
+                  way of saying thank you — use it on your next order and treat
+                  yourself to something beautiful.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Coupon Card -->
+            <tr>
+              <td style="padding: 36px 48px">
+                <table
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="
+                    border: 2px dashed #c9a96e;
+                    border-radius: 4px;
+                    background-color: #faf8f4;
+                  "
+                >
+                  <tr>
+                    <td style="padding: 32px; text-align: center">
+                      <p
+                        style="
+                          margin: 0 0 6px 0;
+                          font-size: 11px;
+                          letter-spacing: 3px;
+                          text-transform: uppercase;
+                          color: #888;
+                        "
+                      >
+                        {{couponName}}
+                      </p>
+                      <p
+                        style="
+                          margin: 0 0 20px 0;
+                          font-family: 'Courier New', monospace;
+                          font-size: 36px;
+                          font-weight: bold;
+                          color: #1a1a1a;
+                          letter-spacing: 6px;
+                        "
+                      >
+                        {{couponCode}}
+                      </p>
+                      <div
+                        style="
+                          display: inline-block;
+                          background-color: #1a1a1a;
+                          color: #c9a96e;
+                          font-size: 22px;
+                          font-weight: bold;
+                          padding: 10px 28px;
+                          border-radius: 2px;
+                          letter-spacing: 1px;
+                        "
+                      >
+                        {{discountDisplay}} OFF
+                      </div>
+                      <p
+                        style="
+                          margin: 20px 0 0 0;
+                          font-size: 12px;
+                          color: #999;
+                          letter-spacing: 1px;
+                        "
+                      >
+                        Valid until
+                        <strong style="color: #555">{{expiresAt}}</strong>
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Referral Info Box -->
+            <tr>
+              <td style="padding: 0 48px 36px">
+                <table
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="
+                    background-color: #f0f7f0;
+                    border-left: 3px solid #4caf50;
+                    border-radius: 2px;
+                  "
+                >
+                  <tr>
+                    <td style="padding: 20px 24px">
+                      <p
+                        style="
+                          margin: 0 0 6px 0;
+                          font-size: 13px;
+                          font-weight: bold;
+                          color: #2e7d32;
+                          letter-spacing: 0.5px;
+                        "
+                      >
+                        🎁 Share & Earn
+                      </p>
+                      <p
+                        style="
+                          margin: 0;
+                          font-size: 13px;
+                          color: #444;
+                          line-height: 1.7;
+                          font-family: Arial, sans-serif;
+                        "
+                      >
+                        This coupon is yours to share! When a friend uses your
+                        code
+                        <strong
+                          style="
+                            font-family: 'Courier New', monospace;
+                            color: #1a1a1a;
+                          "
+                          >{{couponCode}}</strong
+                        >, you'll automatically earn a
+                        <strong style="color: #2e7d32">5% referral credit</strong>
+                        applied to your next purchase — no action needed from
+                        you.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- How to Use -->
+            <tr>
+              <td style="padding: 0 48px 36px">
+                <p
+                  style="
+                    margin: 0 0 16px 0;
+                    font-size: 13px;
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                    color: #888;
+                  "
+                >
+                  How to Redeem
+                </p>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding: 0 0 12px 0">
+                      <table cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td
+                            style="
+                              width: 28px;
+                              height: 28px;
+                              background-color: #1a1a1a;
+                              color: #c9a96e;
+                              font-size: 12px;
+                              font-weight: bold;
+                              text-align: center;
+                              vertical-align: middle;
+                              border-radius: 50%;
+                              font-family: Arial, sans-serif;
+                            "
+                          >
+                            1
+                          </td>
+                          <td
+                            style="
+                              padding-left: 12px;
+                              font-size: 14px;
+                              color: #444;
+                              font-family: Arial, sans-serif;
+                            "
+                          >
+                            Visit
+                            <a
+                              href="{{shopUrl}}"
+                              style="color: #c9a96e; text-decoration: none"
+                              >Sofa Deal</a
+                            >
+                            and add items to your cart
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0 0 12px 0">
+                      <table cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td
+                            style="
+                              width: 28px;
+                              height: 28px;
+                              background-color: #1a1a1a;
+                              color: #c9a96e;
+                              font-size: 12px;
+                              font-weight: bold;
+                              text-align: center;
+                              vertical-align: middle;
+                              border-radius: 50%;
+                              font-family: Arial, sans-serif;
+                            "
+                          >
+                            2
+                          </td>
+                          <td
+                            style="
+                              padding-left: 12px;
+                              font-size: 14px;
+                              color: #444;
+                              font-family: Arial, sans-serif;
+                            "
+                          >
+                            Enter your code at checkout
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <table cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td
+                            style="
+                              width: 28px;
+                              height: 28px;
+                              background-color: #1a1a1a;
+                              color: #c9a96e;
+                              font-size: 12px;
+                              font-weight: bold;
+                              text-align: center;
+                              vertical-align: middle;
+                              border-radius: 50%;
+                              font-family: Arial, sans-serif;
+                            "
+                          >
+                            3
+                          </td>
+                          <td
+                            style="
+                              padding-left: 12px;
+                              font-size: 14px;
+                              color: #444;
+                              font-family: Arial, sans-serif;
+                            "
+                          >
+                            Your discount is applied instantly — enjoy!
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- CTA Button -->
+            <tr>
+              <td style="padding: 0 48px 48px; text-align: center">
+                <a
+                  href="{{shopUrl}}"
+                  style="
+                    display: inline-block;
+                    background-color: #c9a96e;
+                    color: #1a1a1a;
+                    font-family: Arial, sans-serif;
+                    font-size: 13px;
+                    font-weight: bold;
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                    text-decoration: none;
+                    padding: 16px 40px;
+                    border-radius: 2px;
+                  "
+                >
+                  Shop Now
+                </a>
+              </td>
+            </tr>
+
+            <!-- Divider -->
+            <tr>
+              <td style="padding: 0 48px">
+                <div
+                  style="height: 1px; background-color: #ece8e0; width: 100%"
+                ></div>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding: 28px 48px 36px; text-align: center">
+                <p
+                  style="
+                    margin: 0 0 8px 0;
+                    font-size: 11px;
+                    color: #aaa;
+                    letter-spacing: 1px;
+                    font-family: Arial, sans-serif;
+                  "
+                >
+                  © 2025 Sofa Deal. All rights reserved.
+                </p>
+                <p
+                  style="
+                    margin: 0;
+                    font-size: 11px;
+                    color: #ccc;
+                    font-family: Arial, sans-serif;
+                  "
+                >
+                  This coupon was sent to
+                  <strong>{{recipientEmail}}</strong>. If you believe this was a
+                  mistake, please ignore this email.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

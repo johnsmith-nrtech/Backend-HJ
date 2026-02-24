@@ -13,10 +13,10 @@ import { CouponService } from './coupon.service';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpdateCouponDto } from './dto/update-coupon.dto';
 import { ApplyCouponDto } from './dto/apply-coupon.dto';
+import { AssignCouponDto } from './dto/assign-coupon.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-
 
 @Controller('coupons')
 export class CouponController {
@@ -35,6 +35,20 @@ export class CouponController {
   @Roles('admin')
   findAll() {
     return this.couponService.findAll();
+  }
+
+  @Get('user/my-coupons')
+  @UseGuards(JwtAuthGuard)
+  getAvailableCoupons(@Request() req) {
+    const userId = req.user?.id;
+    return this.couponService.findAvailableCoupons(userId);
+  }
+
+  @Post('apply')
+  @UseGuards(JwtAuthGuard)
+  applyCoupon(@Body() applyCouponDto: ApplyCouponDto, @Request() req) {
+    const userId = req.user?.id;
+    return this.couponService.applyCoupon(userId, applyCouponDto);
   }
 
   @Get(':id')
@@ -58,18 +72,14 @@ export class CouponController {
     return this.couponService.remove(id);
   }
 
-  // FIXED: Changed from findUserCoupons to findAvailableCoupons
-  @Get('user/my-coupons')
-  @UseGuards(JwtAuthGuard)
-  getAvailableCoupons(@Request() req) {
-    const userId = req.user?.id;
-    return this.couponService.findAvailableCoupons(userId);
-  }
-
-  @Post('apply')
-  @UseGuards(JwtAuthGuard)
-  applyCoupon(@Body() applyCouponDto: ApplyCouponDto, @Request() req) {
-    const userId = req.user?.id;
-    return this.couponService.applyCoupon(userId, applyCouponDto);
+  // Admin: Assign coupon to a user by email → sends email via SendGrid
+  @Post(':id/assign')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  assignCoupon(
+    @Param('id') id: string,
+    @Body() assignCouponDto: AssignCouponDto,
+  ) {
+    return this.couponService.assignCoupon(id, assignCouponDto);
   }
 }
