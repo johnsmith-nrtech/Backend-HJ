@@ -757,6 +757,12 @@ export class ProductsService {
       // Type the data as ProductWithCategory to handle category properties
       const productData = data as unknown as ProductWithCategory;
 
+      if (productData.variants && Array.isArray(productData.variants)) {
+        productData.variants.sort((a: any, b: any) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+    }
+
       // If category is requested, enhance with parent category information
       if (includeCategory && productData.category) {
         if (productData.category.parent_id) {
@@ -1606,11 +1612,30 @@ export class ProductsService {
       `,
       )
       .eq('product_id', productId)
-      .order('id');
+      .order('created_at', { ascending: true });
+      // .order('id', { ascending: true });
 
     if (error) {
       throw error;
     }
+
+    // 🔴 CRITICAL - LOG THE ACTUAL ORDER AND TIMESTAMPS
+  console.log(`🔍 VARIANTS FOR PRODUCT ${productId}:`);
+  variants?.forEach((v, index) => {
+    console.log(`${index + 1}. SKU: ${v.sku}, Created: ${v.created_at}`);
+  });
+
+    // 🔴 THIS WILL SHOW THE ACTUAL ORDER
+  console.log('\n========== VARIANT ORDER DEBUG ==========');
+  console.log(`Product ID: ${productId}`);
+  console.log('Total variants:', variants?.length);
+  console.log('Order by created_at ASC:');
+  variants?.forEach((v, index) => {
+    const createdLocal = new Date(v.created_at).toLocaleString();
+    console.log(`${index + 1}. SKU: ${v.sku}, Created (UTC): ${v.created_at}, Created (Local): ${createdLocal}`);
+  });
+  console.log('==========================================\n');
+
 
     return variants;
   }
@@ -4309,3 +4334,12 @@ export class ProductsService {
     return info;
   }
 }
+
+
+
+
+
+
+
+
+
