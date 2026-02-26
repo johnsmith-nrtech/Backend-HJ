@@ -143,9 +143,11 @@ export class ProductsService {
       .getClient()
       .from('products')
       .select(
-        `*${includeVariants ? ', variants:product_variants(*)' : ''}${
-          includeImages ? ', images:product_images(*)' : ''
-        }${includeCategory ? ', category:categories!inner(*)' : ''}`,
+        // `*${includeVariants ? ', variants:product_variants(*)' : ''}${
+        //   includeImages ? ', images:product_images(*)' : ''
+        // }${includeCategory ? ', category:categories!inner(*)' : ''}`,
+        `*${includeVariants ? ', variants:product_variants(*, images:product_images(*))' : ''}${
+          includeImages ? ', images:product_images(*)' : ''}`,
         { count: 'exact' },
       );
 
@@ -347,9 +349,12 @@ export class ProductsService {
       .getClient()
       .from('products')
       .select(
-        `*${includeVariants ? ', variants:product_variants(*)' : ''}${
+        // `*${includeVariants ? ', variants:product_variants(*)' : ''}${
+        //   includeImages ? ', images:product_images(*)' : ''
+        // }${includeCategory ? ', category:categories!inner(*)' : ''}`,
+        `*${includeVariants ? ', variants:product_variants(*, images:product_images(*))' : ''}${
           includeImages ? ', images:product_images(*)' : ''
-        }${includeCategory ? ', category:categories!inner(*)' : ''}`,
+        }`,
         { count: 'exact' },
       )
       .or(`name.ilike.%${search}%,description.ilike.%${search}%`)
@@ -665,9 +670,12 @@ export class ProductsService {
       .getClient()
       .from('products')
       .select(
-        `*${includeVariants ? ', variants:product_variants(*)' : ''}${
+        // `*${includeVariants ? ', variants:product_variants(*)' : ''}${
+        //   includeImages ? ', images:product_images(*)' : ''
+        // }${includeCategory ? ', category:categories!inner(*)' : ''}`,
+        `*${includeVariants ? ', variants:product_variants(*, images:product_images(*))' : ''}${
           includeImages ? ', images:product_images(*)' : ''
-        }${includeCategory ? ', category:categories!inner(*)' : ''}`,
+        }`,
         { count: 'exact' },
       )
       .or(`name.ilike.%${search}%,description.ilike.%${search}%`)
@@ -717,85 +725,177 @@ export class ProductsService {
    * @param includeCategory Whether to include category information
    * @returns Single product with optional related data
    */
+  // async findOne(
+  //   id: string,
+  //   includeVariants = true,
+  //   includeImages = false,
+  //   includeCategory = false,
+  //   onlyVisible = true,
+  // ): Promise<Product> {
+  //   let query = `*`;
+
+  //   // if (includeVariants) {
+  //   //   query += `, variants:product_variants(*)`;
+  //   // }
+
+  //   // AFTER
+  //   if (includeVariants) {
+  //     query += `, variants:product_variants(*, images:product_images(*))`;
+  //   }
+
+  //   if (includeImages) {
+  //     query += `, images:product_images(*)`;
+  //   }
+
+  //   if (includeCategory) {
+  //     query += `, category:categories!inner(*)`;
+  //   }
+
+  //   try {
+  //     const { data, error } = await this.supabaseService
+  //       .getClient()
+  //       .from('products')
+  //       .select(query)
+  //       .eq('id', id)
+  //       // .eq('is_visible', true)
+  //       .single();
+        
+
+  //     if (error) {
+  //       throw new NotFoundException(`Product with ID ${id} not found`);
+  //     }
+
+  //     if (!data) {
+  //       throw new NotFoundException(`Product with ID ${id} not found`);
+  //     }
+
+  //     // Type the data as ProductWithCategory to handle category properties
+  //     const productData = data as unknown as ProductWithCategory;
+
+  //     if (productData.variants && Array.isArray(productData.variants)) {
+  //       productData.variants.sort((a: any, b: any) =>
+  //       new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  //     );
+  //   }
+
+  //     // If category is requested, enhance with parent category information
+  //     if (includeCategory && productData.category) {
+  //       if (productData.category.parent_id) {
+  //         const { data: parentCategory, error: parentError } =
+  //           await this.supabaseService
+  //             .getClient()
+  //             .from('categories')
+  //             .select('*')
+  //             .eq('id', productData.category.parent_id)
+  //             .single();
+
+  //         if (!parentError && parentCategory) {
+  //           productData.category.parent = parentCategory as Category;
+  //         }
+  //       }
+  //     } else if (productData.category_id && includeCategory) {
+  //       // If we only have category_id but includeCategory is true
+  //       const fullCategory = await this.getCategoryWithParent(
+  //         productData.category_id,
+  //       );
+  //       if (fullCategory) {
+  //         productData.category = fullCategory as CategoryWithParent;
+  //       }
+  //     }
+
+  //     return productData;
+  //   } catch (error) {
+  //     if (error instanceof NotFoundException) {
+  //       throw error;
+  //     }
+  //     throw new NotFoundException(`Product with ID ${id} not found`);
+  //   }
+  // }
+
+
+
   async findOne(
-    id: string,
-    includeVariants = true,
-    includeImages = false,
-    includeCategory = false,
-  ): Promise<Product> {
-    let query = `*`;
+  id: string,
+  includeVariants = true,
+  includeImages = false,
+  includeCategory = false,
+  onlyVisible = true,
+): Promise<Product> {
+  let query = `*`;
 
-    if (includeVariants) {
-      query += `, variants:product_variants(*)`;
+  if (includeVariants) {
+    query += `, variants:product_variants(*, images:product_images(*))`;
+  }
+
+  if (includeImages) {
+    query += `, images:product_images(*)`;
+  }
+
+  if (includeCategory) {
+    query += `, category:categories!inner(*)`;
+  }
+
+  try {
+    let dbQuery = this.supabaseService
+      .getClient()
+      .from('products')
+      .select(query)
+      .eq('id', id);
+
+    if (onlyVisible) {
+      dbQuery = dbQuery.eq('is_visible', true);
     }
 
-    if (includeImages) {
-      query += `, images:product_images(*)`;
+    const { data, error } = await dbQuery.single();
+
+    if (error) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
-    if (includeCategory) {
-      query += `, category:categories!inner(*)`;
+    if (!data) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
-    try {
-      const { data, error } = await this.supabaseService
-        .getClient()
-        .from('products')
-        .select(query)
-        .eq('id', id)
-        .eq('is_visible', true) // Only return visible products
-        .single();
+    const productData = data as unknown as ProductWithCategory;
 
-      if (error) {
-        throw new NotFoundException(`Product with ID ${id} not found`);
-      }
-
-      if (!data) {
-        throw new NotFoundException(`Product with ID ${id} not found`);
-      }
-
-      // Type the data as ProductWithCategory to handle category properties
-      const productData = data as unknown as ProductWithCategory;
-
-      if (productData.variants && Array.isArray(productData.variants)) {
-        productData.variants.sort((a: any, b: any) =>
+    if (productData.variants && Array.isArray(productData.variants)) {
+      productData.variants.sort((a: any, b: any) =>
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
     }
 
-      // If category is requested, enhance with parent category information
-      if (includeCategory && productData.category) {
-        if (productData.category.parent_id) {
-          const { data: parentCategory, error: parentError } =
-            await this.supabaseService
-              .getClient()
-              .from('categories')
-              .select('*')
-              .eq('id', productData.category.parent_id)
-              .single();
+    if (includeCategory && productData.category) {
+      if (productData.category.parent_id) {
+        const { data: parentCategory, error: parentError } =
+          await this.supabaseService
+            .getClient()
+            .from('categories')
+            .select('*')
+            .eq('id', productData.category.parent_id)
+            .single();
 
-          if (!parentError && parentCategory) {
-            productData.category.parent = parentCategory as Category;
-          }
-        }
-      } else if (productData.category_id && includeCategory) {
-        // If we only have category_id but includeCategory is true
-        const fullCategory = await this.getCategoryWithParent(
-          productData.category_id,
-        );
-        if (fullCategory) {
-          productData.category = fullCategory as CategoryWithParent;
+        if (!parentError && parentCategory) {
+          productData.category.parent = parentCategory as Category;
         }
       }
-
-      return productData;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
+    } else if (productData.category_id && includeCategory) {
+      const fullCategory = await this.getCategoryWithParent(
+        productData.category_id,
+      );
+      if (fullCategory) {
+        productData.category = fullCategory as CategoryWithParent;
       }
-      throw new NotFoundException(`Product with ID ${id} not found`);
     }
+
+    return productData;
+  } catch (error) {
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
+    throw new NotFoundException(`Product with ID ${id} not found`);
   }
+}
+
 
   /**
    * Get featured products with default variants for cart/wishlist functionality
@@ -1460,7 +1560,8 @@ export class ProductsService {
     const idSuffix = productId ? `-${productId}` : '';
 
     // Add timestamp for extra uniqueness
-    const timestamp = Date.now().toString().substring(7);
+    // const timestamp = Date.now().toString().substring(7);
+    const timestamp = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
     return `${prefix}${colorCode}${sizeCode}${idSuffix}-${timestamp}`;
   }

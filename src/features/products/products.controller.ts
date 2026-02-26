@@ -406,6 +406,18 @@ export class ProductsController {
     return this.productsService.findRelated(id, limit, includeCategory);
   }
 
+  @Get('admin/products/:id')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
+getProductAdmin(
+  @Param('id', ParseUUIDPipe) id: string,
+  @Query('includeVariants', new DefaultValuePipe(true)) includeVariants: boolean,
+  @Query('includeImages', new DefaultValuePipe(false)) includeImages: boolean,
+  @Query('includeCategory', new DefaultValuePipe(false)) includeCategory: boolean,
+) {
+  return this.productsService.findOne(id, includeVariants, includeImages, includeCategory, false);
+}
+
   /**
    * Get a specific product by ID
    */
