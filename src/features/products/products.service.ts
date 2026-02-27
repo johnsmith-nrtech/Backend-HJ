@@ -146,8 +146,13 @@ export class ProductsService {
         // `*${includeVariants ? ', variants:product_variants(*)' : ''}${
         //   includeImages ? ', images:product_images(*)' : ''
         // }${includeCategory ? ', category:categories!inner(*)' : ''}`,
+
+
         `*${includeVariants ? ', variants:product_variants(*, images:product_images(*))' : ''}${
           includeImages ? ', images:product_images(*)' : ''}`,
+
+        // `*${includeVariants ? ', variants:product_variants(*, images:product_images(*))' : ''}${
+        //   includeImages ? ', images:product_images(order.asc())' : ''}`,
         { count: 'exact' },
       );
 
@@ -832,7 +837,8 @@ export class ProductsService {
   }
 
   if (includeCategory) {
-    query += `, category:categories!inner(*)`;
+    // query += `, category:categories!inner(*)`;
+    query += `, category:categories(*)`;
   }
 
   try {
