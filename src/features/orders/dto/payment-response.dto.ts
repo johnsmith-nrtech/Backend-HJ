@@ -77,9 +77,10 @@ export class PaymentFormFieldsDto {
   @IsString()
   bcountry: string;
 
-  @ApiProperty({ example: 'W1C 1DE', description: 'Billing postal code' })
+  @ApiPropertyOptional({ example: 'W1C 2DE', description: 'Billing postal code' })
+  @IsOptional()
   @IsString()
-  bzip: string;
+  bzip?: string;
 
   @ApiProperty({ example: 'john.doe@example.com', description: 'Customer email' })
   @IsString()

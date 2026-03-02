@@ -1351,29 +1351,40 @@ export class OrdersService {
         createPaymentDto.shipping_address.floor_id,
       );
 
-      const zone = await this.zonesService.findByZipCode(
-        createPaymentDto.shipping_address.postal_code,
-      );
+      // const zone = await this.zonesService.findByZipCode(
+      //   createPaymentDto.shipping_address.postal_code,
+      // );
 
-      if (!zone) {
-        throw new BadRequestException(
-          `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
-        );
-      }
+      // if (!zone) {
+      //   throw new BadRequestException(
+      //     `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
+      //   );
+      // }
+
+      const zone = createPaymentDto.shipping_address.postal_code?.trim()
+  ? await this.zonesService.findByZipCode(createPaymentDto.shipping_address.postal_code)
+  : null;
+
+// Remove the !zone throw entirely, or change it to:
+if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
+  throw new BadRequestException(
+    `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
+  );
+}
 
        let discountAmount = createPaymentDto.discount_amount || 0;
-    let couponCode = createPaymentDto.coupon_code;
+       let couponCode = createPaymentDto.coupon_code;
     
 
       // Step 2: Create order record
       const order = await this.createOrderRecord(
         createPaymentDto,
         floor,
-        zone,
+        zone ?? { zone_name: 'N/A', zip_code: '', delivery_charges: 0 },
         totalAmount,
         userId,
-        discountAmount,  // ← PASS DISCOUNT AMOUNT
-      couponCode,      // ← PASS COUPON CODE
+        discountAmount,
+        couponCode,
       );
 
       if (couponCode && discountAmount > 0) {
@@ -1471,93 +1482,6 @@ export class OrdersService {
     }
   }
 
-  /**
-   * Creates an order using Cash on Delivery (COD)
-   */
-  // async createCodOrder(
-  //   createPaymentDto: CreatePaymentDto,
-  //   req: Request,
-  // ): Promise<{
-  //   success: boolean;
-  //   order_id: string;
-  //   total_amount: number;
-  //   currency: string;
-  //   message: string;
-  //   error?: string;
-  // }> {
-  //   try {
-  //     const userId = await this.extreactUserIdFromRequest(req);
-
-  //     this.logger.log('Creating COD order', {
-  //       customerEmail: createPaymentDto.contact_email,
-  //       itemCount: createPaymentDto.cart_items.length,
-  //       userId: userId || 'guest',
-  //     });
-
-  //     const { variants, totalAmount } =
-  //       await this.validateCartAndCalculateTotal(createPaymentDto.cart_items);
-
-  //     const floor = await this.fetchFloorInfo(
-  //       createPaymentDto.shipping_address.floor_id,
-  //     );
-
-  //     const zone = await this.zonesService.findByZipCode(
-  //       createPaymentDto.shipping_address.postal_code,
-  //     );
-
-  //     if (!zone) {
-  //       throw new BadRequestException(
-  //         `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
-  //       );
-  //     }
-
-  //     let discountAmount = createPaymentDto.discount_amount || 0;
-  //   let couponCode = createPaymentDto.coupon_code;
-
-
-  //     const order = await this.createOrderRecord(
-  //       createPaymentDto,
-  //       floor,
-  //       zone,
-  //       totalAmount,
-  //       userId,
-  //       discountAmount,  // ← PASS DISCOUNT AMOUNT
-  //     couponCode,      // ← PASS COUPON CODE
-  //     );
-  //     await this.createOrderItems(
-  //       order.id,
-  //       createPaymentDto.cart_items,
-  //       variants,
-  //     );
-  //     await this.createInitialCodPaymentRecord(
-  //       order.id,
-  //       totalAmount + floor.charges + (zone ? zone.delivery_charges : 0),
-  //     );
-
-  //     return {
-  //       success: true,
-  //       order_id: order.id,
-  //       total_amount: totalAmount,
-  //       currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
-  //       message: 'COD order created successfully',
-  //     };
-  //   } catch (error) {
-  //     this.logger.error('Failed to create COD order', {
-  //       error: error.message,
-  //       customerEmail: createPaymentDto.contact_email,
-  //     });
-
-  //     return {
-  //       success: false,
-  //       order_id: '',
-  //       total_amount: 0,
-  //       currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
-  //       message: 'Failed to create COD order',
-  //       error: error.message || 'Failed to create COD order',
-  //     };
-  //   }
-  // }
-
 /**
  * Creates an order using Cash on Delivery (COD)
  */
@@ -1588,15 +1512,26 @@ async createCodOrder(
       createPaymentDto.shipping_address.floor_id,
     );
 
-    const zone = await this.zonesService.findByZipCode(
-      createPaymentDto.shipping_address.postal_code,
-    );
+    // const zone = await this.zonesService.findByZipCode(
+    //   createPaymentDto.shipping_address.postal_code,
+    // );
 
-    if (!zone) {
-      throw new BadRequestException(
-        `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
-      );
-    }
+    // if (!zone) {
+    //   throw new BadRequestException(
+    //     `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
+    //   );
+    // }
+
+    const zone = createPaymentDto.shipping_address.postal_code?.trim()
+  ? await this.zonesService.findByZipCode(createPaymentDto.shipping_address.postal_code)
+  : null;
+
+// Remove the !zone throw entirely, or change it to:
+if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
+  throw new BadRequestException(
+    `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
+  );
+}
 
     let discountAmount = createPaymentDto.discount_amount || 0;
     let couponCode = createPaymentDto.coupon_code;
@@ -1605,7 +1540,7 @@ async createCodOrder(
     const order = await this.createOrderRecord(
       createPaymentDto,
       floor,
-      zone,
+      zone ?? { zone_name: 'N/A', zip_code: '', delivery_charges: 0 },
       totalAmount,
       userId,
       discountAmount,

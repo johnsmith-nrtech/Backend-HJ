@@ -29,7 +29,7 @@ interface PaymentParams {
   bcity: string;
   bstate?: string;
   bcountry: string;
-  bzip: string;
+  bzip?: string;
   email: string;
   phone?: string;
   oid?: string;
@@ -209,7 +209,7 @@ export class TylPaymentService {
         bcity: billingAddress.city,
         bstate: billingAddress.state,
         bcountry: billingAddress.country,
-        bzip: billingAddress.postal_code,
+        bzip: billingAddress.postal_code ?? '',
         email: paymentData.contact_email,
         phone: paymentData.contact_phone,
         oid: orderId,
