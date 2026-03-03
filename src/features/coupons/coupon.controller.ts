@@ -1,122 +1,3 @@
-// import {
-//   Controller,
-//   Get,
-//   Post,
-//   Body,
-//   Patch,
-//   Param,
-//   Delete,
-//   UseGuards,
-//   Request,
-// } from '@nestjs/common';
-// import { CouponService } from './coupon.service';
-// import { CreateCouponDto } from './dto/create-coupon.dto';
-// import { UpdateCouponDto } from './dto/update-coupon.dto';
-// import { ApplyCouponDto } from './dto/apply-coupon.dto';
-// import { AssignCouponDto } from './dto/assign-coupon.dto';
-// import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-// import { RolesGuard } from '../auth/guards/roles.guard';
-// import { Roles } from '../auth/decorators/roles.decorator';
-
-// @Controller('coupons')
-// export class CouponController {
-//   constructor(private readonly couponService: CouponService) {}
-
-//   @Post()
-//   @UseGuards(JwtAuthGuard, RolesGuard)
-//   @Roles('admin')
-//   create(@Body() createCouponDto: CreateCouponDto, @Request() req) {
-//     const adminId = req.user?.id;
-//     return this.couponService.create(createCouponDto, adminId);
-//   }
-
-//   @Get()
-//   @UseGuards(JwtAuthGuard, RolesGuard)
-//   @Roles('admin')
-//   findAll() {
-//     return this.couponService.findAll();
-//   }
-
-//   @Get('user/my-coupons')
-//   @UseGuards(JwtAuthGuard)
-//   getAvailableCoupons(@Request() req) {
-//     const userId = req.user?.id;
-//     return this.couponService.findAvailableCoupons(userId);
-//   }
-
-//   // ─── Get logged-in user's referral credit (read-only) ────────────────────
-//   @Get('user/referral-credit')
-//   @UseGuards(JwtAuthGuard)
-//   getReferralCredit(@Request() req) {
-//     return this.couponService.getReferralCredit(req.user?.id);
-//   }
-
-//   // ─── Consume referral credit after successful order ───────────────────────
-//   @Post('user/consume-referral-credit')
-//   @UseGuards(JwtAuthGuard)
-//   consumeReferralCredit(@Request() req) {
-//     return this.couponService.consumeReferralCredit(req.user?.id);
-//   }
-
-//   @Post('apply')
-//   @UseGuards(JwtAuthGuard)
-//   applyCoupon(@Body() applyCouponDto: ApplyCouponDto, @Request() req) {
-//     const userId = req.user?.id;
-//     return this.couponService.applyCoupon(userId, applyCouponDto);
-//   }
-
-//   @Get(':id')
-//   @UseGuards(JwtAuthGuard, RolesGuard)
-//   @Roles('admin')
-//   findOne(@Param('id') id: string) {
-//     return this.couponService.findOne(id);
-//   }
-
-//   @Patch(':id')
-//   @UseGuards(JwtAuthGuard, RolesGuard)
-//   @Roles('admin')
-//   update(@Param('id') id: string, @Body() updateCouponDto: UpdateCouponDto) {
-//     return this.couponService.update(id, updateCouponDto);
-//   }
-
-//   @Delete(':id')
-//   @UseGuards(JwtAuthGuard, RolesGuard)
-//   @Roles('admin')
-//   remove(@Param('id') id: string) {
-//     return this.couponService.remove(id);
-//   }
-
-//   // ─── Admin: Assign coupon to user by email ────────────────────────────────
-//   @Post(':id/assign')
-//   @UseGuards(JwtAuthGuard, RolesGuard)
-//   @Roles('admin')
-//   assignCoupon(
-//     @Param('id') id: string,
-//     @Body() assignCouponDto: AssignCouponDto,
-//   ) {
-//     return this.couponService.assignCoupon(id, assignCouponDto);
-//   }
-
-//   // ─── Get logged-in user's own referral code ───────────────────────────────
-//   @Get('user/referral-code')
-//   @UseGuards(JwtAuthGuard)
-//   getUserReferralCode(@Request() req) {
-//     return this.couponService.getUserReferralCode(req.user?.id);
-//   }
-
-//   // ─── Get referral history (who used my code + credit balance) ────────────
-//   @Get('user/referral-history')
-//   @UseGuards(JwtAuthGuard)
-//   getReferralHistory(@Request() req) {
-//     return this.couponService.getReferralHistory(req.user?.id);
-//   }
-// }
-
-
-
-
-
-
 import {
   Controller,
   Get,
@@ -136,6 +17,7 @@ import { AssignCouponDto } from './dto/assign-coupon.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UpdateReferralSettingsDto } from './dto/update-referral-settings.dto';
 
 @Controller('coupons')
 export class CouponController {
@@ -256,5 +138,29 @@ export class CouponController {
     @Body() assignCouponDto: AssignCouponDto,
   ) {
     return this.couponService.assignCoupon(id, assignCouponDto);
+  }
+
+  @Get('admin/referral-history')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async getAdminReferralHistory() {
+    return this.couponService.getAdminReferralHistory();
+  }
+
+  @Get('admin/settings')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async getReferralSettings() {
+    return this.couponService.getReferralSettings();
+  }
+
+  @Post('admin/settings')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async updateReferralSettings(
+    @Body() settingsDto: UpdateReferralSettingsDto,
+    @Request() req
+  ) {
+    return this.couponService.updateReferralSettings(settingsDto, req.user?.id);
   }
 }
