@@ -13,6 +13,8 @@ import { DiscountsModule } from './features/discounts/discounts.module';
 import { ContactMessagesModule } from './features/contact-messages/contact-messages.module';
 import { HealthController } from './health.controller';
 import { CouponModule } from './features/coupons/coupon.module';
+import { DimensionsModule } from './features/dimensions/dimensions.module';
+import { ContentModule } from './features/content/content.module';
 
 // Existing FloorsModule
 import { FloorsModule } from './features/floor/floors.module';
@@ -37,6 +39,9 @@ import { ZonesModule } from './features/zones/zones.module';
     FloorsModule, 
     ZonesModule,
     CouponModule,
+    DimensionsModule,
+    ContentModule,
+
   ],
   controllers: [HealthController],
   providers: [],
