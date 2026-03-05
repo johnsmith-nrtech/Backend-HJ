@@ -14,15 +14,6 @@ export interface PageContent {
   updated_at: string;
 }
 
-const VALID_SLUGS = [
-  'terms',
-  'privacy',
-  'returns',
-  'cookies',
-  'legal-advisory',
-  'user-data-protection',
-];
-
 @Injectable()
 export class ContentService {
   constructor(private readonly supabaseService: SupabaseService) {}
@@ -31,37 +22,20 @@ export class ContentService {
     return this.supabaseService.getAdminClient();
   }
 
-  // ─── Ensure default rows exist ────────────────────────────────────────────
-  async ensureSetup(): Promise<void> {
-    const defaults = [
-      { page_slug: 'terms', title: 'Terms and Conditions' },
-      { page_slug: 'privacy', title: 'Privacy Policy' },
-      { page_slug: 'returns', title: 'Returns & Refund Policy' },
-      { page_slug: 'cookies', title: 'Cookie Policy' },
-      { page_slug: 'legal-advisory', title: 'Legal Advisory' },
-      { page_slug: 'user-data-protection', title: 'User Data Protection' },
-    ];
-
-    for (const d of defaults) {
-      const { data } = await this.supabaseAdmin
-        .from('contents')
-        .select('id')
-        .eq('page_slug', d.page_slug)
-        .single();
-
-      if (!data) {
-        await this.supabaseAdmin.from('contents').insert({
-          page_slug: d.page_slug,
-          title: d.title,
-          sections: [],
-        });
-      }
-    }
+  // ─── Auto-generate slug from title ───────────────────────────────────────
+  private generateSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
   }
+  
 
-  // ─── Get all pages (for admin list) ──────────────────────────────────────
+  // ─── Get all pages ────────────────────────────────────────────────────────
   async findAll(): Promise<PageContent[]> {
-    await this.ensureSetup();
+    // await this.ensureSetup();
     const { data, error } = await this.supabaseAdmin
       .from('contents')
       .select('*')
@@ -73,7 +47,6 @@ export class ContentService {
 
   // ─── Get single page by slug (public) ────────────────────────────────────
   async findBySlug(slug: string): Promise<PageContent> {
-    await this.ensureSetup();
     const { data, error } = await this.supabaseAdmin
       .from('contents')
       .select('*')
@@ -84,28 +57,68 @@ export class ContentService {
     return data;
   }
 
-  // ─── Update page content (admin) ─────────────────────────────────────────
-  async update(
-    slug: string,
-    title: string,
-    sections: PageSection[],
-  ): Promise<PageContent> {
-    if (!VALID_SLUGS.includes(slug)) {
-      throw new BadRequestException(`Invalid page slug: ${slug}`);
-    }
+  // ─── Create new page ──────────────────────────────────────────────────────
+  async create(title: string): Promise<PageContent> {
+    if (!title?.trim()) throw new BadRequestException('Title is required');
+
+    let slug = this.generateSlug(title);
+
+    // Ensure slug is unique
+    const { data: existing } = await this.supabaseAdmin
+      .from('contents')
+      .select('page_slug')
+      .eq('page_slug', slug)
+      .single();
+
+    if (existing) slug = `${slug}-${Date.now()}`;
 
     const { data, error } = await this.supabaseAdmin
       .from('contents')
-      .update({
-        title,
-        sections,
-        updated_at: new Date().toISOString(),
-      })
+      .insert({ page_slug: slug, title: title.trim(), sections: [] })
+      .select()
+      .single();
+
+    if (error) throw new BadRequestException(error.message);
+    return data;
+  }
+
+  // ─── Update page content ──────────────────────────────────────────────────
+  async update(slug: string, title: string, sections: PageSection[]): Promise<PageContent> {
+    const { data: existing } = await this.supabaseAdmin
+      .from('contents')
+      .select('id')
+      .eq('page_slug', slug)
+      .single();
+
+    if (!existing) throw new NotFoundException(`Page '${slug}' not found`);
+
+    const { data, error } = await this.supabaseAdmin
+      .from('contents')
+      .update({ title, sections, updated_at: new Date().toISOString() })
       .eq('page_slug', slug)
       .select()
       .single();
 
     if (error) throw new BadRequestException(error.message);
     return data;
+  }
+
+  // ─── Delete page ──────────────────────────────────────────────────────────
+  async delete(slug: string): Promise<{ message: string }> {
+    const { data: existing } = await this.supabaseAdmin
+      .from('contents')
+      .select('id')
+      .eq('page_slug', slug)
+      .single();
+
+    if (!existing) throw new NotFoundException(`Page '${slug}' not found`);
+
+    const { error } = await this.supabaseAdmin
+      .from('contents')
+      .delete()
+      .eq('page_slug', slug);
+
+    if (error) throw new BadRequestException(error.message);
+    return { message: `Page deleted successfully` };
   }
 }
