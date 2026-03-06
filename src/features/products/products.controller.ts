@@ -638,7 +638,7 @@ getProductAdmin(
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @UseInterceptors(
-    FilesInterceptor('imageFiles', 10, ProductsController.multerConfig), // Support up to 10 files
+    FilesInterceptor('imageFiles', 20, ProductsController.multerConfig), // Support up to 10 files
   )
   @ApiCreateProductImage()
   createProductImage(
@@ -706,7 +706,7 @@ getProductAdmin(
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @UseInterceptors(
-    FilesInterceptor('imageFiles', 10, ProductsController.multerConfig), // Support up to 10 files
+    FilesInterceptor('imageFiles', 20, ProductsController.multerConfig), // Support up to 10 files
   )
   @ApiCreateVariantImage()
   createVariantImage(
