@@ -256,14 +256,6 @@ export class CouponService {
 
       const settings = await this.getReferralSettings();
 
-      // return {
-      //   id: `referral_${referrer.id}`,
-      //   code: code,
-      //   discount_type: 'percentage',
-      //   discount_value: settings.receiverDiscount,
-      //   is_referral: true,
-      //   referrer_id: referrer.id,
-      // };
       return {
         id: `referral_${referrer.id}`,
         code: code,
@@ -667,6 +659,7 @@ export class CouponService {
       return {
         referrerReward: this.settingsCache.referrerReward,
         receiverDiscount: this.settingsCache.receiverDiscount,
+        receiverDiscountType: this.settingsCache.receiverDiscountType,
         minOrderAmount: this.settingsCache.minOrderAmount,
         maxDiscountAmount: this.settingsCache.maxDiscountAmount,
       };
