@@ -1,15 +1,18 @@
-import { IsNumber, Min, Max, IsOptional } from 'class-validator';
+import { IsNumber, Min, Max, IsOptional, IsIn, IsString } from 'class-validator';
 
 export class UpdateReferralSettingsDto {
   @IsNumber()
   @Min(0)
   @Max(1000)
-  referrerReward: number;  // In pounds
+  referrerReward: number;
 
   @IsNumber()
   @Min(0)
-  @Max(100)
-  receiverDiscount: number;  // In percentage
+  receiverDiscount: number;
+
+  @IsString()
+  @IsIn(['percentage', 'fixed'])
+  receiverDiscountType: 'percentage' | 'fixed';
 
   @IsNumber()
   @IsOptional()

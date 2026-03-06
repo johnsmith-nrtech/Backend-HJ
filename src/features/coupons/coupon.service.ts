@@ -14,6 +14,7 @@ import { UpdateReferralSettingsDto } from './dto/update-referral-settings.dto';
 interface ReferralSettings {
   referrer_reward: number;
   receiver_discount: number;
+  receiver_discount_type: 'percentage' | 'fixed';
   min_order_amount: number;
   max_discount_amount: number | null;
   is_active: boolean;
@@ -71,6 +72,7 @@ export class CouponService {
   private settingsCache: {
     referrerReward: number;
     receiverDiscount: number;
+    receiverDiscountType: 'percentage' | 'fixed'; 
     minOrderAmount: number;
     maxDiscountAmount: number | null;
     timestamp: number;
@@ -254,10 +256,18 @@ export class CouponService {
 
       const settings = await this.getReferralSettings();
 
+      // return {
+      //   id: `referral_${referrer.id}`,
+      //   code: code,
+      //   discount_type: 'percentage',
+      //   discount_value: settings.receiverDiscount,
+      //   is_referral: true,
+      //   referrer_id: referrer.id,
+      // };
       return {
         id: `referral_${referrer.id}`,
         code: code,
-        discount_type: 'percentage',
+        discount_type: settings.receiverDiscountType,  // WAS 'percentage'
         discount_value: settings.receiverDiscount,
         is_referral: true,
         referrer_id: referrer.id,
@@ -673,6 +683,7 @@ export class CouponService {
       return {
         referrerReward: 500,
         receiverDiscount: 10,
+        receiverDiscountType: 'percentage' as const,
         minOrderAmount: 0,
         maxDiscountAmount: null,
       };
@@ -681,6 +692,7 @@ export class CouponService {
     this.settingsCache = {
       referrerReward: data.referrer_reward,
       receiverDiscount: data.receiver_discount,
+      receiverDiscountType: data.receiver_discount_type || 'percentage',
       minOrderAmount: data.min_order_amount || 0,
       maxDiscountAmount: data.max_discount_amount,
       timestamp: Date.now(),
@@ -689,6 +701,7 @@ export class CouponService {
     return {
       referrerReward: data.referrer_reward,
       receiverDiscount: data.receiver_discount,
+      receiverDiscountType: data.receiver_discount_type || 'percentage',
       minOrderAmount: data.min_order_amount || 0,
       maxDiscountAmount: data.max_discount_amount,
     };
@@ -701,6 +714,7 @@ export class CouponService {
       .update({
         referrer_reward: settingsDto.referrerReward,
         receiver_discount: settingsDto.receiverDiscount,
+        receiver_discount_type: settingsDto.receiverDiscountType,
         min_order_amount: settingsDto.minOrderAmount || 0,
         max_discount_amount: settingsDto.maxDiscountAmount || null,
         updated_at: new Date().toISOString(),
@@ -721,6 +735,7 @@ export class CouponService {
       settings: {
         referrerReward: data.referrer_reward,
         receiverDiscount: data.receiver_discount,
+        receiverDiscountType: data.receiver_discount_type,
         minOrderAmount: data.min_order_amount,
         maxDiscountAmount: data.max_discount_amount,
       },
