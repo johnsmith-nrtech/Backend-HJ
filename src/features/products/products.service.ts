@@ -1103,6 +1103,29 @@ export class ProductsService {
       throw new NotFoundException(`Product with ID ${productId} not found`);
     }
 
+    // ✅ Check manual related products first
+if (
+  currentProduct.related_product_ids &&
+  currentProduct.related_product_ids.length > 0
+) {
+  const { data: manualRelated, error: manualError } = await this.supabaseService
+    .getClient()
+    .from('products')
+    .select(
+      `*, variants:product_variants(id, color, size, delivery_time_days, assemble_charges), images:product_images(*)${includeCategory ? ', category:categories(*)' : ''}`
+    )
+    .in('id', currentProduct.related_product_ids)
+    .eq('is_visible', true)
+    .limit(limit);
+
+  if (!manualError && manualRelated && manualRelated.length > 0) {
+    if (includeCategory) {
+      return this.enhanceProductsWithCategoryDetails(manualRelated);
+    }
+    return manualRelated;
+  }
+}
+
     // Extract relevant information for matching
     const categoryId = currentProduct.category_id;
     const parentCategoryId = currentProduct.category?.parent_id;
@@ -1383,6 +1406,8 @@ export class ProductsService {
         category_id: createProductDto.category_id,
         base_price: createProductDto.base_price,
         discount_offer: createProductDto.discount_offer,
+        related_product_ids: createProductDto.related_product_ids || [],
+        // material_info: createProductDto.material_info || {},
       })
       .select()
       .single();
@@ -1444,6 +1469,7 @@ export class ProductsService {
           discount_percentage: createProductDto.discount_percentage || 0,
           assemble_charges: createProductDto.assemble_charges || 0,
           delivery_time_days: createProductDto.delivery_time_days || '',
+          material_info: createProductDto.material_info || {},
         })
         .select()
         .single();
@@ -1634,6 +1660,9 @@ export class ProductsService {
         }),
         ...(updateProductDto.is_visible !== undefined && {
           is_visible: updateProductDto.is_visible,
+        }),
+        ...(updateProductDto.related_product_ids !== undefined && {
+          related_product_ids: updateProductDto.related_product_ids,
         }),
         ...(updateProductDto.delivery_info !== undefined && {
           delivery_info: updateProductDto.delivery_info,

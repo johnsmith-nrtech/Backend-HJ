@@ -61,6 +61,7 @@ export class CartService {
               description,
               category_id,
               base_price,
+              discount_offer,
               delivery_info,
               created_at,
               updated_at,

@@ -400,4 +400,34 @@ export class CreateProductDto {
   @Min(0)
   @IsOptional()
   discount_percentage?: number;
+
+
+  @ApiProperty({
+  description: 'Related product IDs',
+  example: ['123e4567-e89b-12d3-a456-426614174000'],
+  required: false,
+  type: [String]
+})
+@IsArray()
+@IsUUID('4', { each: true })
+@IsOptional()
+related_product_ids?: string[];
+
+
+
+@ApiProperty({ description: 'Material info for variant', required: false, nullable: true })
+@IsOptional()
+material_info?: {
+  scatter_cushion_cover?: string;
+  scatter_cushion_filling?: string;
+  frame_info?: string;
+  seat_base_info?: string;
+  seat_cushion_info?: string;
+  back_support_info?: string;
+  back_cushion_info?: string;
+  feet_info?: string;
+};
+
+
+
 } 
