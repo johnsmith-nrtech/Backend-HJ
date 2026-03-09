@@ -271,4 +271,30 @@ export class UpdateVariantDto {
   @IsOptional()
   @IsBoolean()
   featured?: boolean | null;
+
+
+  /**
+   * Material composition and construction info
+   */
+  @ApiProperty({
+    description: 'Material composition and construction info',
+    required: false,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsObject()
+  material_info?: {
+    care_instructions?: string;
+    scatter_cushion_cover?: string;
+    scatter_cushion_filling?: string;
+    frame_info?: string;
+    seat_base_info?: string;
+    seat_cushion_info?: string;
+    back_support_info?: string;
+    back_cushion_info?: string;
+    feet_info?: string;
+  } | null;
+
+
+
 } 
