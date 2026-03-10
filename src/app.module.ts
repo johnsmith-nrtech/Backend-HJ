@@ -15,6 +15,7 @@ import { HealthController } from './health.controller';
 import { CouponModule } from './features/coupons/coupon.module';
 import { DimensionsModule } from './features/dimensions/dimensions.module';
 import { ContentModule } from './features/content/content.module';
+import { BundleModule } from './features/bundles/bundle.module';
 
 // Existing FloorsModule
 import { FloorsModule } from './features/floor/floors.module';
@@ -41,7 +42,7 @@ import { ZonesModule } from './features/zones/zones.module';
     CouponModule,
     DimensionsModule,
     ContentModule,
-
+    BundleModule,
   ],
   controllers: [HealthController],
   providers: [],
