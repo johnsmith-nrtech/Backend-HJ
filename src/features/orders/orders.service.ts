@@ -1665,66 +1665,68 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
   /**
    * Validates cart items exist and calculates total amount
    */
-  private async validateCartAndCalculateTotal(
-    cartItems: {
-      variant_id: string;
-      quantity: number;
-      assembly_required: boolean;
-    }[],
-  ) {
-    const variantIds = cartItems.map((item) => item.variant_id);
+private async validateCartAndCalculateTotal(
+  cartItems: {
+    variant_id: string;
+    quantity: number;
+    assembly_required: boolean;
+    unit_price_override?: number;
+  }[],
+) {
+  const variantIds = cartItems.map((item) => item.variant_id);
 
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('product_variants')
-      .select('id, price, stock, assemble_charges')
-      .in('id', variantIds);
+  const { data, error } = await this.supabaseService
+    .getClient()
+    .from('product_variants')
+    .select('id, price, stock, assemble_charges')
+    .in('id', variantIds);
 
-    if (error) {
-      this.handleSupabaseError(error, 'Failed to fetch product variants');
-    }
+  if (error) {
+    this.handleSupabaseError(error, 'Failed to fetch product variants');
+  }
 
-    const variants = data as Array<{
-      id: string;
-      price: number;
-      stock: number;
-      assemble_charges: number;
-    }>;
+  const variants = data as Array<{
+    id: string;
+    price: number;
+    stock: number;
+    assemble_charges: number;
+  }>;
 
-    if (!variants || variants.length !== cartItems.length) {
-      const foundIds = variants?.map((v) => v.id) || [];
-      const missingIds = variantIds.filter((id) => !foundIds.includes(id));
+  if (!variants || variants.length !== cartItems.length) {
+    const foundIds = variants?.map((v) => v.id) || [];
+    const missingIds = variantIds.filter((id) => !foundIds.includes(id));
+    throw new NotFoundException(
+      `Product variants not found: ${missingIds.join(', ')}`,
+    );
+  }
+
+  let totalAmount = 0;
+  const variantMap = new Map(variants.map((v) => [v.id, v]));
+
+  for (const cartItem of cartItems) {
+    const variant = variantMap.get(cartItem.variant_id);
+    if (!variant) {
       throw new NotFoundException(
-        `Product variants not found: ${missingIds.join(', ')}`,
+        `Product variant not found: ${cartItem.variant_id}`,
       );
     }
 
-    // Check stock and calculate total
-    let totalAmount = 0;
-    const variantMap = new Map(variants.map((v) => [v.id, v]));
-
-    for (const cartItem of cartItems) {
-      const variant = variantMap.get(cartItem.variant_id);
-      if (!variant) {
-        throw new NotFoundException(
-          `Product variant not found: ${cartItem.variant_id}`,
-        );
-      }
-
-      if (variant.stock < cartItem.quantity) {
-        throw new BadRequestException(
-          `Insufficient stock for variant ${cartItem.variant_id}. Available: ${variant.stock}, Requested: ${cartItem.quantity}`,
-        );
-      }
-
-      totalAmount += variant.price * cartItem.quantity;
-      if (cartItem.assembly_required) {
-        totalAmount += variant.assemble_charges * cartItem.quantity;
-      }
+    if (variant.stock < cartItem.quantity) {
+      throw new BadRequestException(
+        `Insufficient stock for variant ${cartItem.variant_id}. Available: ${variant.stock}, Requested: ${cartItem.quantity}`,
+      );
     }
 
-    return { variants, totalAmount };
+    const price = cartItem.unit_price_override ?? variant.price;
+    totalAmount += price * cartItem.quantity;
+
+    if (cartItem.assembly_required) {
+      totalAmount += variant.assemble_charges * cartItem.quantity;
+    }
   }
+
+  return { variants, totalAmount };
+}
 
   /**
    * Creates the main order record
@@ -1793,6 +1795,7 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
       variant_id: string;
       quantity: number;
       assembly_required: boolean;
+      unit_price_override?: number;
     }[],
     variants: Array<{
       id: string;
@@ -1805,6 +1808,7 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
 
     const orderItems = cartItems.map((cartItem) => {
       const variant = variantMap.get(cartItem.variant_id)!;
+      const price = cartItem.unit_price_override ?? variant.price;
       return {
         order_id: orderId,
         variant_id: cartItem.variant_id,

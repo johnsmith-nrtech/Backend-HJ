@@ -185,7 +185,8 @@ async update(id: string, updateBundleDto: UpdateBundleDto, bundleImagePath?: str
           description,
           base_price,
           discount_offer,
-          images:product_images(id, url, type, order)
+          images:product_images(id, url, type, order),
+          variants:product_variants(id, price, stock, assemble_charges, delivery_time_days)
         )
       `)
       .eq('bundle_id', bundleId);

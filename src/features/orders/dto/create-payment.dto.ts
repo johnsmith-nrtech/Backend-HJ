@@ -91,6 +91,11 @@ export class CartItemDto {
   })
   @IsBoolean()
   assembly_required: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  unit_price_override?: number;
 }
 
 export class CreatePaymentDto {
