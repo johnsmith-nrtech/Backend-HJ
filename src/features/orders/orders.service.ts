@@ -1561,30 +1561,29 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
     );
 
     // ✅ FIX: INCREMENT COUPON USAGE FOR COD ORDERS
-    if (couponCode && discountAmount > 0) {
-      try {
-        this.logger.log(`🔍 Attempting to increment coupon for COD: ${couponCode}`);
-        
-        // First get the coupon ID from the code
-        const { data: coupon, error: couponError } = await this.supabaseService
-          .getClient()
-          .from('coupons')
-          .select('id')
-          .eq('code', couponCode)
-          .single();
+    // Process referral reward if it's a referral code
+if (couponCode && discountAmount > 0 && userId) {
+  try {
+    const { data: referrer } = await this.supabaseService
+      .getClient()
+      .from('users')
+      .select('id')
+      .eq('referral_code', couponCode)
+      .single();
 
-        if (couponError) {
-          this.logger.error('❌ Error finding coupon for COD order:', couponError);
-        } else if (coupon) {
-          // Call the increment method from coupon service
-          await this.couponService.incrementUsedCount(coupon.id);
-          this.logger.log(`✅ Coupon ${couponCode} usage incremented via couponService for COD order ${order.id}`);
-        }
-      } catch (couponErr) {
-        this.logger.error('💥 Failed to increment coupon usage for COD:', couponErr);
-        // Don't fail the order if coupon increment fails
-      }
+    if (referrer) {
+      await this.couponService.processReferralReward(
+  userId,
+  couponCode,
+  order.id,
+  discountAmount,
+  totalAmount,
+).catch(err => this.logger.error('Failed to process referral reward:', err));
     }
+  } catch (err) {
+    this.logger.error('❌ Failed to process referral reward for COD:', err);
+  }
+}
 
     return {
       success: true,
@@ -1678,7 +1677,7 @@ private async validateCartAndCalculateTotal(
   const { data, error } = await this.supabaseService
     .getClient()
     .from('product_variants')
-    .select('id, price, stock, assemble_charges')
+    .select('id, price, stock, assemble_charges, discount_percentage')
     .in('id', variantIds);
 
   if (error) {
@@ -1690,6 +1689,7 @@ private async validateCartAndCalculateTotal(
     price: number;
     stock: number;
     assemble_charges: number;
+    discount_percentage?: number;
   }>;
 
   if (!variants || variants.length !== cartItems.length) {
@@ -1705,6 +1705,11 @@ private async validateCartAndCalculateTotal(
 
   for (const cartItem of cartItems) {
     const variant = variantMap.get(cartItem.variant_id);
+
+    console.log(`price: ${variant?.price}, discount_percentage: ${variant?.discount_percentage}`);
+    console.log(`calculated: ${variant?.price ?? 0 * (1 - (variant?.discount_percentage ?? 0) / 100)}`);
+    console.log(`Math.round result: ${Math.round((variant?.price ?? 0) * (1 - (variant?.discount_percentage ?? 0) / 100))}`);
+
     if (!variant) {
       throw new NotFoundException(
         `Product variant not found: ${cartItem.variant_id}`,
@@ -1717,8 +1722,13 @@ private async validateCartAndCalculateTotal(
       );
     }
 
-    const price = cartItem.unit_price_override ?? variant.price;
-    totalAmount += price * cartItem.quantity;
+    const basePrice = cartItem.unit_price_override ?? (
+      variant.discount_percentage && variant.discount_percentage > 0
+        ? Math.round(variant.price * (1 - variant.discount_percentage / 100))
+        : variant.price
+    );
+
+    totalAmount += basePrice * cartItem.quantity;
 
     if (cartItem.assembly_required) {
       totalAmount += variant.assemble_charges * cartItem.quantity;
@@ -1802,6 +1812,7 @@ private async validateCartAndCalculateTotal(
       price: number;
       stock: number;
       assemble_charges: number;
+      discount_percentage?: number;
     }>,
   ) {
     const variantMap = new Map(variants.map((v) => [v.id, v]));
@@ -1988,30 +1999,38 @@ async handlePaymentSuccess(paymentData: any, res: any): Promise<void> {
     });
 
     // ✅ FIX: INCREMENT COUPON USAGE FOR CARD PAYMENTS
-    if (orderDetails.coupon_code && orderDetails.discount_amount > 0) {
-      try {
-        this.logger.log(`🔍 Attempting to increment coupon: ${orderDetails.coupon_code}`);
-        
-        // First get the coupon ID from the code
-        const { data: coupon, error: couponError } = await this.supabaseService
-          .getClient()
-          .from('coupons')
-          .select('id')
-          .eq('code', orderDetails.coupon_code)
-          .single();
+    // Process referral reward if it's a referral code
+if (orderDetails.coupon_code && orderDetails.discount_amount > 0 && orderDetails.user_id) {
+  try {
+    const { data: referrer } = await this.supabaseService
+      .getClient()
+      .from('users')
+      .select('id')
+      .eq('referral_code', orderDetails.coupon_code)
+      .single();
 
-        if (couponError) {
-          this.logger.error('❌ Error finding coupon:', couponError);
-        } else if (coupon) {
-          // Call the increment method from coupon service
-          await this.couponService.incrementUsedCount(coupon.id);
-          this.logger.log(`✅ Coupon ${orderDetails.coupon_code} usage incremented via couponService`);
-        }
-      } catch (couponErr) {
-        this.logger.error('💥 Failed to increment coupon:', couponErr);
-        // Don't fail the order if coupon increment fails
-      }
+    if (referrer) {
+      // Get order total for percentage reward calculation
+      const { data: fullOrder } = await this.supabaseService
+        .getClient()
+        .from('orders')
+        .select('total_amount')
+        .eq('id', paymentData.oid)
+        .single();
+
+      await this.couponService.processReferralReward(
+        orderDetails.user_id,
+        orderDetails.coupon_code,
+        paymentData.oid,
+        orderDetails.discount_amount,
+        fullOrder?.total_amount || 0,
+      );
+      this.logger.log(`✅ Referral reward processed for card order ${paymentData.oid}`);
     }
+  } catch (err) {
+    this.logger.error('❌ Failed to process referral reward for card payment:', err);
+  }
+}
 
     // Get user email for notification
     const { data: userEmail } = await this.supabaseService

@@ -90,7 +90,7 @@ export class CouponController {
   @Post('user/process-referral-reward')
   @UseGuards(JwtAuthGuard)
   processReferralReward(
-    @Body() body: { referral_code: string; order_id: string; discount_given: number },
+    @Body() body: { referral_code: string; order_id: string; discount_given: number; order_total: number },
     @Request() req,
   ) {
     return this.couponService.processReferralReward(
@@ -98,6 +98,7 @@ export class CouponController {
       body.referral_code,
       body.order_id,
       body.discount_given,
+      body.order_total,
     );
   }
 

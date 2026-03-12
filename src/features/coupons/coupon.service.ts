@@ -71,8 +71,9 @@ export class CouponService {
 
   private settingsCache: {
     referrerReward: number;
+    referrerRewardType: 'percentage' | 'fixed';
     receiverDiscount: number;
-    receiverDiscountType: 'percentage' | 'fixed'; 
+    receiverDiscountType: 'percentage' | 'fixed';
     minOrderAmount: number;
     maxDiscountAmount: number | null;
     timestamp: number;
@@ -303,69 +304,78 @@ export class CouponService {
     };
   }
 
-  async processReferralReward(
-    userId: string,
-    referralCode: string,
-    orderId: string,
-    discountGiven: number,
-  ): Promise<void> {
-    const { data: referrer, error } = await this.supabaseAdmin
-      .from('users')
-      .select('id, wallet_balance, total_wallet_earned')
-      .eq('referral_code', referralCode)
-      .single();
+async processReferralReward(
+  userId: string,
+  referralCode: string,
+  orderId: string,
+  discountGiven: number,
+  orderTotal: number = 0,
+): Promise<void> {
+  const { data: referrer, error } = await this.supabaseAdmin
+    .from('users')
+    .select('id, wallet_balance, total_wallet_earned')
+    .eq('referral_code', referralCode)
+    .single();
 
-    if (error || !referrer) {
-      console.error('Referrer not found for code:', referralCode);
-      return;
-    }
-
-    const { data: existing } = await this.supabaseAdmin
-      .from('referral_uses')
-      .select('id')
-      .eq('order_id', orderId)
-      .single();
-
-    if (existing) {
-      console.log('Referral reward already given for order:', orderId);
-      return;
-    }
-
-    const settings = await this.getReferralSettings();
-
-    const { data: usedByUser } = await this.supabaseAdmin
-      .from('users')
-      .select('email, name')
-      .eq('id', userId)
-      .single();
-
-    await this.supabaseAdmin.from('referral_uses').insert({
-      referral_code: referralCode,
-      referrer_user_id: referrer.id,
-      used_by_user_id: userId,
-      used_by_email: usedByUser?.email || null,
-      used_by_name: usedByUser?.name || null,
-      order_id: orderId,
-      reward_given: settings.referrerReward,
-      discount_given: discountGiven,
-    });
-
-    const currentBalance = referrer.wallet_balance || 0;
-    const currentTotalEarned = referrer.total_wallet_earned || 0;
-
-    await this.supabaseAdmin
-      .from('users')
-      .update({
-        wallet_balance: currentBalance + settings.referrerReward,
-        total_wallet_earned: currentTotalEarned + settings.referrerReward,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', referrer.id);
-
-    console.log(
-      `Gave £${settings.referrerReward} wallet credit to referrer ${referrer.id} for order ${orderId}`,
-    );
+  if (error || !referrer) {
+    console.error('Referrer not found for code:', referralCode);
+    return;
   }
+
+  const { data: existing } = await this.supabaseAdmin
+    .from('referral_uses')
+    .select('id')
+    .eq('order_id', orderId)
+    .single();
+
+  if (existing) {
+    console.log('Referral reward already given for order:', orderId);
+    return;
+  }
+
+  const settings = await this.getReferralSettings();
+
+  // Calculate actual reward based on type
+  let rewardAmount: number;
+  if (settings.referrerRewardType === 'percentage') {
+    rewardAmount = parseFloat(((settings.referrerReward / 100) * orderTotal).toFixed(2));
+  } else {
+    rewardAmount = settings.referrerReward;
+  }
+
+  const { data: usedByUser } = await this.supabaseAdmin
+    .from('users')
+    .select('email, name')
+    .eq('id', userId)
+    .single();
+
+  await this.supabaseAdmin.from('referral_uses').insert({
+    referral_code: referralCode,
+    referrer_user_id: referrer.id,
+    used_by_user_id: userId,
+    used_by_email: usedByUser?.email || null,
+    used_by_name: usedByUser?.name || null,
+    order_id: orderId,
+    reward_given: rewardAmount,
+    discount_given: discountGiven,
+  });
+
+  const currentBalance = referrer.wallet_balance || 0;
+  const currentTotalEarned = referrer.total_wallet_earned || 0;
+
+  await this.supabaseAdmin
+    .from('users')
+    .update({
+      wallet_balance: currentBalance + rewardAmount,
+      total_wallet_earned: currentTotalEarned + rewardAmount,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', referrer.id);
+
+  console.log(
+    `Gave £${rewardAmount} wallet credit to referrer ${referrer.id} for order ${orderId}`,
+  );
+}
 
   // ─── Internal: Increment used_count after successful order ────────────────
   async incrementUsedCount(id: string) {
@@ -654,86 +664,92 @@ export class CouponService {
   }
 
   // ─── Get referral settings ────────────────────────────────────────────────
-  async getReferralSettings() {
-    if (this.settingsCache && (Date.now() - this.settingsCache.timestamp) < this.CACHE_DURATION) {
-      return {
-        referrerReward: this.settingsCache.referrerReward,
-        receiverDiscount: this.settingsCache.receiverDiscount,
-        receiverDiscountType: this.settingsCache.receiverDiscountType,
-        minOrderAmount: this.settingsCache.minOrderAmount,
-        maxDiscountAmount: this.settingsCache.maxDiscountAmount,
-      };
-    }
-
-    const { data, error } = await this.supabaseAdmin
-      .from('referral_settings')
-      .select('*')
-      .eq('id', 1)
-      .single();
-
-    if (error) {
-      console.error('Failed to fetch referral settings:', error);
-      return {
-        referrerReward: 500,
-        receiverDiscount: 10,
-        receiverDiscountType: 'percentage' as const,
-        minOrderAmount: 0,
-        maxDiscountAmount: null,
-      };
-    }
-
-    this.settingsCache = {
-      referrerReward: data.referrer_reward,
-      receiverDiscount: data.receiver_discount,
-      receiverDiscountType: data.receiver_discount_type || 'percentage',
-      minOrderAmount: data.min_order_amount || 0,
-      maxDiscountAmount: data.max_discount_amount,
-      timestamp: Date.now(),
-    };
-
+async getReferralSettings() {
+  if (this.settingsCache && (Date.now() - this.settingsCache.timestamp) < this.CACHE_DURATION) {
     return {
-      referrerReward: data.referrer_reward,
-      receiverDiscount: data.receiver_discount,
-      receiverDiscountType: data.receiver_discount_type || 'percentage',
-      minOrderAmount: data.min_order_amount || 0,
-      maxDiscountAmount: data.max_discount_amount,
+      referrerReward: this.settingsCache.referrerReward,
+      referrerRewardType: this.settingsCache.referrerRewardType,
+      receiverDiscount: this.settingsCache.receiverDiscount,
+      receiverDiscountType: this.settingsCache.receiverDiscountType,
+      minOrderAmount: this.settingsCache.minOrderAmount,
+      maxDiscountAmount: this.settingsCache.maxDiscountAmount,
     };
   }
+
+  const { data, error } = await this.supabaseAdmin
+    .from('referral_settings')
+    .select('*')
+    .eq('id', 1)
+    .single();
+
+  if (error) {
+    console.error('Failed to fetch referral settings:', error);
+    return {
+      referrerReward: 500,
+      referrerRewardType: 'fixed' as const,
+      receiverDiscount: 10,
+      receiverDiscountType: 'percentage' as const,
+      minOrderAmount: 0,
+      maxDiscountAmount: null,
+    };
+  }
+
+  this.settingsCache = {
+    referrerReward: data.referrer_reward,
+    referrerRewardType: data.referrer_reward_type || 'fixed',
+    receiverDiscount: data.receiver_discount,
+    receiverDiscountType: data.receiver_discount_type || 'percentage',
+    minOrderAmount: data.min_order_amount || 0,
+    maxDiscountAmount: data.max_discount_amount,
+    timestamp: Date.now(),
+  };
+
+  return {
+    referrerReward: data.referrer_reward,
+    referrerRewardType: data.referrer_reward_type || 'fixed',
+    receiverDiscount: data.receiver_discount,
+    receiverDiscountType: data.receiver_discount_type || 'percentage',
+    minOrderAmount: data.min_order_amount || 0,
+    maxDiscountAmount: data.max_discount_amount,
+  };
+}
 
   // ─── Update referral settings ─────────────────────────────────────────────
-  async updateReferralSettings(settingsDto: UpdateReferralSettingsDto, adminId: string) {
-    const { data, error } = await this.supabaseAdmin
-      .from('referral_settings')
-      .update({
-        referrer_reward: settingsDto.referrerReward,
-        receiver_discount: settingsDto.receiverDiscount,
-        receiver_discount_type: settingsDto.receiverDiscountType,
-        min_order_amount: settingsDto.minOrderAmount || 0,
-        max_discount_amount: settingsDto.maxDiscountAmount || null,
-        updated_at: new Date().toISOString(),
-        updated_by: adminId,
-      })
-      .eq('id', 1)
-      .select()
-      .single();
+async updateReferralSettings(settingsDto: UpdateReferralSettingsDto, adminId: string) {
+  const { data, error } = await this.supabaseAdmin
+    .from('referral_settings')
+    .update({
+      referrer_reward: settingsDto.referrerReward,
+      referrer_reward_type: settingsDto.referrerRewardType,
+      receiver_discount: settingsDto.receiverDiscount,
+      receiver_discount_type: settingsDto.receiverDiscountType,
+      min_order_amount: settingsDto.minOrderAmount || 0,
+      max_discount_amount: settingsDto.maxDiscountAmount || null,
+      updated_at: new Date().toISOString(),
+      updated_by: adminId,
+    })
+    .eq('id', 1)
+    .select()
+    .single();
 
-    if (error) {
-      throw new BadRequestException('Failed to update settings: ' + error.message);
-    }
-
-    this.settingsCache = null;
-
-    return {
-      message: 'Referral settings updated successfully',
-      settings: {
-        referrerReward: data.referrer_reward,
-        receiverDiscount: data.receiver_discount,
-        receiverDiscountType: data.receiver_discount_type,
-        minOrderAmount: data.min_order_amount,
-        maxDiscountAmount: data.max_discount_amount,
-      },
-    };
+  if (error) {
+    throw new BadRequestException('Failed to update settings: ' + error.message);
   }
+
+  this.settingsCache = null;
+
+  return {
+    message: 'Referral settings updated successfully',
+    settings: {
+      referrerReward: data.referrer_reward,
+      referrerRewardType: data.referrer_reward_type,
+      receiverDiscount: data.receiver_discount,
+      receiverDiscountType: data.receiver_discount_type,
+      minOrderAmount: data.min_order_amount,
+      maxDiscountAmount: data.max_discount_amount,
+    },
+  };
+}
 
   clearSettingsCache() {
     this.settingsCache = null;
