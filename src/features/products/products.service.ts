@@ -1596,43 +1596,36 @@ if (
    * @param id Product ID
    * @returns Deleted product
    */
-  async remove(id: string): Promise<Product> {
-    // Check if product exists and get its details
-    const product = await this.findOne(id, true, true); // Include variants and images
+async remove(id: string): Promise<Product> {
+  const product = await this.findOne(id, true, true);
+  await this.deleteProductImagesFromStorage(id);
 
-    // Get count of variants and images before deletion for logging
-    const variantCount = product.variants?.length || 0;
-    const imageCount = product.images?.length || 0;
-
-    console.log(`🗑️  Deleting product: ${product.name} (ID: ${id})`);
-    console.log(
-      `📦 This will also delete ${variantCount} variant(s) and ${imageCount} image(s)`,
-    );
-
-    // First, delete images from Supabase Storage if they are stored there
-    await this.deleteProductImagesFromStorage(id);
-
-    // Delete the product - this will automatically cascade delete:
-    // 1. All product variants (due to ON DELETE CASCADE foreign key)
-    // 2. All product images (due to ON DELETE CASCADE foreign key)
-    // 3. All variant images (due to ON DELETE CASCADE foreign key when variants are deleted)
-    const { error } = await this.supabaseService
+  // Cleanup order_items and cart_items first
+  const variantIds = (product.variants || []).map((v: any) => v.id);
+  if (variantIds.length > 0) {
+    await this.supabaseService
       .getClient()
-      .from('products')
+      .from('order_items')
       .delete()
-      .eq('id', id);
+      .in('variant_id', variantIds);
 
-    if (error) {
-      console.error(`❌ Error deleting product ${id}:`, error);
-      throw error;
-    }
-
-    console.log(
-      `✅ Successfully deleted product "${product.name}" and all related data`,
-    );
-
-    return product;
+    await this.supabaseService
+      .getClient()
+      .from('cart_items')
+      .delete()
+      .in('variant_id', variantIds);
   }
+
+  const { error } = await this.supabaseService
+    .getClient()
+    .from('products')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+
+  return product;
+}
 
   /**
    * Get product variants
@@ -1799,23 +1792,34 @@ if (
    * @param id Variant ID
    * @returns Deleted variant
    */
-  async removeVariant(id: string): Promise<ProductVariant> {
-    // Check if variant exists
-    const variant = await this.getVariant(id);
+async removeVariant(id: string): Promise<ProductVariant> {
+  const variant = await this.getVariant(id);
 
-    // Delete the variant
-    const { error } = await this.supabaseService
-      .getClient()
-      .from('product_variants')
-      .delete()
-      .eq('id', id);
+  // Delete order_items and cart_items referencing this variant
+  await this.supabaseService
+    .getClient()
+    .from('order_items')
+    .delete()
+    .eq('variant_id', id);
 
-    if (error) {
-      throw error;
-    }
+  await this.supabaseService
+    .getClient()
+    .from('cart_items')
+    .delete()
+    .eq('variant_id', id);
 
-    return variant;
+  const { error } = await this.supabaseService
+    .getClient()
+    .from('product_variants')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    throw error;
   }
+
+  return variant;
+}
 
   /**
    * Update stock level of a variant
