@@ -85,39 +85,41 @@ export class ProductsController {
 
   // Multer configuration for file uploads
   private static multerConfig = {
-    // Store in memory since we'll upload to Supabase
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, callback) => {
-        // Generate unique filename
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        const ext = extname(file.originalname);
-        const filename = `${uniqueSuffix}${ext}`;
-        callback(null, filename);
-      },
-    }),
-    // Increased file size limit to 20MB since we're now compressing images
-    limits: {
-      fileSize: 20 * 1024 * 1024,
-    },
-    // File filter to accept only images
-    fileFilter: (req, file, callback) => {
-      // Regular expression for common image file types
-      if (
-        !file.originalname.match(
-          /\.(jpg|jpeg|png|gif|webp|bmp|svg|tiff|tif|ico|jfif|pjpeg|pjp|avif)$/i,
-        )
-      ) {
-        return callback(
-          new Error(
-            'Only image files are allowed! Supported formats: JPG, JPEG, PNG, GIF, WEBP, BMP, SVG, TIFF, ICO, JFIF, AVIF',
-          ),
-          false,
-        );
+  storage: diskStorage({
+    destination: (req, file, callback) => {
+      const uploadDir = process.env.NODE_ENV === 'production' 
+        ? '/tmp/uploads' 
+        : './uploads';
+      
+      // Create directory if it doesn't exist
+      const fs = require('fs');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
       }
-      callback(null, true);
+      
+      callback(null, uploadDir);
     },
-  };
+    filename: (req, file, callback) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const ext = extname(file.originalname);
+      callback(null, `${uniqueSuffix}${ext}`);
+    },
+  }),
+  limits: {
+    fileSize: 20 * 1024 * 1024,
+  },
+  fileFilter: (req, file, callback) => {
+    if (!file.originalname.match(
+      /\.(jpg|jpeg|png|gif|webp|bmp|svg|tiff|tif|ico|jfif|pjpeg|pjp|avif)$/i,
+    )) {
+      return callback(
+        new Error('Only image files are allowed!'),
+        false,
+      );
+    }
+    callback(null, true);
+  },
+};
 
   constructor(private readonly productsService: ProductsService) {
     this.logger.log('ProductsController initialized');
