@@ -843,12 +843,9 @@ export class ProductsService {
       const { data: products, error } = await this.supabaseService
         .getClient()
         .from('products')
-        .select(
-          'id, name, category_id, base_price, created_at, main_image:product_images!inner(id, url, type, order)',
-        )
+        .select('id, name, category_id, base_price, discount_offer, created_at, all_images:product_images(id, url, type, order)',)
         .in('id', featuredProductIds)
-        .eq('product_images.type', 'main') // Only get main images
-        .eq('is_visible', true) // Only show visible products
+        .eq('is_visible', true)
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -911,10 +908,16 @@ export class ProductsService {
             return null; // Skip this product
           }
 
-          // Clean up the main_image structure - take only the first main image
-          const mainImage = Array.isArray(product.main_image)
-            ? product.main_image[0]
-            : product.main_image;
+          const allImages = [...(Array.isArray(product.all_images) 
+          ? product.all_images 
+          : [])]
+          .sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+
+          // NO variant_id filter - same as admin panel
+          const mainImage =
+            allImages.find((img: any) => img.type === 'main') ||
+            allImages[0] ||
+            null;
 
           return {
             id: product.id,
@@ -922,12 +925,7 @@ export class ProductsService {
             category_id: product.category_id,
             base_price: product.base_price,
             discount_offer: product.discount_offer,
-            main_image: mainImage
-              ? {
-                  id: mainImage.id,
-                  url: mainImage.url,
-                }
-              : null,
+            main_image: mainImage ? { id: mainImage.id, url: mainImage.url } : null,
             default_variant: defaultVariant,
           };
         })
