@@ -964,61 +964,141 @@ export class OrdersService {
     }
   }
 
-  async updateOrderStatusAdmin(
-    orderId: string,
-    updateOrderStatusDto: UpdateOrderStatusDto,
-  ): Promise<Order> {
+async updateOrderStatusAdmin(
+  orderId: string,
+  updateOrderStatusDto: UpdateOrderStatusDto,
+): Promise<Order> {
+  try {
+    const existingOrder = await this.getOrderDetails(orderId);
+
+    const { data: paymentRecords } = await this.supabaseService
+      .getClient()
+      .from('payments')
+      .select('provider')
+      .eq('order_id', orderId)
+      .limit(1);
+
+    const isCodOrder =
+      Array.isArray(paymentRecords) && paymentRecords[0]?.provider === 'cod';
+
+    const isCodPendingToShipped =
+      isCodOrder &&
+      existingOrder.status === OrderStatus.PENDING &&
+      updateOrderStatusDto.status === OrderStatus.SHIPPED;
+
+    if (!isCodPendingToShipped) {
+      this.validateStatusTransition(
+        existingOrder.status,
+        updateOrderStatusDto.status,
+      );
+    }
+
+    const { data, error } = await this.supabaseService
+      .getClient()
+      .from('orders')
+      .update({
+        status: updateOrderStatusDto.status,
+        updated_at: new Date(),
+      })
+      .eq('id', orderId)
+      .select(this.orderSelectWithItemDetails)
+      .single();
+
+    if (error) {
+      this.handleSupabaseError(
+        error,
+        `Error updating order status for ${orderId}`,
+        orderId,
+      );
+    }
+
+    if (!data) {
+      throw new NotFoundException(
+        `Order with ID ${orderId} not found after update.`,
+      );
+    }
+
+    // ✅ Reduce stock when status changes to 'paid' OR 'shipped' (for COD)
+    if (
+      updateOrderStatusDto.status === OrderStatus.PAID
+    ) {
+      const orderWithItems = data as any;
+      if (orderWithItems.items && Array.isArray(orderWithItems.items)) {
+        for (const item of orderWithItems.items) {
+          const { data: variant } = await this.supabaseService
+            .getClient()
+            .from('product_variants')
+            .select('stock')
+            .eq('id', item.variant_id)
+            .single();
+
+          if (variant) {
+            const currentStock = variant.stock ?? 0;
+            const newStock = Math.max(0, currentStock - item.quantity);
+
+            const { error: stockError } = await this.supabaseService
+              .getClient()
+              .from('product_variants')
+              .update({ stock: newStock })
+              .eq('id', item.variant_id);
+
+            if (stockError) {
+              this.logger.error(
+                `Failed to reduce stock for variant ${item.variant_id}: ${stockError.message}`,
+              );
+            } else {
+              this.logger.log(
+                `Stock reduced for variant ${item.variant_id}: ${currentStock} → ${newStock}`,
+              );
+            }
+          }
+        }
+      }
+    }
+
+    // ✅ Email in try/catch — failure here won't affect status update
     try {
-      // Validate the order exists first
-      const existingOrder = await this.getOrderDetails(orderId);
+      const genericHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #333;">Order Status Update - Order #${orderId}</h2>
+          <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
+          <p>Your order #${orderId} status has been updated to: <strong>${updateOrderStatusDto.status}</strong>.</p>
+          <p>We'll keep you informed of any further updates.</p>
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p>Best regards,</p>
+            <p><strong>Sofa Deal</strong></p>
+            <p>Phone: +44 7306 127481</p>
+          </div>
+        </div>
+      `;
 
-      // Determine if order is COD
-      const { data: paymentRecords } = await this.supabaseService
-        .getClient()
-        .from('payments')
-        .select('provider')
-        .eq('order_id', orderId)
-        .limit(1);
+      const shippedHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #333;">Good News! Your Order #${orderId} Is On Its Way 🚚</h2>
+          <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
+          <p>Your order #${orderId} has been shipped and is on its way to you. 🚀</p>
+          <p>We'll notify you once it's been delivered.</p>
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p>Thanks for shopping with <strong>Sofa Deal</strong></p>
+            <p>Phone: +44 7306 127481</p>
+          </div>
+        </div>
+      `;
 
-      const isCodOrder =
-        Array.isArray(paymentRecords) && paymentRecords[0]?.provider === 'cod';
-
-      // Check if status transition is valid, with COD exception allowing pending -> shipped
-      const isCodPendingToShipped =
-        isCodOrder &&
-        existingOrder.status === OrderStatus.PENDING &&
-        updateOrderStatusDto.status === OrderStatus.SHIPPED;
-      if (!isCodPendingToShipped) {
-        this.validateStatusTransition(
-          existingOrder.status,
-          updateOrderStatusDto.status,
-        );
-      }
-
-      const { data, error } = await this.supabaseService
-        .getClient()
-        .from('orders')
-        .update({
-          status: updateOrderStatusDto.status,
-          updated_at: new Date(),
-        })
-        .eq('id', orderId)
-        .select(this.orderSelectWithItemDetails)
-        .single();
-
-      if (error) {
-        this.handleSupabaseError(
-          error,
-          `Error updating order status for ${orderId}`,
-          orderId,
-        );
-      }
-
-      if (!data) {
-        throw new NotFoundException(
-          `Order with ID ${orderId} not found after update.`,
-        );
-      }
+      const deliveredHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #333;">Your Order #${orderId} Has Been Delivered! 📦</h2>
+          <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
+          <p>Your order #${orderId} has been successfully delivered. 🎁</p>
+          <p>We hope you love your purchase!</p>
+          <p>Thank you for shopping with <strong>Sofa Deal</strong>.</p>
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p>Warm regards,</p>
+            <p><strong>Sofa Deal</strong></p>
+            <p>Phone: +44 7306 127481</p>
+          </div>
+        </div>
+      `;
 
       const userEmail = await this.supabaseService
         .getClient()
@@ -1027,66 +1107,7 @@ export class OrdersService {
         .eq('id', existingOrder.user_id)
         .limit(1);
 
-      const genericHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #333;">Order Status Update - Order #${orderId}</h2>
-          
-          <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
-          
-          <p>Your order #${orderId} status has been updated to: <strong>${updateOrderStatusDto.status}</strong>.</p>
-          
-          <p>We'll keep you informed of any further updates.</p>
-          
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-            <p>Best regards,</p>
-            <p><strong>Sofa Deal</strong></p>
-            <p>Phone: +44 7306 127481</p>
-          </div>
-        </div>
-        `;
-
-      const shippedHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #333;">Good News! Your Order #${orderId} Is On Its Way 🚚</h2>
-          
-          <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
-          
-          <p>Your order #${orderId} has been shipped and is on its way to you. 🚀</p>
-          
-          <p>We’ll notify you once it’s been delivered.</p>
-          
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-            <p>Thanks for shopping with <strong>Sofa Deal</strong></p>
-            <p>Phone: +44 7306 127481</p>
-          </div>
-        </div>
-        `;
-
-      const deliveredHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #333;">Your Order #${orderId} Has Been Delivered! 📦</h2>
-          
-          <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
-          
-          <p>Your order #${orderId} has been successfully delivered. 🎁</p>
-          
-          <p>We hope you love your purchase!</p>
-          
-          <p>Thank you for shopping with <strong>Sofa Deal</strong>.</p>
-          
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-            <p>Warm regards,</p>
-            <p><strong>Sofa Deal</strong></p>
-            <p>Phone: +44 7306 127481</p>
-          </div>
-        </div>
-        `;
-
-      if (
-        userEmail.data &&
-        userEmail.data.length > 0 &&
-        userEmail.data[0].email
-      ) {
+      if (userEmail.data && userEmail.data.length > 0 && userEmail.data[0].email) {
         await this.mailService.sendEmail(
           userEmail.data[0].email,
           updateOrderStatusDto.status === 'shipped'
@@ -1101,29 +1122,33 @@ export class OrdersService {
               : genericHtml,
         );
       }
-
-      this.logger.log(
-        `Order ${orderId} status updated to ${updateOrderStatusDto.status}`,
-      );
-
-      return this.attachItemImages(data) as Order;
-    } catch (error) {
-      console.log(error);
+    } catch (emailError) {
       this.logger.error(
-        `Error updating order status: ${error.message}`,
-        error.stack,
-      );
-
-      // If it's already a NestJS exception, rethrow it
-      if (error.response) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException(
-        `Failed to update order status: ${error.message}`,
+        `Failed to send status update email for order ${orderId}: ${emailError.message}`,
       );
     }
+
+    this.logger.log(
+      `Order ${orderId} status updated to ${updateOrderStatusDto.status}`,
+    );
+
+    return this.attachItemImages(data) as Order;
+  } catch (error) {
+    console.log(error);
+    this.logger.error(
+      `Error updating order status: ${error.message}`,
+      error.stack,
+    );
+
+    if (error.response) {
+      throw error;
+    }
+
+    throw new InternalServerErrorException(
+      `Failed to update order status: ${error.message}`,
+    );
   }
+}
 
   /**
    * Validate if a status transition is allowed
