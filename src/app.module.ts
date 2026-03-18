@@ -20,6 +20,10 @@ import { FloorsModule } from './features/floor/floors.module';
 import { ZonesModule } from './features/zones/zones.module';
 import { SalesModule } from './features/sales/sales.module';
 import { BestSellersModule } from './features/best-sellers/best-sellers.module';
+import { TestimonialsModule } from './features/testimonials/testimonials.module';
+import { WhyChooseUsModule } from './features/why-choose-us/why-choose-us.module';
+
+
 
 @Module({
   imports: [
@@ -43,6 +47,8 @@ import { BestSellersModule } from './features/best-sellers/best-sellers.module';
     BundleModule,
     SalesModule,
     BestSellersModule,
+    TestimonialsModule,
+    WhyChooseUsModule,
   ],
   controllers: [HealthController],
   providers: [],
