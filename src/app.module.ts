@@ -16,12 +16,10 @@ import { CouponModule } from './features/coupons/coupon.module';
 import { DimensionsModule } from './features/dimensions/dimensions.module';
 import { ContentModule } from './features/content/content.module';
 import { BundleModule } from './features/bundles/bundle.module';
-
-// Existing FloorsModule
 import { FloorsModule } from './features/floor/floors.module';
-
-// ✅ Add ZonesModule import
 import { ZonesModule } from './features/zones/zones.module';
+import { SalesModule } from './features/sales/sales.module';
+import { BestSellersModule } from './features/best-sellers/best-sellers.module';
 
 @Module({
   imports: [
@@ -43,6 +41,8 @@ import { ZonesModule } from './features/zones/zones.module';
     DimensionsModule,
     ContentModule,
     BundleModule,
+    SalesModule,
+    BestSellersModule,
   ],
   controllers: [HealthController],
   providers: [],
