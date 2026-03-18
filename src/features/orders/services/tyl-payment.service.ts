@@ -14,6 +14,7 @@ interface TylConfig {
 interface PaymentParams {
   storename: string;
   checkoutoption: string;
+  language: string;
   txntype: string;
   timezone: string;
   txndatetime: string;
@@ -84,34 +85,78 @@ export class TylPaymentService {
    * Generates the extended hash for Tyl payment form
    * Following Tyl's specification for hash calculation
    */
-  private generateExtendedHash(params: PaymentParams): string {
-    try {
-      // Sort parameters alphabetically (ASCII order, uppercase before lowercase)
-      const sortedKeys = Object.keys(params)
-        .filter(key => params[key] !== undefined && params[key] !== null && params[key] !== '')
-        .sort();
+  // private generateExtendedHash(params: PaymentParams): string {
+  //   try {
+  //     // Sort parameters alphabetically (ASCII order, uppercase before lowercase)
+  //     const sortedKeys = Object.keys(params)
+  //       .filter(key => params[key] !== undefined && params[key] !== null && params[key] !== '')
+  //       .sort();
 
-      // Create hash string by joining parameter values with pipe separator
-      const hashString = sortedKeys
-        .map(key => params[key])
-        .join('|');
+  //     // Create hash string by joining parameter values with pipe separator
+  //     const hashString = sortedKeys
+  //       .map(key => params[key])
+  //       .join('|');
 
-      this.logger.debug('Hash string created for Tyl payment', { 
-        paramCount: sortedKeys.length,
-        // Don't log the actual hash string for security
+  //     this.logger.debug('Hash string created for Tyl payment', { 
+  //       paramCount: sortedKeys.length,
+  //       // Don't log the actual hash string for security
+  //     });
+
+  //     // Generate HMAC-SHA256 hash
+  //     const hmac = crypto.createHmac('sha256', this.tylConfig.sharedSecret);
+  //     hmac.update(hashString);
+  //     const hash = hmac.digest('base64');
+
+  //     return hash;
+  //   } catch (error) {
+  //     this.logger.error('Failed to generate extended hash', { error: error.message });
+  //     throw new BadRequestException('Failed to generate payment security hash');
+  //   }
+  // }
+
+
+private generateExtendedHash(params: PaymentParams): string {
+  try {
+    // Per official Tyl/IPG spec:
+    // Sort ALL non-empty params alphabetically by parameter name (ascending)
+    // DO NOT include sharedsecret in the string — it's the HMAC KEY only
+    const sortedKeys = Object.keys(params)
+      .filter(key =>
+        params[key] !== undefined &&
+        params[key] !== null &&
+        params[key] !== ''
+      )
+      .sort((a, b) => {
+        // ASCII sort: uppercase before lowercase
+        for (let i = 0; i < Math.min(a.length, b.length); i++) {
+          if (a.charCodeAt(i) !== b.charCodeAt(i)) {
+            return a.charCodeAt(i) - b.charCodeAt(i);
+          }
+        }
+        return a.length - b.length;
       });
 
-      // Generate HMAC-SHA256 hash
-      const hmac = crypto.createHmac('sha256', this.tylConfig.sharedSecret);
-      hmac.update(hashString);
-      const hash = hmac.digest('base64');
+    // Join VALUES only with pipe separator
+    const stringToHash = sortedKeys
+      .map(key => params[key])
+      .join('|');
 
-      return hash;
-    } catch (error) {
-      this.logger.error('Failed to generate extended hash', { error: error.message });
-      throw new BadRequestException('Failed to generate payment security hash');
-    }
+    this.logger.log('Hash params in order:', { sortedKeys });
+
+    // HMACSHA256: sharedsecret is the KEY, not part of the string
+    const hmac = crypto.createHmac('sha256', this.tylConfig.sharedSecret);
+    hmac.update(stringToHash);
+    return hmac.digest('base64'); // ✅ Base64
+
+  } catch (error) {
+    this.logger.error('Failed to generate extended hash', {
+      error: error.message
+    });
+    throw new BadRequestException('Failed to generate payment security hash');
   }
+}
+
+
 
   /**
    * Verifies the webhook notification hash from Tyl
@@ -209,10 +254,11 @@ export class TylPaymentService {
         bcity: billingAddress.city,
         bstate: billingAddress.state,
         bcountry: billingAddress.country,
-        bzip: billingAddress.postal_code ?? '',
+        bzip: billingAddress.postal_code || undefined,
         email: paymentData.contact_email,
         phone: paymentData.contact_phone,
         oid: orderId,
+        language: 'en_GB',
       };
 
       // Generate security hash
