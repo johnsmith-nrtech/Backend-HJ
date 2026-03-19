@@ -257,7 +257,7 @@ private generateExtendedHash(params: PaymentParams): string {
         bzip: billingAddress.postal_code || undefined,
         email: paymentData.contact_email,
         phone: paymentData.contact_phone,
-        oid: orderId,
+        oid: orderId.replace(/-/g, '').substring(0, 20),
         language: 'en_GB',
       };
 
