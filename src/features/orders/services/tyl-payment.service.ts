@@ -141,6 +141,7 @@ private generateExtendedHash(params: PaymentParams): string {
       .map(key => params[key])
       .join('|');
 
+    this.logger.log('String being hashed:', stringToHash);
     this.logger.log('Hash params in order:', { sortedKeys });
 
     // HMACSHA256: sharedsecret is the KEY, not part of the string
@@ -242,6 +243,7 @@ private generateExtendedHash(params: PaymentParams): string {
         timezone: 'Europe/London',
         txndatetime: txnDateTime,
         hash_algorithm: 'HMACSHA256',
+        // hash_algorithm: 'SHA256',
         chargetotal: totalAmount.toFixed(2),
         currency: this.configService.get<string>('CURRENCY_ISO_CODE') || '826', // Get currency ISO code from env or default to GBP (826)
         responseSuccessURL: `${backendBaseUrl}/orders/payment/success`,
@@ -275,6 +277,7 @@ private generateExtendedHash(params: PaymentParams): string {
         hashExtended,
         chargetotal: paymentParams.chargetotal,
         currency: paymentParams.currency,
+        language: paymentParams.language,
         responseSuccessURL: paymentParams.responseSuccessURL,
         responseFailURL: paymentParams.responseFailURL,
         transactionNotificationURL: paymentParams.transactionNotificationURL,

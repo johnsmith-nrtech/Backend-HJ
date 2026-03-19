@@ -58,20 +58,28 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
 
   // Configure CORS
+  // app.enableCors({
+  //   origin:
+  //     process.env.NODE_ENV === 'production'
+  //       ? process.env.FRONTEND_BASE_URL || '*'
+  //       : '*',
+  //   // : [
+  //   //     'http://localhost:4000',
+  //   //     'http://localhost:5173',
+  //   //     'https://sofa-deal.netlify.app',
+  //   //     'http://localhost:3000',
+  //   //     'https://frontend-dev-tau-hazel.vercel.app',
+  //   //   ],
+  //   credentials: true,
+  // });
+
   app.enableCors({
-    origin:
-      process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_BASE_URL || '*'
-        : '*',
-    // : [
-    //     'http://localhost:4000',
-    //     'http://localhost:5173',
-    //     'https://sofa-deal.netlify.app',
-    //     'http://localhost:3000',
-    //     'https://frontend-dev-tau-hazel.vercel.app',
-    //   ],
-    credentials: true,
-  });
+  origin: [
+    'https://frontend-hj.vercel.app',
+    'http://localhost:3000',
+  ],
+  credentials: true,
+});
 
   // Setup Swagger documentation
   SwaggerModule.setup('api-docs', app, document);

@@ -1464,25 +1464,34 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
         currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
         payment_form: paymentForm,
       };
-    } catch (error) {
-      this.logger.error('Failed to create payment order', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        customerEmail: createPaymentDto.contact_email,
-      });
+    // } catch (error) {
+    //   this.logger.error('Failed to create payment order', {
+    //     error: error instanceof Error ? error.message : 'Unknown error',
+    //     customerEmail: createPaymentDto.contact_email,
+    //   });
 
-      return {
-        success: false,
-        order_id: '',
-        total_amount: 0,
-        currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
-        payment_form: {
-          action_url: '',
-          method: 'POST',
-          fields: {} as any,
-        },
-        error: error.message || 'Failed to create payment order',
-      };
-    }
+    //   return {
+    //     success: false,
+    //     order_id: '',
+    //     total_amount: 0,
+    //     currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
+    //     payment_form: {
+    //       action_url: '',
+    //       method: 'POST',
+    //       fields: {} as any,
+    //     },
+    //     error: error.message || 'Failed to create payment order',
+    //   };
+    // }
+    } catch (error) {
+  this.logger.error('Failed to create payment order', {
+    error: error instanceof Error ? error.message : 'Unknown error',
+    customerEmail: createPaymentDto.contact_email,
+  });
+  throw new BadRequestException(
+    error.message || 'Failed to create payment order'
+  );
+}
   }
 
   private async extreactUserIdFromRequest(
@@ -1617,20 +1626,31 @@ if (couponCode && discountAmount > 0 && userId) {
       currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
       message: 'COD order created successfully',
     };
+//   } catch (error) {
+//     this.logger.error('Failed to create COD order', {
+//       error: error.message,
+//       customerEmail: createPaymentDto.contact_email,
+//     });
+
+//     return {
+//       success: false,
+//       order_id: '',
+//       total_amount: 0,
+//       currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
+//       message: 'Failed to create COD order',
+//       error: error.message || 'Failed to create COD order',
+//     };
+//   }
+// }
+
   } catch (error) {
     this.logger.error('Failed to create COD order', {
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
       customerEmail: createPaymentDto.contact_email,
     });
-
-    return {
-      success: false,
-      order_id: '',
-      total_amount: 0,
-      currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
-      message: 'Failed to create COD order',
-      error: error.message || 'Failed to create COD order',
-    };
+    throw new BadRequestException(
+      error.message || 'Failed to create COD order'
+    );
   }
 }
 

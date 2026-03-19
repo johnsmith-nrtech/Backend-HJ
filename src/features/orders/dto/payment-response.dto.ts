@@ -34,9 +34,18 @@ export class PaymentFormFieldsDto {
   @IsString()
   chargetotal: string;
 
+  // @ApiProperty({ example: '826', description: 'Currency code from environment (e.g., 826 for GBP, 840 for USD)' })
+  // @IsString()
+  // currency: string;
+
   @ApiProperty({ example: '826', description: 'Currency code from environment (e.g., 826 for GBP, 840 for USD)' })
   @IsString()
   currency: string;
+
+  @ApiPropertyOptional({ example: 'en_GB', description: 'Language for payment page' })
+  @IsOptional()
+  @IsString()
+  language?: string;
 
   @ApiProperty({ example: 'http://localhost:3000/payment/success', description: 'Success redirect URL' })
   @IsString()
