@@ -50,6 +50,7 @@ export class OrdersService {
     variant_id,
     quantity,
     unit_price,
+    original_price,
     discount_applied,
     assembly_required,
     created_at,
@@ -1768,10 +1769,10 @@ private async validateCartAndCalculateTotal(
     }
 
     const basePrice = cartItem.unit_price_override ?? (
-      variant.discount_percentage && variant.discount_percentage > 0
-        ? Math.round(variant.price * (1 - variant.discount_percentage / 100))
-        : variant.price
-    );
+  variant.discount_percentage && variant.discount_percentage > 0
+    ? variant.price * (1 - variant.discount_percentage / 100)
+    : variant.price
+);
 
     totalAmount += basePrice * cartItem.quantity;
 
@@ -1862,18 +1863,40 @@ private async validateCartAndCalculateTotal(
   ) {
     const variantMap = new Map(variants.map((v) => [v.id, v]));
 
+    // const orderItems = cartItems.map((cartItem) => {
+    //   const variant = variantMap.get(cartItem.variant_id)!;
+    //   const price = cartItem.unit_price_override ?? variant.price;
+    //   return {
+    //     order_id: orderId,
+    //     variant_id: cartItem.variant_id,
+    //     quantity: cartItem.quantity,
+    //     unit_price: variant.price,
+    //     assembly_required: cartItem.assembly_required,
+    //     discount_applied: 0, // Phase 1: No discounts
+    //   };
+    // });
+
     const orderItems = cartItems.map((cartItem) => {
-      const variant = variantMap.get(cartItem.variant_id)!;
-      const price = cartItem.unit_price_override ?? variant.price;
-      return {
-        order_id: orderId,
-        variant_id: cartItem.variant_id,
-        quantity: cartItem.quantity,
-        unit_price: variant.price,
-        assembly_required: cartItem.assembly_required,
-        discount_applied: 0, // Phase 1: No discounts
-      };
-    });
+  const variant = variantMap.get(cartItem.variant_id)!;
+
+  const originalPrice = variant.price; // base price, snapshot at order time
+
+  const discountedPrice = cartItem.unit_price_override ?? (
+    variant.discount_percentage && variant.discount_percentage > 0
+      ? variant.price * (1 - variant.discount_percentage / 100)
+      : variant.price
+  );
+
+  return {
+    order_id: orderId,
+    variant_id: cartItem.variant_id,
+    quantity: cartItem.quantity,
+    unit_price: discountedPrice,    // after product discount
+    original_price: originalPrice,  // base price snapshot
+    assembly_required: cartItem.assembly_required,
+    discount_applied: 0,
+  };
+});
 
     const { error } = await this.supabaseService
       .getClient()
