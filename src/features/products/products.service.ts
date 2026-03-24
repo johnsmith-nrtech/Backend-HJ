@@ -4376,6 +4376,23 @@ async removeVariant(id: string): Promise<ProductVariant> {
 
     return info;
   }
+
+  // Helper function to calculate variant discount
+private calculateVariantDiscount(variant: any): number {
+  // Priority 1: Compare price discount
+  if (variant.compare_price && variant.compare_price > variant.price) {
+    const discount = ((variant.compare_price - variant.price) / variant.compare_price) * 100;
+    return Math.round(discount);
+  }
+  
+  // Priority 2: Direct discount percentage
+  if (variant.discount_percentage && variant.discount_percentage > 0) {
+    return variant.discount_percentage;
+  }
+  
+  // No discount
+  return 0;
+}
 }
 
 

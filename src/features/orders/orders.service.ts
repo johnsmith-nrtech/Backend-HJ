@@ -1768,15 +1768,28 @@ private async validateCartAndCalculateTotal(
       );
     }
 
-    const basePrice = cartItem.unit_price_override ?? (
-  variant.discount_percentage && variant.discount_percentage > 0
-    ? variant.price * (1 - variant.discount_percentage / 100)
-    : variant.price
-);
+//     const basePrice = cartItem.unit_price_override ?? (
+//   variant.discount_percentage && variant.discount_percentage > 0
+//     ? variant.price * (1 - variant.discount_percentage / 100)
+//     : variant.price
+// );
+
+let basePrice = variant.price;
+
+if (cartItem.unit_price_override) {
+  basePrice = cartItem.unit_price_override;
+} else if (variant.discount_percentage && variant.discount_percentage > 0) {
+  // Calculate discount correctly
+  const discountAmount = (variant.price * variant.discount_percentage) / 100;
+  basePrice = variant.price - discountAmount;
+}
+
+console.log(`Variant ${cartItem.variant_id}: Original=${variant.price}, Discount=${variant.discount_percentage}%, Discounted=${basePrice}`);
 
     totalAmount += basePrice * cartItem.quantity;
 
     if (cartItem.assembly_required) {
+      console.log(`Adding assembly charges: ${variant.assemble_charges} for variant ${cartItem.variant_id}`);
       totalAmount += variant.assemble_charges * cartItem.quantity;
     }
   }
@@ -1881,11 +1894,22 @@ private async validateCartAndCalculateTotal(
 
   const originalPrice = variant.price; // base price, snapshot at order time
 
-  const discountedPrice = cartItem.unit_price_override ?? (
-    variant.discount_percentage && variant.discount_percentage > 0
-      ? variant.price * (1 - variant.discount_percentage / 100)
-      : variant.price
-  );
+  // const discountedPrice = cartItem.unit_price_override ?? (
+  //   variant.discount_percentage && variant.discount_percentage > 0
+  //     ? variant.price * (1 - variant.discount_percentage / 100)
+  //     : variant.price
+  // );
+
+  let discountedPrice = variant.price;
+
+if (cartItem.unit_price_override) {
+  discountedPrice = cartItem.unit_price_override;
+} else if (variant.discount_percentage && variant.discount_percentage > 0) {
+  const discountAmount = (variant.price * variant.discount_percentage) / 100;
+  discountedPrice = variant.price - discountAmount;
+}
+
+console.log(`Saving variant ${cartItem.variant_id}: Original=${variant.price}, Discounted=${discountedPrice}`);
 
   return {
     order_id: orderId,

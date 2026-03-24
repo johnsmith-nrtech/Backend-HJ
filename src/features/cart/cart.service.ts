@@ -44,6 +44,8 @@ export class CartService {
             product_id,
             sku,
             price,
+            compare_price,
+            discount_percentage,
             size,
             color,
             stock,
