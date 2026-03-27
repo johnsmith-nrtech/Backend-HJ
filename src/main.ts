@@ -73,11 +73,24 @@ async function bootstrap() {
   //   credentials: true,
   // });
 
-  app.enableCors({
+//   app.enableCors({
+//   origin: [
+//     'https://frontend-hj.vercel.app',
+//     'http://localhost:3000',
+//   ],
+//   credentials: true,
+// });
+
+app.enableCors({
   origin: [
-    'https://frontend-hj.vercel.app',
+    'https://www.sofadeal.co.uk',
+    'https://sofadeal.co.uk',           // without www, just in case
+    'https://frontend-hj.vercel.app',   // keep for staging/preview
     'http://localhost:3000',
+    'http://localhost:4000',
   ],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 });
 
