@@ -90,7 +90,7 @@ app.enableCors({
     'http://localhost:4000',
   ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-refresh-token', 'x-access-token'],
   credentials: true,
 });
 
