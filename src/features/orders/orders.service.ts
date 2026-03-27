@@ -1440,16 +1440,31 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
       );
 
       // Step 4: Create initial payment record
+      // await this.createInitialPaymentRecord(
+      //   order.id,
+      //   totalAmount + floor.charges + (zone ? zone.delivery_charges : 0),
+      // );
+
+      // // Step 5: Generate Tyl payment form
+      // const paymentForm = this.tylPaymentService.createPaymentForm(
+      //   createPaymentDto,
+      //   order.id,
+      //   totalAmount + floor.charges + (zone ? zone.delivery_charges : 0),
+      // );
+
+      // Step 4: Create initial payment record
+      const chargeTotal = totalAmount + floor.charges + (zone ? zone.delivery_charges : 0) - discountAmount;
+
       await this.createInitialPaymentRecord(
         order.id,
-        totalAmount + floor.charges + (zone ? zone.delivery_charges : 0),
+        chargeTotal,
       );
 
       // Step 5: Generate Tyl payment form
       const paymentForm = this.tylPaymentService.createPaymentForm(
         createPaymentDto,
         order.id,
-        totalAmount + floor.charges + (zone ? zone.delivery_charges : 0),
+        chargeTotal,
       );
 
       this.logger.log('Payment order created successfully', {
@@ -1465,25 +1480,6 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
         currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
         payment_form: paymentForm,
       };
-    // } catch (error) {
-    //   this.logger.error('Failed to create payment order', {
-    //     error: error instanceof Error ? error.message : 'Unknown error',
-    //     customerEmail: createPaymentDto.contact_email,
-    //   });
-
-    //   return {
-    //     success: false,
-    //     order_id: '',
-    //     total_amount: 0,
-    //     currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
-    //     payment_form: {
-    //       action_url: '',
-    //       method: 'POST',
-    //       fields: {} as any,
-    //     },
-    //     error: error.message || 'Failed to create payment order',
-    //   };
-    // }
     } catch (error) {
   this.logger.error('Failed to create payment order', {
     error: error instanceof Error ? error.message : 'Unknown error',
@@ -1592,7 +1588,7 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
     // Create payment record
     await this.createInitialCodPaymentRecord(
       order.id,
-      totalAmount + floor.charges + (zone ? zone.delivery_charges : 0),
+      totalAmount + floor.charges + (zone ? zone.delivery_charges : 0) - discountAmount,
     );
 
     // ✅ FIX: INCREMENT COUPON USAGE FOR COD ORDERS
@@ -1723,7 +1719,7 @@ private async validateCartAndCalculateTotal(
   const { data, error } = await this.supabaseService
     .getClient()
     .from('product_variants')
-    .select('id, price, stock, assemble_charges, discount_percentage')
+    .select('id, price, stock, assemble_charges, discount_percentage, compare_price')
     .in('id', variantIds);
 
   if (error) {
@@ -1736,6 +1732,7 @@ private async validateCartAndCalculateTotal(
     stock: number;
     assemble_charges: number;
     discount_percentage?: number;
+    compare_price?: number;
   }>;
 
   if (!variants || variants.length !== cartItems.length) {
@@ -1768,23 +1765,22 @@ private async validateCartAndCalculateTotal(
       );
     }
 
-//     const basePrice = cartItem.unit_price_override ?? (
-//   variant.discount_percentage && variant.discount_percentage > 0
-//     ? variant.price * (1 - variant.discount_percentage / 100)
-//     : variant.price
-// );
 
 let basePrice = variant.price;
 
 if (cartItem.unit_price_override) {
   basePrice = cartItem.unit_price_override;
+} else if (variant.compare_price && variant.compare_price > variant.price) {
+  // Calculate discount % from compare_price vs price
+  const discountPct = ((variant.compare_price - variant.price) / variant.compare_price) * 100;
+  // Apply that % to price (not compare_price)
+  basePrice = variant.price * (1 - discountPct / 100);
 } else if (variant.discount_percentage && variant.discount_percentage > 0) {
-  // Calculate discount correctly
   const discountAmount = (variant.price * variant.discount_percentage) / 100;
   basePrice = variant.price - discountAmount;
 }
 
-console.log(`Variant ${cartItem.variant_id}: Original=${variant.price}, Discount=${variant.discount_percentage}%, Discounted=${basePrice}`);
+console.log(`Variant ${cartItem.variant_id}: compare=${variant.compare_price}, price=${variant.price}, finalBasePrice=${basePrice}`);
 
     totalAmount += basePrice * cartItem.quantity;
 
