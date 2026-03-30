@@ -874,7 +874,7 @@ export class OrdersService {
       if (queryDto.search) {
         // Search in order ID or billing address recipient name
         query = query.or(
-          `id.ilike.%${queryDto.search}%,billing_address->recipient_name.ilike.%${queryDto.search}%`,
+          `id::text.ilike.%${queryDto.search}%,billing_address->recipient_name.ilike.%${queryDto.search}%`,
         );
       }
 
@@ -912,7 +912,7 @@ export class OrdersService {
 
       if (queryDto.search) {
         countQuery = countQuery.or(
-          `id.ilike.%${queryDto.search}%,billing_address->recipient_name.ilike.%${queryDto.search}%`,
+          `id::text.ilike.%${queryDto.search}%,billing_address->recipient_name.ilike.%${queryDto.search}%`,
         );
       }
 
@@ -1770,14 +1770,15 @@ let basePrice = variant.price;
 
 if (cartItem.unit_price_override) {
   basePrice = cartItem.unit_price_override;
+} else if (variant.discount_percentage && Number(variant.discount_percentage) > 0) {
+  // Admin-set % takes priority over compare_price
+  const pct = Number(variant.discount_percentage);
+  basePrice = Math.round((variant.price - (variant.price * pct / 100)) * 100) / 100;
 } else if (variant.compare_price && variant.compare_price > variant.price) {
-  // Calculate discount % from compare_price vs price
-  const discountPct = ((variant.compare_price - variant.price) / variant.compare_price) * 100;
-  // Apply that % to price (not compare_price)
-  basePrice = variant.price * (1 - discountPct / 100);
-} else if (variant.discount_percentage && variant.discount_percentage > 0) {
-  const discountAmount = (variant.price * variant.discount_percentage) / 100;
-  basePrice = variant.price - discountAmount;
+  // variant.price IS already the sale price
+  basePrice = variant.price;
+} else {
+  basePrice = variant.price;
 }
 
 console.log(`Variant ${cartItem.variant_id}: compare=${variant.compare_price}, price=${variant.price}, finalBasePrice=${basePrice}`);
@@ -1868,54 +1869,59 @@ console.log(`Variant ${cartItem.variant_id}: compare=${variant.compare_price}, p
       stock: number;
       assemble_charges: number;
       discount_percentage?: number;
+      compare_price?: number;
     }>,
   ) {
     const variantMap = new Map(variants.map((v) => [v.id, v]));
 
-    // const orderItems = cartItems.map((cartItem) => {
-    //   const variant = variantMap.get(cartItem.variant_id)!;
-    //   const price = cartItem.unit_price_override ?? variant.price;
-    //   return {
-    //     order_id: orderId,
-    //     variant_id: cartItem.variant_id,
-    //     quantity: cartItem.quantity,
-    //     unit_price: variant.price,
-    //     assembly_required: cartItem.assembly_required,
-    //     discount_applied: 0, // Phase 1: No discounts
-    //   };
-    // });
+
 
     const orderItems = cartItems.map((cartItem) => {
   const variant = variantMap.get(cartItem.variant_id)!;
 
-  const originalPrice = variant.price; // base price, snapshot at order time
 
-  // const discountedPrice = cartItem.unit_price_override ?? (
-  //   variant.discount_percentage && variant.discount_percentage > 0
-  //     ? variant.price * (1 - variant.discount_percentage / 100)
-  //     : variant.price
-  // );
 
-  let discountedPrice = variant.price;
+
+
+let originalPrice: number;
+let discountedPrice: number;
 
 if (cartItem.unit_price_override) {
+  // Frontend explicitly sent a price — trust it
   discountedPrice = cartItem.unit_price_override;
-} else if (variant.discount_percentage && variant.discount_percentage > 0) {
-  const discountAmount = (variant.price * variant.discount_percentage) / 100;
-  discountedPrice = variant.price - discountAmount;
+  originalPrice = variant.price;
+
+} else if (variant.discount_percentage && Number(variant.discount_percentage) > 0) {
+  // Admin-set explicit % discount applied to variant.price
+  const pct = Number(variant.discount_percentage);
+  discountedPrice = Math.round((variant.price - (variant.price * pct / 100)) * 100) / 100;
+  originalPrice = variant.price;
+
+} else if (variant.compare_price && variant.compare_price > variant.price) {
+  // compare_price is the "was" price — variant.price IS already the sale price
+  discountedPrice = variant.price;
+  originalPrice = variant.compare_price;
+
+} else {
+  // No discount at all
+  discountedPrice = variant.price;
+  originalPrice = variant.price;
 }
 
-console.log(`Saving variant ${cartItem.variant_id}: Original=${variant.price}, Discounted=${discountedPrice}`);
+console.log(
+  `Saving variant ${cartItem.variant_id}: ` +
+  `original=${originalPrice}, discounted=${discountedPrice}`
+);
 
-  return {
-    order_id: orderId,
-    variant_id: cartItem.variant_id,
-    quantity: cartItem.quantity,
-    unit_price: discountedPrice,    // after product discount
-    original_price: originalPrice,  // base price snapshot
-    assembly_required: cartItem.assembly_required,
-    discount_applied: 0,
-  };
+return {
+  order_id: orderId,
+  variant_id: cartItem.variant_id,
+  quantity: cartItem.quantity,
+  unit_price: discountedPrice,
+  original_price: originalPrice,
+  assembly_required: cartItem.assembly_required,
+  discount_applied: 0,
+};
 });
 
     const { error } = await this.supabaseService
