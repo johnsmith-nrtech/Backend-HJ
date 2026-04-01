@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
-import { TylPaymentService } from './services/tyl-payment.service';
+import { WorldpayPaymentService, } from './services/worldpay-payment.service';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { AuthModule } from '../auth/auth.module';
 import { MailModule } from '../mail/mail.module';
@@ -22,6 +22,6 @@ import { CouponModule } from '../coupons/coupon.module';
     // ProductsModule, // Uncomment if ProductsService is needed
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, TylPaymentService],
+  providers: [OrdersService, WorldpayPaymentService,],
 })
 export class OrdersModule {}

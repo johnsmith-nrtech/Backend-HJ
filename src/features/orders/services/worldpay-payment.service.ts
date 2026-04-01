@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import { CreatePaymentDto, AddressDto } from '../dto/create-payment.dto';
 import { PaymentFormDto, PaymentFormFieldsDto } from '../dto/payment-response.dto';
 
-interface TylConfig {
+interface WorldpayConfig {
   storeName: string;
   sharedSecret: string;
   baseUrl: string;
@@ -37,16 +37,16 @@ interface PaymentParams {
 }
 
 @Injectable()
-export class TylPaymentService {
-  private readonly logger = new Logger(TylPaymentService.name);
-  private readonly tylConfig: TylConfig;
+export class WorldpayPaymentService {
+  private readonly logger = new Logger(WorldpayPaymentService.name);
+  private readonly wpConfig: WorldpayConfig;
 
   constructor(private readonly configService: ConfigService) {
-    this.tylConfig = {
-      storeName: this.configService.getOrThrow<string>('TYL_STORE_NAME'),
-      sharedSecret: this.configService.getOrThrow<string>('TYL_SHARED_SECRET'),
-      baseUrl: this.configService.getOrThrow<string>('TYL_BASE_URL'),
-      paymentUrl: this.configService.getOrThrow<string>('TYL_PAYMENT_URL'),
+    this.wpConfig = {
+      storeName: this.configService.getOrThrow<string>('WP_STORE_NAME'),
+      sharedSecret: this.configService.getOrThrow<string>('WP_SHARED_SECRET'),
+      baseUrl: this.configService.getOrThrow<string>('WP_BASE_URL'),
+      paymentUrl: this.configService.getOrThrow<string>('WP_PAYMENT_URL'),
     };
 
     this.validateConfig();
@@ -57,13 +57,13 @@ export class TylPaymentService {
    */
   private validateConfig(): void {
     const requiredFields = ['storeName', 'sharedSecret', 'baseUrl', 'paymentUrl'];
-    const missingFields = requiredFields.filter(field => !this.tylConfig[field]);
+    const missingFields = requiredFields.filter(field => !this.wpConfig[field]);
 
     if (missingFields.length > 0) {
-      throw new Error(`Missing required Tyl configuration: ${missingFields.join(', ')}`);
+      throw new Error(`Missing required Worldpay configuration: ${missingFields.join(', ')}`);
     }
 
-    this.logger.log('Tyl payment service initialized successfully');
+    this.logger.log('Worldpay payment service initialized successfully');
   }
 
   /**
@@ -144,7 +144,7 @@ private generateExtendedHash(params: PaymentParams): string {
     this.logger.log('Hash params in order:', { sortedKeys });
 
     // HMACSHA256: sharedsecret is the KEY, not part of the string
-    const hmac = crypto.createHmac('sha256', this.tylConfig.sharedSecret);
+    const hmac = crypto.createHmac('sha256', this.wpConfig.sharedSecret);
     hmac.update(stringToHash);
     return hmac.digest('base64'); // ✅ Base64
 
@@ -172,14 +172,14 @@ private generateExtendedHash(params: PaymentParams): string {
   ): boolean {
     try {
       // Tyl webhook hash format per documentation: chargetotal + sharedsecret + currency + txndatetime + storename + approval_code
-      const hashString = `${chargeTotal}${this.tylConfig.sharedSecret}${currency}${txnDateTime}${storeName}${approvalCode}`;
+      const hashString = `${chargeTotal}${this.wpConfig.sharedSecret}${currency}${txnDateTime}${storeName}${approvalCode}`;
       
       this.logger.debug('Verifying webhook hash', {
         storeName,
         approvalCodePrefix: approvalCode.substring(0, 10),
       });
       
-      const hmac = crypto.createHmac('sha256', this.tylConfig.sharedSecret);
+      const hmac = crypto.createHmac('sha256', this.wpConfig.sharedSecret);
       hmac.update(hashString);
       const expectedHash = hmac.digest('base64');
 
@@ -236,7 +236,7 @@ private generateExtendedHash(params: PaymentParams): string {
 
       // Prepare payment parameters
       const paymentParams: PaymentParams = {
-        storename: this.tylConfig.storeName,
+        storename: this.wpConfig.storeName,
         checkoutoption: 'combinedpage',
         txntype: 'sale',
         timezone: 'Europe/London',
@@ -292,7 +292,7 @@ private generateExtendedHash(params: PaymentParams): string {
       };
 
       const paymentForm: PaymentFormDto = {
-        action_url: this.tylConfig.paymentUrl,
+        action_url: this.wpConfig.paymentUrl,
         method: 'POST',
         fields: formFields,
       };

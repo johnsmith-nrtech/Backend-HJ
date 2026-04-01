@@ -21,7 +21,7 @@ import {
   CreatePaymentResponseDto,
   WebhookNotificationDto,
 } from './dto/payment-response.dto';
-import { TylPaymentService } from './services/tyl-payment.service';
+import { WorldpayPaymentService } from './services/worldpay-payment.service';
 import { PostgrestError, PostgrestSingleResponse } from '@supabase/supabase-js';
 import { Request } from 'express';
 import { Floor } from '../floor/entities/floor.entity';
@@ -115,13 +115,11 @@ export class OrdersService {
 
   constructor(
     private readonly supabaseService: SupabaseService,
-    private readonly tylPaymentService: TylPaymentService,
+    private readonly worldpayPaymentService: WorldpayPaymentService,
     private readonly configService: ConfigService,
     private readonly mailService: MailService,
     private readonly zonesService: ZonesService,
     private readonly couponService: CouponService,
-    // private readonly productsService: ProductsService, // Example
-    // private readonly cartService: CartService,       // Example
   ) {}
 
   /**
@@ -1461,7 +1459,7 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
       );
 
       // Step 5: Generate Tyl payment form
-      const paymentForm = this.tylPaymentService.createPaymentForm(
+      const paymentForm = this.worldpayPaymentService.createPaymentForm(
         createPaymentDto,
         order.id,
         chargeTotal,
@@ -1471,6 +1469,7 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
         orderId: order.id,
         totalAmount,
         currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
+        gateway: 'worldpay',
       });
 
       return {
@@ -1658,7 +1657,7 @@ if (couponCode && discountAmount > 0 && userId) {
     webhookData: WebhookNotificationDto,
   ): Promise<void> {
     try {
-      this.logger.log('Processing Tyl webhook notification', {
+      this.logger.log('Processing Worldpay webhook notification', {
         orderId: webhookData.oid,
         status: webhookData.status,
         approvalCode: webhookData.approval_code?.substring(0, 10) + '...', // Log partial for security
@@ -1666,7 +1665,7 @@ if (couponCode && discountAmount > 0 && userId) {
       });
 
       // Step 1: Verify webhook authenticity
-      const isValidWebhook = this.tylPaymentService.verifyWebhookHash(
+      const isValidWebhook = this.worldpayPaymentService.verifyWebhookHash(
         webhookData.approval_code,
         webhookData.chargetotal,
         webhookData.currency,
@@ -1943,7 +1942,7 @@ return {
   ) {
     const paymentData = {
       order_id: orderId,
-      provider: 'tyl',
+      provider: 'worldpay',
       payment_id: orderId, // Use order ID as initial payment ID
       status: 'pending',
       amount: totalAmount,
@@ -1990,7 +1989,7 @@ return {
    * Updates payment record from webhook data
    */
   private async updatePaymentRecord(webhookData: WebhookNotificationDto) {
-    const paymentStatus = this.tylPaymentService.mapTylStatusToPaymentStatus(
+    const paymentStatus = this.worldpayPaymentService.mapTylStatusToPaymentStatus(
       webhookData.status,
     );
 
@@ -2029,7 +2028,7 @@ return {
   private async updateOrderStatusFromWebhook(
     webhookData: WebhookNotificationDto,
   ) {
-    const orderStatus = this.tylPaymentService.mapTylStatusToOrderStatus(
+    const orderStatus = this.worldpayPaymentService.mapTylStatusToOrderStatus(
       webhookData.status,
     );
 
