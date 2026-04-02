@@ -34,10 +34,6 @@ export class PaymentFormFieldsDto {
   @IsString()
   chargetotal: string;
 
-  // @ApiProperty({ example: '826', description: 'Currency code from environment (e.g., 826 for GBP, 840 for USD)' })
-  // @IsString()
-  // currency: string;
-
   @ApiProperty({ example: '826', description: 'Currency code from environment (e.g., 826 for GBP, 840 for USD)' })
   @IsString()
   currency: string;
@@ -145,6 +141,8 @@ export class CreatePaymentResponseDto {
   @IsOptional()
   @IsString()
   error?: string;
+
+
 }
 
 export class WebhookNotificationDto {

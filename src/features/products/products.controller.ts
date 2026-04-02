@@ -440,8 +440,11 @@ getProductAdmin(
       includeCategory,
     );
   }
+  
 
   @Patch('admin/bulk-discount')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async bulkApplyDiscount(@Body() body: { productIds: string[], discount_offer: number }) {
     return this.productsService.bulkApplyDiscount(body.productIds, body.discount_offer);
   }

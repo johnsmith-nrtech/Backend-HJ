@@ -81,39 +81,6 @@ export class WorldpayPaymentService {
     return `${year}:${month}:${day}-${hours}:${minutes}:${seconds}`;
   }
 
-  /**
-   * Generates the extended hash for Tyl payment form
-   * Following Tyl's specification for hash calculation
-   */
-  // private generateExtendedHash(params: PaymentParams): string {
-  //   try {
-  //     // Sort parameters alphabetically (ASCII order, uppercase before lowercase)
-  //     const sortedKeys = Object.keys(params)
-  //       .filter(key => params[key] !== undefined && params[key] !== null && params[key] !== '')
-  //       .sort();
-
-  //     // Create hash string by joining parameter values with pipe separator
-  //     const hashString = sortedKeys
-  //       .map(key => params[key])
-  //       .join('|');
-
-  //     this.logger.debug('Hash string created for Tyl payment', { 
-  //       paramCount: sortedKeys.length,
-  //       // Don't log the actual hash string for security
-  //     });
-
-  //     // Generate HMAC-SHA256 hash
-  //     const hmac = crypto.createHmac('sha256', this.tylConfig.sharedSecret);
-  //     hmac.update(hashString);
-  //     const hash = hmac.digest('base64');
-
-  //     return hash;
-  //   } catch (error) {
-  //     this.logger.error('Failed to generate extended hash', { error: error.message });
-  //     throw new BadRequestException('Failed to generate payment security hash');
-  //   }
-  // }
-
 
 private generateExtendedHash(params: PaymentParams): string {
   try {

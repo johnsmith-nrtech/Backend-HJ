@@ -224,139 +224,67 @@ export class OrdersController {
     return this.ordersService.cancelOrder(id, req.user.id, isAdmin);
   }
 
-  // Payment Gateway Endpoints
 
-  // @Post('/create-payment')
-  // @Public()
-  // @HttpCode(HttpStatus.OK)
-  // @ApiOperation({
-  //   summary: 'Create payment and generate Tyl payment form',
-  //   description:
-  //     'Creates an order and returns payment form data for Tyl payment gateway submission',
-  // })
-  // @ApiResponse({
-  //   status: 200,
-  //   description: 'Payment form created successfully',
-  //   type: CreatePaymentResponseDto,
-  // })
-  // @ApiResponse({
-  //   status: 400,
-  //   description: 'Invalid payment data or insufficient stock',
-  // })
-  // @ApiResponse({
-  //   status: 404,
-  //   description: 'One or more product variants not found',
-  // })
-  // @ApiResponse({ status: 422, description: 'Validation failed' })
-  // async createPayment(
-  //   @Body() createPaymentDto: CreatePaymentDto,
-  //   @Req() req,
-  // ): Promise<CreatePaymentResponseDto> {
-  //   return this.ordersService.createPayment(createPaymentDto, req);
-  // }
-
-  // @Post('/payment/webhook')
-  // @Public()
-  // @HttpCode(HttpStatus.OK)
-  // @ApiOperation({
-  //   summary: 'Handle Tyl payment webhook notifications',
-  //   description: 'Processes payment status updates from Tyl payment gateway',
-  // })
-  // @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
-  // @ApiResponse({ status: 400, description: 'Invalid webhook data' })
-  // @ApiResponse({ status: 401, description: 'Webhook authentication failed' })
-  // async handlePaymentWebhook(
-  //   @Body() webhookData: WebhookNotificationDto,
-  // ): Promise<{ success: boolean }> {
-  //   await this.ordersService.handlePaymentWebhook(webhookData);
-  //   return { success: true };
-  // }
-
-  // @Post('/payment/success')
-  // @Public()
-  // @ApiOperation({
-  //   summary: 'Handle Tyl payment success redirect',
-  //   description:
-  //     'Receives POST data from Tyl on successful payment and redirects to frontend',
-  // })
-  // @ApiResponse({
-  //   status: 302,
-  //   description: 'Redirects to frontend success page',
-  // })
-  // async handlePaymentSuccess(
-  //   @Body() paymentData: any,
-  //   @Res() res: Response,
-  // ): Promise<void> {
-  //   await this.ordersService.handlePaymentSuccess(paymentData, res);
-  // }
-
-  // @Post('/payment/failure')
-  // @Public()
-  // @ApiOperation({
-  //   summary: 'Handle Tyl payment failure redirect',
-  //   description:
-  //     'Receives POST data from Tyl on failed payment and redirects to frontend',
-  // })
-  // @ApiResponse({
-  //   status: 302,
-  //   description: 'Redirects to frontend failure page',
-  // })
-  // async handlePaymentFailure(
-  //   @Body() paymentData: any,
-  //   @Res() res: Response,
-  // ): Promise<void> {
-  //   await this.ordersService.handlePaymentFailure(paymentData, res);
-  // }
-
-
-  @Post('/create-payment')
+@Post('/create-payment')
 @Public()
 @HttpCode(HttpStatus.OK)
 @ApiOperation({
-  summary: 'Create payment and generate Worldpay payment form',   // ← was 'Tyl'
-  description:
-    'Creates an order and returns payment form data for Worldpay payment gateway submission',  // ← was 'Tyl'
+  summary: 'Create payment and generate Worldpay payment form',
 })
+async createPayment(
+  @Body() createPaymentDto: CreatePaymentDto,
+  @Req() req,
+): Promise<CreatePaymentResponseDto> {
+  return this.ordersService.createPayment(createPaymentDto, req);
+}
 
 @Post('/payment/webhook')
 @Public()
 @HttpCode(HttpStatus.OK)
 @ApiOperation({
-  summary: 'Handle Worldpay payment webhook notifications',      // ← was 'Tyl'
-  description: 'Processes payment status updates from Worldpay payment gateway',
+  summary: 'Handle Worldpay payment webhook notifications',
 })
+async handlePaymentWebhook(
+  @Body() webhookData: WebhookNotificationDto,
+): Promise<void> {
+  return this.ordersService.handlePaymentWebhook(webhookData);
+}
 
 @Post('/payment/success')
 @Public()
 @ApiOperation({
-  summary: 'Handle Worldpay payment success redirect',           // ← was 'Tyl'
-  description:
-    'Receives POST data from Worldpay on successful payment and redirects to frontend',
+  summary: 'Handle Worldpay payment success redirect',
 })
+async handlePaymentSuccess(
+  @Body() paymentData: any,
+  @Res() res: Response,
+): Promise<void> {
+  return this.ordersService.handlePaymentSuccess(paymentData, res);
+}
 
 @Post('/payment/failure')
 @Public()
 @ApiOperation({
-  summary: 'Handle Worldpay payment failure redirect',           // ← was 'Tyl'
-  description:
-    'Receives POST data from Worldpay on failed payment and redirects to frontend',
+  summary: 'Handle Worldpay payment failure redirect',
 })
+async handlePaymentFailure(
+  @Body() paymentData: any,
+  @Res() res: Response,
+): Promise<void> {
+  return this.ordersService.handlePaymentFailure(paymentData, res);
+}
 
-  // COD Endpoint
-  @Post('/create-cod-order')
-  @Public()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Create Cash on Delivery (COD) order',
-    description:
-      'Creates an order for COD. Works for both guests and logged-in users. No payment form is returned.',
-  })
-  @ApiResponse({ status: 200, description: 'COD order created' })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid data or insufficient stock',
-  })
-  async createCodOrder(@Body() createPaymentDto: CreatePaymentDto, @Req() req) {
-    return this.ordersService.createCodOrder(createPaymentDto, req);
-  }
+@Post('/create-cod-order')
+@Public()
+@HttpCode(HttpStatus.OK)
+@ApiOperation({
+  summary: 'Create Cash on Delivery (COD) order',
+})
+async createCodOrder(
+  @Body() createPaymentDto: CreatePaymentDto,
+  @Req() req,
+) {
+  return this.ordersService.createCodOrder(createPaymentDto, req);
+}
+
 }

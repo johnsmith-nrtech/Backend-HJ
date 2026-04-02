@@ -1507,10 +1507,10 @@ if (
    * @param updateProductDto Updated product data
    * @returns Updated product
    */
-  async update(
-    id: string,
-    updateProductDto: UpdateProductDto,
-  ): Promise<Product> {
+async update(
+  id: string,
+  updateProductDto: UpdateProductDto,
+): Promise<Product> {
     // Check if product exists
     await this.findOne(id);
 
@@ -1584,6 +1584,27 @@ if (
 
     if (error) {
       throw error;
+    }
+
+    // ✅ PERMANENT FIX: Sync discount_offer to variants whenever it changes
+    if (updateProductDto.discount_offer !== undefined) {
+      if (updateProductDto.discount_offer > 0) {
+        // Apply discount to variants that have no compare_price
+        await this.supabaseService
+          .getClient()
+          .from('product_variants')
+          .update({ discount_percentage: updateProductDto.discount_offer })
+          .eq('product_id', id)
+          .is('compare_price', null);
+      } else {
+        // If discount_offer is set to 0, clear discount_percentage on variants too
+        await this.supabaseService
+          .getClient()
+          .from('product_variants')
+          .update({ discount_percentage: 0 })
+          .eq('product_id', id)
+          .is('compare_price', null);
+      }
     }
 
     return updatedProduct;
@@ -4323,13 +4344,25 @@ async removeVariant(id: string): Promise<ProductVariant> {
 
 
   async bulkApplyDiscount(productIds: string[], discount_offer: number): Promise<void> {
-    const { error } = await this.supabaseService
+    // Update products table
+    const { error: productError } = await this.supabaseService
       .getClient()
       .from('products')
       .update({ discount_offer })
       .in('id', productIds);
 
-    if (error) throw error;
+    if (productError) throw productError;
+
+    // Update discount_percentage on ALL variants belonging to these products
+    // BUT only for variants that have NO compare_price set
+    const { error: variantError } = await this.supabaseService
+      .getClient()
+      .from('product_variants')
+      .update({ discount_percentage: discount_offer })
+      .in('product_id', productIds)
+      .is('compare_price', null);
+
+      if (variantError) throw variantError;
   }
 
 

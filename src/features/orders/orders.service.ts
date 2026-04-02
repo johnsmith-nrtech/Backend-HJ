@@ -27,7 +27,8 @@ import { Request } from 'express';
 import { Floor } from '../floor/entities/floor.entity';
 import { Zone } from '../zones/entities/zones.entity';
 import { ZonesService } from '../zones/zones.service';
-import { CouponService } from '../coupons/coupon.service'; 
+import { CouponService } from '../coupons/coupon.service';
+import { v4 as uuidv4 } from 'uuid'; 
 // Import other necessary services like ProductsService, CartService if needed for logic
 
 /**
@@ -1375,26 +1376,17 @@ async updateOrderStatusAdmin(
         createPaymentDto.shipping_address.floor_id,
       );
 
-      // const zone = await this.zonesService.findByZipCode(
-      //   createPaymentDto.shipping_address.postal_code,
-      // );
-
-      // if (!zone) {
-      //   throw new BadRequestException(
-      //     `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
-      //   );
-      // }
 
       const zone = createPaymentDto.shipping_address.postal_code?.trim()
-  ? await this.zonesService.findByZipCode(createPaymentDto.shipping_address.postal_code)
-  : null;
+      ? await this.zonesService.findByZipCode(createPaymentDto.shipping_address.postal_code)
+      : null;
 
-// Remove the !zone throw entirely, or change it to:
-if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
-  throw new BadRequestException(
-    `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
-  );
-}
+      // Remove the !zone throw entirely, or change it to:
+      if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
+        throw new BadRequestException(
+          `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
+        );
+      }
 
        let discountAmount = createPaymentDto.discount_amount || 0;
        let couponCode = createPaymentDto.coupon_code;
@@ -1437,18 +1429,6 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
         variants,
       );
 
-      // Step 4: Create initial payment record
-      // await this.createInitialPaymentRecord(
-      //   order.id,
-      //   totalAmount + floor.charges + (zone ? zone.delivery_charges : 0),
-      // );
-
-      // // Step 5: Generate Tyl payment form
-      // const paymentForm = this.tylPaymentService.createPaymentForm(
-      //   createPaymentDto,
-      //   order.id,
-      //   totalAmount + floor.charges + (zone ? zone.delivery_charges : 0),
-      // );
 
       // Step 4: Create initial payment record
       const chargeTotal = totalAmount + floor.charges + (zone ? zone.delivery_charges : 0) - discountAmount;
@@ -1458,7 +1438,7 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
         chargeTotal,
       );
 
-      // Step 5: Generate Tyl payment form
+      // Step 5: Generate worldpay payment form
       const paymentForm = this.worldpayPaymentService.createPaymentForm(
         createPaymentDto,
         order.id,
@@ -1480,15 +1460,15 @@ if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
         payment_form: paymentForm,
       };
     } catch (error) {
-  this.logger.error('Failed to create payment order', {
-    error: error instanceof Error ? error.message : 'Unknown error',
-    customerEmail: createPaymentDto.contact_email,
-  });
-  throw new BadRequestException(
-    error.message || 'Failed to create payment order'
-  );
-}
-  }
+        this.logger.error('Failed to create payment order', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          customerEmail: createPaymentDto.contact_email,
+        });
+        throw new BadRequestException(
+          error.message || 'Failed to create payment order'
+        );
+      }
+    }
 
   private async extreactUserIdFromRequest(
     request: Request,
@@ -1769,13 +1749,14 @@ let basePrice = variant.price;
 
 if (cartItem.unit_price_override) {
   basePrice = cartItem.unit_price_override;
+} else if (variant.compare_price && variant.compare_price > variant.price) {
+  // compare_price exists → calculate % from compare_price and apply on variant.price
+  const pct = Math.round(((variant.compare_price - variant.price) / variant.compare_price) * 100);
+  basePrice = Math.round((variant.price - (variant.price * pct / 100)) * 100) / 100;
 } else if (variant.discount_percentage && Number(variant.discount_percentage) > 0) {
-  // Admin-set % takes priority over compare_price
+  // No compare_price → apply admin-set % discount on variant.price
   const pct = Number(variant.discount_percentage);
   basePrice = Math.round((variant.price - (variant.price * pct / 100)) * 100) / 100;
-} else if (variant.compare_price && variant.compare_price > variant.price) {
-  // variant.price IS already the sale price
-  basePrice = variant.price;
 } else {
   basePrice = variant.price;
 }
@@ -1886,23 +1867,19 @@ let originalPrice: number;
 let discountedPrice: number;
 
 if (cartItem.unit_price_override) {
-  // Frontend explicitly sent a price — trust it
   discountedPrice = cartItem.unit_price_override;
   originalPrice = variant.price;
-
+} else if (variant.compare_price && variant.compare_price > variant.price) {
+  // compare_price exists → calculate % from compare_price and apply on variant.price
+  const pct = Math.round(((variant.compare_price - variant.price) / variant.compare_price) * 100);
+  discountedPrice = Math.round((variant.price - (variant.price * pct / 100)) * 100) / 100;
+  originalPrice = variant.compare_price;
 } else if (variant.discount_percentage && Number(variant.discount_percentage) > 0) {
-  // Admin-set explicit % discount applied to variant.price
+  // No compare_price → apply % on variant.price
   const pct = Number(variant.discount_percentage);
   discountedPrice = Math.round((variant.price - (variant.price * pct / 100)) * 100) / 100;
   originalPrice = variant.price;
-
-} else if (variant.compare_price && variant.compare_price > variant.price) {
-  // compare_price is the "was" price — variant.price IS already the sale price
-  discountedPrice = variant.price;
-  originalPrice = variant.compare_price;
-
 } else {
-  // No discount at all
   discountedPrice = variant.price;
   originalPrice = variant.price;
 }
@@ -1940,10 +1917,14 @@ return {
     orderId: string,
     totalAmount: number,
   ) {
+
+    const paymentId = uuidv4();
+
+
     const paymentData = {
       order_id: orderId,
       provider: 'worldpay',
-      payment_id: orderId, // Use order ID as initial payment ID
+      payment_id: paymentId, // Use order ID as initial payment ID
       status: 'pending',
       amount: totalAmount,
       currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
@@ -1954,7 +1935,10 @@ return {
       .from('payments')
       .insert(paymentData);
 
-    if (error) {
+     if (error) {
+      this.logger.error(
+        `Payment insert failed — code: ${error.code} | message: ${error.message} | details: ${error.details} | hint: ${error.hint}`,
+      );
       this.handleSupabaseError(error, 'Failed to create payment record');
     }
   }
@@ -1966,10 +1950,13 @@ return {
     orderId: string,
     totalAmount: number,
   ) {
+    const paymentId = uuidv4();
+
+
     const paymentData = {
       order_id: orderId,
       provider: 'cod',
-      payment_id: orderId,
+      payment_id: paymentId,
       status: 'pending',
       amount: totalAmount,
       currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
@@ -1981,6 +1968,9 @@ return {
       .insert(paymentData);
 
     if (error) {
+      this.logger.error(
+        `COD payment insert failed — code: ${error.code} | message: ${error.message} | details: ${error.details} | hint: ${error.hint}`,
+      );
       this.handleSupabaseError(error, 'Failed to create COD payment record');
     }
   }
