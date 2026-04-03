@@ -1348,127 +1348,10 @@ async updateOrderStatusAdmin(
     }
   }
 
-  // Payment Gateway Methods
-
   /**
-   * Creates an order and generates Tyl payment form data
+   * Creates an order and generates Worldpay payment form data
    * Phase 1: Simple implementation with subtotal only (no discounts, shipping, tax)
    */
-//   async createPayment(
-//     createPaymentDto: CreatePaymentDto,
-//     req?: any,
-//   ): Promise<CreatePaymentResponseDto> {
-//     try {
-//       const userId = await this.extreactUserIdFromRequest(req);
-
-//       this.logger.log('Creating payment order', {
-//         customerEmail: createPaymentDto.contact_email,
-//         itemCount: createPaymentDto.cart_items.length,
-//         userId: userId || 'guest',
-//       });
-
-//       // Step 1: Validate cart items and calculate total
-//       const { variants, totalAmount } =
-//         await this.validateCartAndCalculateTotal(createPaymentDto.cart_items);
-
-//       // TODO: ZONAL CHARGES AND FLOOR CHARGES TO BE ADDED HERE
-//       const floor = await this.fetchFloorInfo(
-//         createPaymentDto.shipping_address.floor_id,
-//       );
-
-
-//       const zone = createPaymentDto.shipping_address.postal_code?.trim()
-//       ? await this.zonesService.findByZipCode(createPaymentDto.shipping_address.postal_code)
-//       : null;
-
-//       // Remove the !zone throw entirely, or change it to:
-//       if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
-//         throw new BadRequestException(
-//           `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
-//         );
-//       }
-
-//        let discountAmount = createPaymentDto.discount_amount || 0;
-//        let couponCode = createPaymentDto.coupon_code;
-    
-
-//       // Step 2: Create order record
-//       const order = await this.createOrderRecord(
-//         createPaymentDto,
-//         floor,
-//         zone ?? { zone_name: 'N/A', zip_code: '', delivery_charges: 0 },
-//         totalAmount,
-//         userId,
-//         discountAmount,
-//         couponCode,
-//       );
-
-//       if (couponCode && discountAmount > 0) {
-//   try {
-//     // Get coupon ID
-//     const { data: coupon } = await this.supabaseService
-//       .getClient()
-//       .from('coupons')
-//       .select('id')
-//       .eq('code', couponCode)
-//       .single();
-      
-//     if (coupon) {
-//       await this.couponService.incrementUsedCount(coupon.id);
-//       console.log('✅ Coupon incremented:', couponCode);
-//     }
-//   } catch (err) {
-//     console.error('❌ Coupon increment failed:', err);
-//   }
-// }
-
-//       // Step 3: Create order items
-//       await this.createOrderItems(
-//         order.id,
-//         createPaymentDto.cart_items,
-//         variants,
-//       );
-
-
-//       // Step 4: Create initial payment record
-//       const chargeTotal = totalAmount + floor.charges + (zone ? zone.delivery_charges : 0) - discountAmount;
-
-//       await this.createInitialPaymentRecord(
-//         order.id,
-//         chargeTotal,
-//       );
-
-//       // Step 5: Generate worldpay payment form
-//       const paymentForm = this.worldpayPaymentService.createPaymentForm(
-//         createPaymentDto,
-//         order.id,
-//         chargeTotal,
-//       );
-
-//       this.logger.log('Payment order created successfully', {
-//         orderId: order.id,
-//         totalAmount,
-//         currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
-//         gateway: 'worldpay',
-//       });
-
-//       return {
-//         success: true,
-//         order_id: order.id,
-//         total_amount: totalAmount,
-//         currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
-//         payment_form: paymentForm,
-//       };
-//     } catch (error) {
-//         this.logger.error('Failed to create payment order', {
-//           error: error instanceof Error ? error.message : 'Unknown error',
-//           customerEmail: createPaymentDto.contact_email,
-//         });
-//         throw new BadRequestException(
-//           error.message || 'Failed to create payment order'
-//         );
-//       }
-//     }
 
 
 async createPayment(
@@ -1485,7 +1368,6 @@ async createPayment(
     });
 
     // Step 1: Validate cart items and calculate total
-    // (all discount_percentage / compare_price logic is inside here — untouched)
     const { variants, totalAmount } =
       await this.validateCartAndCalculateTotal(createPaymentDto.cart_items);
 
