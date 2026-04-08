@@ -1383,12 +1383,6 @@ async createPayment(
         )
       : null;
 
-    if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
-      throw new BadRequestException(
-        `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
-      );
-    }
-
     // Step 4: Coupon / discount
     let discountAmount = createPaymentDto.discount_amount || 0;
     let couponCode = createPaymentDto.coupon_code;
@@ -1529,26 +1523,10 @@ async createCodOrder(
       createPaymentDto.shipping_address.floor_id,
     );
 
-    // const zone = await this.zonesService.findByZipCode(
-    //   createPaymentDto.shipping_address.postal_code,
-    // );
-
-    // if (!zone) {
-    //   throw new BadRequestException(
-    //     `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
-    //   );
-    // }
-
     const zone = createPaymentDto.shipping_address.postal_code?.trim()
   ? await this.zonesService.findByZipCode(createPaymentDto.shipping_address.postal_code)
   : null;
 
-// Remove the !zone throw entirely, or change it to:
-if (createPaymentDto.shipping_address.postal_code?.trim() && !zone) {
-  throw new BadRequestException(
-    `Delivery is not available to the postal code: ${createPaymentDto.shipping_address.postal_code}`,
-  );
-}
 
     let discountAmount = createPaymentDto.discount_amount || 0;
     let couponCode = createPaymentDto.coupon_code;
