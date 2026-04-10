@@ -261,4 +261,9 @@ export class CreateVariantDto {
   @IsOptional()
   @IsBoolean()
   featured?: boolean;
+
+  // warranty_info
+  @IsOptional()
+  @IsString()
+  warranty_info?: string;
 } 

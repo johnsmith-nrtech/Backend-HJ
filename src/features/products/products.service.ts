@@ -1310,7 +1310,6 @@ if (
         base_price: createProductDto.base_price,
         discount_offer: createProductDto.discount_offer,
         related_product_ids: createProductDto.related_product_ids || [],
-        warranty_info: createProductDto.warranty_info,
         // material_info: createProductDto.material_info || {},
       })
       .select()
@@ -1374,6 +1373,7 @@ if (
           assemble_charges: createProductDto.assemble_charges || 0,
           delivery_time_days: createProductDto.delivery_time_days || '',
           material_info: createProductDto.material_info || {},
+          warranty_info: createProductDto.warranty_info || null,
         })
         .select()
         .single();
@@ -1571,9 +1571,9 @@ async update(
         ...(updateProductDto.delivery_info !== undefined && {
           delivery_info: updateProductDto.delivery_info,
         }),
-        ...(updateProductDto.warranty_info !== undefined && {
-          warranty_info: updateProductDto.warranty_info,
-        }),
+        // ...(updateProductDto.warranty_info !== undefined && {
+        //   warranty_info: updateProductDto.warranty_info,
+        // }),
         ...(updateProductDto.care_instructions !== undefined && {
           care_instructions: updateProductDto.care_instructions,
         }),

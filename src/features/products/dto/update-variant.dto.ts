@@ -295,6 +295,9 @@ export class UpdateVariantDto {
     feet_info?: string;
   } | null;
 
-
+  // warranty_info
+  @IsOptional()
+  @IsString()
+  warranty_info?: string;
 
 } 
