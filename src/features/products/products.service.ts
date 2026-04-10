@@ -1310,6 +1310,7 @@ if (
         base_price: createProductDto.base_price,
         discount_offer: createProductDto.discount_offer,
         related_product_ids: createProductDto.related_product_ids || [],
+        warranty_info: createProductDto.warranty_info,
         // material_info: createProductDto.material_info || {},
       })
       .select()

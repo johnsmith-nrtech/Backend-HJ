@@ -75,6 +75,11 @@ export class CreateProductDto {
   @IsOptional()
   description?: string;
 
+  // warranty_info
+  @IsOptional()
+  @IsString()
+  warranty_info?: string;
+
   /**
    * Category ID the product belongs to
    */
