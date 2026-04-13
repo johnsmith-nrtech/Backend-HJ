@@ -46,11 +46,8 @@ export class ProductsService {
     private readonly imageOptimizationService: ImageOptimizationService,
   ) {
     // Automatically clean up old files on service startup
-    this.cleanupUploadsDirectory(60).catch((error) => {
-      console.warn(
-        'Failed to cleanup uploads directory on startup:',
-        error.message,
-      );
+    this.cleanupUploadsDirectory(60).catch((error: unknown) => {
+      console.warn('Failed to cleanup uploads directory on startup:', error instanceof Error ? error.message : String(error));
     });
   }
 
@@ -1145,7 +1142,7 @@ if (
                 ];
 
                 if (
-                  productColors.some((color: string) => colors.includes(color))
+                  productColors.some((color) => colors.includes(color as string))
                 ) {
                   return true;
                 }
@@ -1167,7 +1164,7 @@ if (
                   ),
                 ];
 
-                if (productSizes.some((size: string) => sizes.includes(size))) {
+                if (productSizes.some((size) => sizes.includes(size as string))) {
                   return true;
                 }
               } catch (e) {
@@ -2265,11 +2262,8 @@ async removeVariant(id: string): Promise<ProductVariant> {
               `${this.formatBytes(optimizationResult.originalSize)} → ${this.formatBytes(optimizationResult.optimizedSize)} ` +
               `(${optimizationResult.compressionRatio.toFixed(1)}% reduction)`,
           );
-        } catch (optimizationError) {
-          // If optimization fails, log warning but continue with original image
-          console.warn(
-            `Image optimization failed for ${filename}: ${optimizationError.message}`,
-          );
+        } catch (optimizationError: unknown) {
+          console.warn(`Image optimization failed for ${filename}: ${optimizationError instanceof Error ? optimizationError.message : String(optimizationError)}`);
           console.warn('Continuing with original image...');
           // finalBuffer and finalFilename remain as original
         }
@@ -2330,9 +2324,9 @@ async removeVariant(id: string): Promise<ProductVariant> {
 
       console.log(`Generated public URL: ${data.publicUrl}`);
       return data.publicUrl;
-    } catch (error) {
-      console.error('Error uploading file to Supabase storage:', error);
-      throw new Error(`File upload failed: ${error.message}`);
+    } catch (error: unknown) {
+        console.error('Error uploading file to Supabase storage:', error);
+        throw new Error(`File upload failed: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       // Always clean up the temporary file if it was read from disk
       if (shouldCleanup && actualFilePath) {
@@ -2343,11 +2337,8 @@ async removeVariant(id: string): Promise<ProductVariant> {
           } else {
             console.log(`🔍 Temporary file already removed: ${actualFilePath}`);
           }
-        } catch (cleanupError) {
-          console.error(
-            `❌ Failed to clean up temporary file ${actualFilePath}:`,
-            cleanupError.message,
-          );
+        } catch (cleanupError: unknown) {
+          console.error(`❌ Failed to clean up temporary file ${actualFilePath}:`, cleanupError instanceof Error ? cleanupError.message : String(cleanupError));
           // Don't throw here as the main operation might have succeeded
         }
       }
@@ -2541,17 +2532,13 @@ async removeVariant(id: string): Promise<ProductVariant> {
           }
 
           createdImages.push(data as unknown as ProductImage);
-        } catch (error) {
-          console.error(`Error processing file ${i + 1}:`, error);
-          // Continue with other files but log the error
-          if (files.length === 1) {
-            // If only one file, throw the error
-            throw new BadRequestException(
-              `Failed to process file upload: ${error.message}`,
-            );
+        } catch (error: unknown) {
+            console.error(`Error processing file ${i + 1}:`, error);
+            if (files.length === 1) {
+              throw new BadRequestException(`Failed to process file upload: ${error instanceof Error ? error.message : String(error)}`);
+            }
           }
         }
-      }
 
       if (createdImages.length === 0) {
         throw new BadRequestException('Failed to process any files');
@@ -2617,15 +2604,13 @@ async removeVariant(id: string): Promise<ProductVariant> {
           createImageDto.type,
         );
         console.log('Generated URL:', imageUrl);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error processing file:', error);
         // Clean up file on error
         if (filePath) {
           await this.cleanupSpecificFiles([filePath]);
         }
-        throw new BadRequestException(
-          `Failed to process file upload: ${error.message}`,
-        );
+         throw new BadRequestException(`Failed to process file upload: ${error instanceof Error ? error.message : String(error)}`);
       }
     } else if (!imageUrl) {
       console.error('No image URL or file provided');
@@ -2661,14 +2646,12 @@ async removeVariant(id: string): Promise<ProductVariant> {
       }
 
       return data as unknown as ProductImage;
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;
       }
       console.error('Error creating product image:', error);
-      throw new InternalServerErrorException(
-        `Failed to create product image: ${error.message}`,
-      );
+      throw new InternalServerErrorException(`Failed to create product image: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       // Clean up uploaded file after processing (success or failure)
       if (filePath) {
@@ -2791,14 +2774,10 @@ async removeVariant(id: string): Promise<ProductVariant> {
           }
 
           createdImages.push(data as unknown as ProductImage);
-        } catch (error) {
+        } catch (error: unknown) {
           console.error(`Error processing variant file ${i + 1}:`, error);
-          // Continue with other files but log the error
           if (files.length === 1) {
-            // If only one file, throw the error
-            throw new BadRequestException(
-              `Failed to process file upload: ${error.message}`,
-            );
+             throw new BadRequestException(`Failed to process file upload: ${error instanceof Error ? error.message : String(error)}`);
           }
         }
       }
@@ -2859,15 +2838,12 @@ async removeVariant(id: string): Promise<ProductVariant> {
           createImageDto.type,
         );
         console.log('Generated URL:', imageUrl);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error processing variant file:', error);
-        // Clean up file on error
         if (filePath) {
           await this.cleanupSpecificFiles([filePath]);
         }
-        throw new BadRequestException(
-          `Failed to process file upload: ${error.message}`,
-        );
+        throw new BadRequestException(`Failed to process file upload: ${error instanceof Error ? error.message : String(error)}`);
       }
     } else if (!imageUrl) {
       console.error('No image URL or file provided for variant');
@@ -2906,14 +2882,10 @@ async removeVariant(id: string): Promise<ProductVariant> {
       }
 
       return data as unknown as ProductImage;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
+    } catch (error: unknown) {
+      if (error instanceof HttpException) { throw error; }
       console.error('Error creating variant image:', error);
-      throw new InternalServerErrorException(
-        `Failed to create variant image: ${error.message}`,
-      );
+      throw new InternalServerErrorException(`Failed to create variant image: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       // Clean up uploaded file after processing (success or failure)
       if (filePath) {
@@ -3837,12 +3809,11 @@ async removeVariant(id: string): Promise<ProductVariant> {
           columns: true, // Use first row as column names
           skip_empty_lines: true,
           trim: true,
-          // delimiter: ',', // Explicitly set delimiter
         };
         console.log('Parsing with options:', JSON.stringify(options));
         parsedCsv = csvParse(fileBuffer, options);
-      } catch (parseError) {
-        console.error(`First parse attempt failed: ${parseError.message}`);
+      } catch (parseError: unknown) {
+        console.error(`First parse attempt failed: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
 
         // Try alternative parsing approach
         console.log(
@@ -3880,12 +3851,10 @@ async removeVariant(id: string): Promise<ProductVariant> {
       }
 
       console.log('-------------------------------------------');
-    } catch (error) {
-      console.error(`CSV parsing error: ${error.message}`);
-      console.error('Error stack:', error.stack);
-      throw new BadRequestException(
-        `Failed to parse CSV file: ${error.message}`,
-      );
+    } catch (error: unknown) {
+        console.error(`CSV parsing error: ${error instanceof Error ? error.message : String(error)}`);
+        console.error('Error stack:', error instanceof Error ? error.stack : '');
+        throw new BadRequestException(`Failed to parse CSV file: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     // Results tracking
@@ -4099,20 +4068,13 @@ async removeVariant(id: string): Promise<ProductVariant> {
         console.log(
           `Successfully processed row ${rowNumber}: ${row.name} (SKU: ${row.sku})`,
         );
-      } catch (error) {
+      } catch (error: unknown) {
         result.failedImports++;
-        result.errors.push({
-          row: rowNumber,
-          error: error.message,
-        });
-        console.error(`Error processing row ${rowNumber}: ${error.message}`);
-
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        result.errors.push({ row: rowNumber, error: errorMessage });
+        console.error(`Error processing row ${rowNumber}: ${errorMessage}`);
         if (!skipErrors) {
-          // If we're not skipping errors, abort the entire import
-          console.error('Aborting import due to error (skipErrors=false)');
-          throw new BadRequestException(
-            `Error at row ${rowNumber}: ${error.message}`,
-          );
+          throw new BadRequestException(`Error at row ${rowNumber}: ${errorMessage}`);
         }
       }
     }
@@ -4234,8 +4196,8 @@ async removeVariant(id: string): Promise<ProductVariant> {
         type,
         order,
       });
-    } catch (error) {
-      console.error(`Error creating product image: ${error.message}`);
+    } catch (error: unknown) {
+      console.error(`Error creating product image: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -4262,8 +4224,8 @@ async removeVariant(id: string): Promise<ProductVariant> {
         type,
         order,
       });
-    } catch (error) {
-      console.error(`Error creating variant image: ${error.message}`);
+    } catch (error: unknown) {
+      console.error(`Error creating variant image: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -4284,8 +4246,8 @@ async removeVariant(id: string): Promise<ProductVariant> {
           fs.unlinkSync(filePath);
           console.log(`🗑️ Cleaned up temporary file: ${filePath}`);
         }
-      } catch (error) {
-        console.warn(`⚠️ Failed to clean up file ${filePath}:`, error.message);
+      } catch (error: unknown) {
+          console.warn(`⚠️ Failed to clean up file ${filePath}:`, error instanceof Error ? error.message : String(error));
       }
     }
   }
@@ -4327,19 +4289,16 @@ async removeVariant(id: string): Promise<ProductVariant> {
               `🗑️ Removed old file: ${file} (age: ${Math.round(fileAge / 60000)}min)`,
             );
           }
-        } catch (fileError) {
-          console.warn(`⚠️ Error processing file ${file}:`, fileError.message);
+        } catch (fileError: unknown) {
+            console.warn(`⚠️ Error processing file ${file}:`, fileError instanceof Error ? fileError.message : String(fileError));
         }
       }
 
       console.log(
         `✅ Cleanup completed. Removed ${cleanedCount} old files from ${uploadsDir}`,
       );
-    } catch (error) {
-      console.error(
-        `❌ Error during uploads directory cleanup:`,
-        error.message,
-      );
+    } catch (error: unknown) {
+        console.error(`❌ Error during uploads directory cleanup:`, error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -4396,16 +4355,13 @@ async removeVariant(id: string): Promise<ProductVariant> {
           try {
             const stats = fs.statSync(`${uploadsDir}/${file}`);
             info.totalSize += stats.size;
-          } catch (fileError) {
-            console.warn(
-              `Error getting stats for file ${file}:`,
-              fileError.message,
-            );
+          } catch (fileError: unknown) {
+              console.warn(`Error getting stats for file ${file}:`, fileError instanceof Error ? fileError.message : String(fileError));
           }
         }
       }
-    } catch (error) {
-      console.error('Error getting uploads directory info:', error.message);
+    } catch (error: unknown) {
+        console.error('Error getting uploads directory info:', error instanceof Error ? error.message : String(error));
     }
 
     return info;

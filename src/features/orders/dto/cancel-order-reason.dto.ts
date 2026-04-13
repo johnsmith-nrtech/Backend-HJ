@@ -10,5 +10,5 @@ export class CancelOrderReasonDto {
   @IsNotEmpty()
   @IsString()
   @MaxLength(500)
-  reason: string;
+  reason!: string;
 } 

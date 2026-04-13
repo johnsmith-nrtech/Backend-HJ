@@ -216,8 +216,8 @@ export class ProductsController {
           importDto.createCategories !== false,
           importDto.skipErrors !== false,
         );
-      } catch (err) {
-        this.logger.error(`Error reading from disk: ${err.message}`);
+      } catch (err: unknown) {
+         this.logger.error(`Error reading from disk: ${err instanceof Error ? err.message : String(err)}`);
 
         // Fallback to buffer if disk read failed
         result = await this.productsService.importProductsFromCsv(
@@ -241,8 +241,8 @@ export class ProductsController {
         const fs = require('fs');
         fs.unlinkSync(file.path);
         this.logger.log(`Deleted file from uploads: ${file.path}`);
-      } catch (err) {
-        this.logger.error(`Error deleting file: ${err.message}`);
+      } catch (err: unknown) {
+        this.logger.error(`Error deleting file: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 

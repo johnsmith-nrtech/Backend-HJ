@@ -215,21 +215,15 @@ export class OrdersService {
       }
 
       return data;
-    } catch (err) {
-      // If already a NestJS exception, rethrow it
-      if (err.response && err.status) {
-        throw err;
-      }
-
-      // Otherwise wrap in a generic error
-      this.logger.error(
-        `Error during Supabase operation: ${err.message}`,
-        err.stack,
-      );
+    } catch (err: unknown) {
+      if ((err as any).response && (err as any).status) {
+      throw err;
+    }
+      this.logger.error(`Error during Supabase operation: ${err instanceof Error ? err.message : String(err)}`, err instanceof Error ? err.stack : '');
       throw new InternalServerErrorException({
-        message: errorMessage,
-        error: err.message,
-      });
+      message: errorMessage,
+      error: err instanceof Error ? err.message : String(err),
+    });
     }
   }
 
@@ -295,7 +289,7 @@ export class OrdersService {
       for (const result of variantChecks) {
         if (result.error) {
           // If it's already a NestJS exception, rethrow it
-          if (result.error.response) {
+          if ((result.error as any).response) {
             throw result.error;
           }
 
@@ -392,20 +386,10 @@ export class OrdersService {
         // Re-throw the original error
         throw error;
       }
-    } catch (error) {
-      // Log the error
-      this.logger.error(
-        `Error processing checkout: ${error.message}`,
-        error.stack,
-      );
-
-      // If it's already a NestJS exception, rethrow it
-      if (error.response) {
-        throw error;
-      }
-
-      // Otherwise wrap in a BadRequestException
-      throw new BadRequestException(`Error processing order: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(`Error processing checkout: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '');
+      if ((error as any).response) { throw error; }
+      throw new BadRequestException(`Error processing order: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -477,18 +461,15 @@ export class OrdersService {
                 : `Insufficient stock. Available: ${variant.stock}`,
               currentPrice: variant.price || 0, // Always use the actual price from the database
             };
-          } catch (err) {
-            this.logger.error(
-              `Unexpected error validating variant ${item.variant_id}: ${err.message}`,
-              err.stack,
-            );
+          } catch (err: unknown) {
+            this.logger.error(`Unexpected error validating variant ${item.variant_id}: ${err instanceof Error ? err.message : String(err)}`, err instanceof Error ? err.stack : '');
             return {
               variant_id: item.variant_id,
               quantity: item.quantity,
               inStock: false,
               message: 'Error checking product availability',
               currentPrice: null,
-              error: err.message,
+              error: err instanceof Error ? err.message : String(err),
             };
           }
         }),
@@ -521,20 +502,11 @@ export class OrdersService {
             })),
         };
       }
-    } catch (error) {
-      this.logger.error(
-        `Error during checkout validation: ${error.message}`,
-        error.stack,
-      );
-
-      // Return a validation response indicating failure
+    } catch (error: unknown) {
+      this.logger.error(`Error during checkout validation: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '');
       return {
         isValid: false,
-        errors: [
-          {
-            message: `Failed to validate checkout: ${error.message}`,
-          },
-        ],
+        errors: [{ message: `Failed to validate checkout: ${error instanceof Error ? error.message : String(error)}` }],
       };
     }
   }
@@ -614,20 +586,10 @@ export class OrdersService {
           totalPages,
         },
       };
-    } catch (error) {
-      this.logger.error(
-        `Error listing user orders: ${error.message}`,
-        error.stack,
-      );
-
-      // If it's already a NestJS exception, rethrow it
-      if (error.response) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException(
-        `Failed to list orders: ${error.message}`,
-      );
+    } catch (error: unknown) {
+      this.logger.error(`Error listing user orders: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '');
+      if ((error as any).response) { throw error; }
+      throw new InternalServerErrorException(`Failed to list orders: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -676,20 +638,10 @@ export class OrdersService {
       }
 
       return this.attachItemImages(data) as Order;
-    } catch (error) {
-      this.logger.error(
-        `Error getting order details: ${error.message}`,
-        error.stack,
-      );
-
-      // If it's already a NestJS exception, rethrow it
-      if (error.response) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException(
-        `Failed to get order details: ${error.message}`,
-      );
+    } catch (error: unknown) {
+      this.logger.error(`Error getting order details: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '');
+      if ((error as any).response) { throw error; }
+      throw new InternalServerErrorException(`Failed to get order details: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -741,20 +693,10 @@ export class OrdersService {
       );
 
       return data as Order;
-    } catch (error) {
-      this.logger.error(
-        `Error cancelling order: ${error.message}`,
-        error.stack,
-      );
-
-      // If it's already a NestJS exception, rethrow it
-      if (error.response) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException(
-        `Failed to cancel order: ${error.message}`,
-      );
+    } catch (error: unknown) {
+      this.logger.error(`Error cancelling order: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '');
+      if ((error as any).response) { throw error; }
+      throw new InternalServerErrorException(`Failed to cancel order: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -819,20 +761,10 @@ export class OrdersService {
       );
 
       return data as Order;
-    } catch (error) {
-      this.logger.error(
-        `Error cancelling order with reason: ${error.message}`,
-        error.stack,
-      );
-
-      // If it's already a NestJS exception, rethrow it
-      if (error.response) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException(
-        `Failed to cancel order with reason: ${error.message}`,
-      );
+    } catch (error: unknown) {
+      this.logger.error(`Error cancelling order with reason: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '');
+      if ((error as any).response) { throw error; }
+      throw new InternalServerErrorException(`Failed to cancel order with reason: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -947,20 +879,10 @@ export class OrdersService {
           totalPages,
         },
       };
-    } catch (error) {
-      this.logger.error(
-        `Error listing all orders for admin: ${error.message}`,
-        error.stack,
-      );
-
-      // If it's already a NestJS exception, rethrow it
-      if (error.response) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException(
-        `Failed to list orders: ${error.message}`,
-      );
+    } catch (error: unknown) {
+      this.logger.error(`Error listing all orders for admin: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '');
+      if ((error as any).response) { throw error; }
+      throw new InternalServerErrorException(`Failed to list orders: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -1122,10 +1044,8 @@ async updateOrderStatusAdmin(
               : genericHtml,
         );
       }
-    } catch (emailError) {
-      this.logger.error(
-        `Failed to send status update email for order ${orderId}: ${emailError.message}`,
-      );
+    } catch (emailError: unknown) {
+      this.logger.error(`Failed to send status update email for order ${orderId}: ${emailError instanceof Error ? emailError.message : String(emailError)}`);
     }
 
     this.logger.log(
@@ -1133,20 +1053,11 @@ async updateOrderStatusAdmin(
     );
 
     return this.attachItemImages(data) as Order;
-  } catch (error) {
+  } catch (error: unknown) {
     console.log(error);
-    this.logger.error(
-      `Error updating order status: ${error.message}`,
-      error.stack,
-    );
-
-    if (error.response) {
-      throw error;
-    }
-
-    throw new InternalServerErrorException(
-      `Failed to update order status: ${error.message}`,
-    );
+    this.logger.error(`Error updating order status: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '');
+    if ((error as any).response) { throw error; }
+    throw new InternalServerErrorException(`Failed to update order status: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -1331,20 +1242,10 @@ async updateOrderStatusAdmin(
 
       // Combine headers and rows
       return [headers.join(','), ...rows].join('\n');
-    } catch (error) {
-      this.logger.error(
-        `Error exporting orders: ${error.message}`,
-        error.stack,
-      );
-
-      // If it's already a NestJS exception, rethrow it
-      if (error.response) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException(
-        `Failed to export orders: ${error.message}`,
-      );
+    } catch (error: unknown) {
+      this.logger.error(`Error exporting orders: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '');
+      if ((error as any).response) { throw error; }
+      throw new InternalServerErrorException(`Failed to export orders: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -1460,14 +1361,12 @@ async createPayment(
       currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
       payment_url: paymentUrl,
     };
-  } catch (error) {
+  } catch (error: unknown) {
     this.logger.error('Failed to create payment order', {
       error: error instanceof Error ? error.message : 'Unknown error',
       customerEmail: createPaymentDto.contact_email,
     });
-    throw new BadRequestException(
-      error.message || 'Failed to create payment order',
-    );
+    throw new BadRequestException(error instanceof Error ? error.message : 'Failed to create payment order');
   }
 }
 
@@ -1587,31 +1486,12 @@ if (couponCode && discountAmount > 0 && userId) {
       currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
       message: 'COD order created successfully',
     };
-//   } catch (error) {
-//     this.logger.error('Failed to create COD order', {
-//       error: error.message,
-//       customerEmail: createPaymentDto.contact_email,
-//     });
-
-//     return {
-//       success: false,
-//       order_id: '',
-//       total_amount: 0,
-//       currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
-//       message: 'Failed to create COD order',
-//       error: error.message || 'Failed to create COD order',
-//     };
-//   }
-// }
-
-  } catch (error) {
+  } catch (error: unknown) {
     this.logger.error('Failed to create COD order', {
       error: error instanceof Error ? error.message : 'Unknown error',
       customerEmail: createPaymentDto.contact_email,
     });
-    throw new BadRequestException(
-      error.message || 'Failed to create COD order'
-    );
+    throw new BadRequestException(error instanceof Error ? error.message : 'Failed to create COD order');
   }
 }
 
@@ -1657,13 +1537,13 @@ if (couponCode && discountAmount > 0 && userId) {
         orderId: webhookData.oid,
         status: webhookData.status,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to process webhook', {
-        error: error.message,
-        orderId: webhookData.oid,
-        status: webhookData.status,
-      });
-      throw error;
+      error: error instanceof Error ? error.message : String(error),
+      orderId: webhookData.oid,
+      status: webhookData.status,
+  });
+  throw error;
     }
   }
 
@@ -2211,13 +2091,12 @@ if (orderDetails.coupon_code && orderDetails.discount_amount > 0 && orderDetails
       );
 
       res.redirect(302, redirectUrl);
-    } catch (error) {
+    } catch (error: unknown) {
       console.log(error);
-
       this.logger.error('Failed to handle payment failure redirect', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         orderId: paymentData.oid,
-      });
+    });
 
       const frontendBaseUrl =
         this.configService.getOrThrow<string>('FRONTEND_BASE_URL');

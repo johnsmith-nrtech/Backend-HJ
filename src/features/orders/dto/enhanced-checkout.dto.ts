@@ -19,7 +19,7 @@ import {
 class EnhancedAddressDto {
   @ApiProperty({ description: 'Street address', example: '123 Oxford Street' })
   @IsString()
-  street_address: string;
+  street_address!: string;
 
   @ApiProperty({ description: 'Address line 2 (optional)', example: 'Flat 4B', required: false })
   @IsOptional()
@@ -28,7 +28,7 @@ class EnhancedAddressDto {
 
   @ApiProperty({ description: 'City', example: 'London' })
   @IsString()
-  city: string;
+  city!: string;
 
   @ApiProperty({ description: 'State/Province/Region (optional)', example: 'Greater London', required: false })
   @IsOptional()
@@ -37,27 +37,27 @@ class EnhancedAddressDto {
 
   @ApiProperty({ description: 'Postal/ZIP code', example: 'W1C 1DE' })
   @IsString()
-  postal_code: string;
+  postal_code?: string;
 
   @ApiProperty({ description: 'Country code (2-letter ISO)', example: 'GB' })
   @IsString()
   @Matches(/^[A-Z]{2}$/, { message: 'Country must be a 2-letter ISO code' })
-  country: string;
+  country!: string;
 
   @ApiProperty({ description: 'Country name', example: 'United Kingdom' })
   @IsString()
-  country_name: string;
+  country_name!: string;
 }
 
 // Contact information DTO
 class ContactInformationDto {
   @ApiProperty({ description: 'First name', example: 'John' })
   @IsString()
-  first_name: string;
+  first_name!: string;
 
   @ApiProperty({ description: 'Last name', example: 'Doe' })
   @IsString()
-  last_name: string;
+  last_name!: string;
 
   @ApiProperty({ description: 'Phone number', example: '+44 20 7946 0958', required: false })
   @IsOptional()
@@ -66,19 +66,19 @@ class ContactInformationDto {
 
   @ApiProperty({ description: 'Email address', example: 'john.doe@example.com' })
   @IsEmail()
-  email: string;
+  email!: string;
 }
 
 // Order item DTO (same as before but with better validation)
 class CheckoutItemDto {
   @ApiProperty({ description: 'ID of the product variant', example: '123e4567-e89b-12d3-a456-426614174002' })
   @IsString()
-  variant_id: string;
+  variant_id!: string;
 
   @ApiProperty({ description: 'Quantity of the variant', example: 2 })
   @IsNumber()
   @Min(1)
-  quantity: number;
+  quantity!: number;
 }
 
 // Main enhanced checkout DTO
@@ -91,7 +91,7 @@ export class EnhancedCheckoutDto {
   @IsObject()
   @ValidateNested()
   @Type(() => ContactInformationDto)
-  contact: ContactInformationDto;
+  contact!: ContactInformationDto;
 
   @ApiProperty({
     description: 'Shipping address details',
@@ -101,7 +101,7 @@ export class EnhancedCheckoutDto {
   @IsObject()
   @ValidateNested()
   @Type(() => EnhancedAddressDto)
-  shipping_address: EnhancedAddressDto;
+  shipping_address!: EnhancedAddressDto;
 
   @ApiProperty({
     description: 'Billing address details (required if different from shipping)',
@@ -120,7 +120,7 @@ export class EnhancedCheckoutDto {
     default: false
   })
   @IsBoolean()
-  use_different_billing_address: boolean;
+  use_different_billing_address?: boolean;
 
   @ApiProperty({
     description: 'Array of items in the cart to checkout',
@@ -129,7 +129,7 @@ export class EnhancedCheckoutDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CheckoutItemDto)
-  items: CheckoutItemDto[];
+  items!: CheckoutItemDto[];
 
   @ApiProperty({ 
     description: 'Optional order notes', 
@@ -165,7 +165,7 @@ export class OrderCreationResponseDto {
   order: any; // This would be the Order entity
 
   @ApiProperty({ description: 'Calculated totals' })
-  totals: {
+  totals!: {
     subtotal: number;
     shipping_cost: number;
     tax_amount: number;
