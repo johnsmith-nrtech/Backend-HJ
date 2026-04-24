@@ -12,6 +12,7 @@ import {
   HttpCode,
   HttpStatus,
   Res,
+  NotFoundException,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { ProcessCheckoutDto } from './dto/process-checkout.dto';
@@ -285,6 +286,38 @@ async createCodOrder(
   @Req() req,
 ) {
   return this.ordersService.createCodOrder(createPaymentDto, req);
+}
+
+// Add this route to OrdersController in orders.controller.ts
+// Place it BEFORE the existing @Get(':id') route
+
+@Get('track/:shortId')
+@Roles('customer', 'admin')
+@ApiBearerAuth()
+@ApiOperation({ summary: 'Find order by short display ID (e.g. BED88F46)' })
+@ApiParam({
+  name: 'shortId',
+  type: 'string',
+  description: 'First 8 characters of order UUID (shown in UI as #BED88F46)',
+})
+@ApiResponse({ status: 200, description: 'Order found', type: Order })
+@ApiResponse({ status: 404, description: 'Order not found' })
+async findOrderByShortId(
+  @Param('shortId') shortId: string,
+  @Req() req,
+): Promise<Order> {
+  const order = await this.ordersService.findOrderByShortId(
+    shortId,
+    req.user.id,
+  );
+
+  if (!order) {
+    throw new NotFoundException(
+      `No order found with ID #${shortId.toUpperCase()}`,
+    );
+  }
+
+  return order;
 }
 
 }

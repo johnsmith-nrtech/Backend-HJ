@@ -2125,4 +2125,55 @@ if (orderDetails.coupon_code && orderDetails.discount_amount > 0 && orderDetails
 
     return data as Floor;
   }
+
+/**
+ * Find a single order by its short display ID (first 8 hex chars of UUID).
+ * The display ID shown in the UI is: uuid.replace(/-/g,'').slice(0,8).toUpperCase()
+ * e.g. "2a705755-1071-418f-b2e8-03d21936ba8e" → "2A705755"
+ */
+
+async findOrderByShortId(
+  shortId: string,
+  userId: string,
+): Promise<Order | null> {
+  try {
+    const normalizedShortId = shortId
+      .replace(/^#/, '')
+      .trim()
+      .toUpperCase();
+
+    if (normalizedShortId.length !== 8) {
+      return null;
+    }
+
+    // tracking_id is the full UUID with dashes removed and uppercased
+    // e.g. "BED88F46XXXX..." — we search by the first 8 chars using LIKE
+    const { data, error } = await this.supabaseService
+      .getClient()
+      .from('orders')
+      .select(this.orderSelectWithItemDetails)
+      .eq('user_id', userId)
+      .like('tracking_id', `${normalizedShortId}%`)
+      .maybeSingle();
+
+    if (error) {
+      this.logger.error(
+        `Error searching order by tracking ID: ${error.message}`,
+      );
+      return null;
+    }
+
+    if (!data) return null;
+
+    return this.attachItemImages(data) as Order;
+  } catch (error: unknown) {
+    this.logger.error(
+      `Error finding order by short ID: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return null;
+  }
 }
+
+}
+
+
