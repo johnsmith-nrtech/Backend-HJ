@@ -1272,10 +1272,16 @@ async createPayment(
     const { variants, totalAmount } =
       await this.validateCartAndCalculateTotal(createPaymentDto.cart_items);
 
+      this.logger.log(`Step 1 done. totalAmount: ${totalAmount}`);
+      this.logger.log(`floor_id being fetched: ${createPaymentDto.shipping_address.floor_id}`);
+
+
     // Step 2: Floor charges
     const floor = await this.fetchFloorInfo(
       createPaymentDto.shipping_address.floor_id,
     );
+
+    this.logger.log(`Step 2 done. floor: ${JSON.stringify(floor)}`);
 
     // Step 3: Zone / delivery charges
     const zone = createPaymentDto.shipping_address.postal_code?.trim()
@@ -1283,6 +1289,7 @@ async createPayment(
           createPaymentDto.shipping_address.postal_code,
         )
       : null;
+      this.logger.log(`Step 3 done. zone: ${JSON.stringify(zone)}`);
 
     // Step 4: Coupon / discount
     let discountAmount = createPaymentDto.discount_amount || 0;
@@ -1298,6 +1305,7 @@ async createPayment(
       discountAmount,
       couponCode,
     );
+    this.logger.log(`Step 5 done. order id: ${order.id}`);
 
     // Step 6: Increment coupon usage count if applicable
     if (couponCode && discountAmount > 0) {
@@ -1324,6 +1332,7 @@ async createPayment(
       createPaymentDto.cart_items,
       variants,
     );
+    this.logger.log(`Step 7 done`);
 
     // Step 8: Calculate final charge total
     // totalAmount (products) + floor charges + zone delivery charges - coupon discount
@@ -1335,36 +1344,28 @@ async createPayment(
 
     // Step 9: Create initial payment record (status: pending)
     await this.createInitialPaymentRecord(order.id, chargeTotal);
+    this.logger.log(`Step 9 done. chargeTotal: ${chargeTotal}`);
 
-    // Step 10: Call Worldpay Access API — get hosted payment page URL
-    const { gatewayUrl, fields } = this.cardstreamPaymentService.createPaymentFields(
-      createPaymentDto,
-      order.id,
-      chargeTotal,
-    );
-    const paymentUrl = `${gatewayUrl}?${new URLSearchParams(fields).toString()}`;
+    // Step 10: Return fields for POST form submission (NOT a GET URL)
+const { gatewayUrl, fields } = this.cardstreamPaymentService.createPaymentFields(
+  createPaymentDto,
+  order.id,
+  chargeTotal,
+);
+this.logger.log(`Step 10 done. fields: ${JSON.stringify(fields)}`);
 
-    this.logger.log('Payment order created successfully', {
-      orderId: order.id,
-      totalAmount,
-      chargeTotal,
-      discountAmount,
-      floorCharges: floor.charges,
-      zoneCharges: zone ? zone.delivery_charges : 0,
-      currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
-      gateway: 'worldpay-access',
-    });
-
-    return {
-      success: true,
-      order_id: order.id,
-      total_amount: totalAmount,
-      currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
-      payment_url: paymentUrl,
-    };
+return {
+  success: true,
+  order_id: order.id,
+  total_amount: totalAmount,
+  currency: this.configService.get<string>('CURRENCY_NAME') || 'GBP',
+  payment_url: gatewayUrl,      // base URL only, no query string
+  payment_fields: fields,        // signed fields returned separately
+};
   } catch (error: unknown) {
     this.logger.error('Failed to create payment order', {
       error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : '',
       customerEmail: createPaymentDto.contact_email,
     });
     throw new BadRequestException(error instanceof Error ? error.message : 'Failed to create payment order');

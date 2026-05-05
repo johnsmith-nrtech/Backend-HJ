@@ -41,52 +41,51 @@ export class CardstreamPaymentService {
 
   /**
    * Build hosted payment form fields and return gateway URL + signed fields
-   * This replaces worldpayPaymentService.createPaymentUrl()
    */
-  public createPaymentFields(
-    paymentData: CreatePaymentDto,
-    orderId: string,
-    totalAmount: number,
-  ): { gatewayUrl: string; fields: Record<string, string> } {
-    const billingAddress = paymentData.use_different_billing_address
-      ? paymentData.billing_address
-      : paymentData.shipping_address;
+public createPaymentFields(
+  paymentData: CreatePaymentDto,
+  orderId: string,
+  totalAmount: number,
+): { gatewayUrl: string; fields: Record<string, string> } {
+  const billingAddress = paymentData.use_different_billing_address
+    ? paymentData.billing_address
+    : paymentData.shipping_address;
 
-    if (!billingAddress) {
-      throw new BadRequestException('Billing address is required');
-    }
-
-    // Cardstream amount is in minor units (pence) — £10.00 = 1000
-    const amountInPence = Math.round(totalAmount * 100).toString();
-
-    const fields: Record<string, string> = {
-      merchantID: this.merchantId,
-      action: 'SALE',
-      type: '1',
-      currencyCode: '826', // GBP ISO 4217 numeric
-      amount: amountInPence,
-      orderRef: orderId,
-      transactionUnique: `${orderId}-${Date.now()}`,
-      redirectURL: `${this.backendBaseUrl}/orders/payment/success`,
-      callbackURL: `${this.backendBaseUrl}/orders/payment/webhook`,
-      customerEmail: paymentData.contact_email,
-      customerName: `${paymentData.contact_first_name} ${paymentData.contact_last_name}`,
-      customerAddress: billingAddress.street_address,
-      customerTown: billingAddress.city,
-      customerCounty: billingAddress.state || '',
-      customerPostCode: billingAddress.postal_code || '',
-      customerCountryCode: billingAddress.country,
-      customerPhone: paymentData.contact_phone || '',
-    };
-
-    // Generate and attach signature
-    fields['signature'] = this.generateSignature(fields);
-
-    return {
-      gatewayUrl: this.gatewayUrl,
-      fields,
-    };
+  if (!billingAddress) {
+    throw new BadRequestException('Billing address is required');
   }
+
+  const amountInPence = Math.round(totalAmount * 100).toString();
+
+  const fields: Record<string, string> = {
+    merchantID: this.merchantId,
+    action: 'SALE',
+    type: '1',
+    currency: '826',                    // ← was currencyCode
+    amount: amountInPence,
+    orderRef: orderId,
+    transactionUnique: `${orderId}-${Date.now()}`,
+    redirectURL: `${this.backendBaseUrl}/orders/payment/success`,
+    callbackURL: `${this.backendBaseUrl}/orders/payment/webhook`,
+    // Customer fields — short names
+    customerEmail: paymentData.contact_email,
+    customerName: `${paymentData.contact_first_name} ${paymentData.contact_last_name}`,
+    // Billing address — correct field names
+    billingAddress: billingAddress.street_address,   // ← was customerAddress
+    billingTown: billingAddress.city,                // ← was customerTown
+    billingCounty: billingAddress.state || '',       // ← was customerCounty
+    billingPostcode: billingAddress.postal_code || '',// ← was customerPostCode
+    billingCountry: billingAddress.country,          // ← was customerCountryCode
+    billingPhone: paymentData.contact_phone || '',   // ← was customerPhone
+  };
+
+  fields['signature'] = this.generateSignature(fields);
+
+  return {
+    gatewayUrl: this.gatewayUrl,
+    fields,
+  };
+}
 
   /**
    * Verify signature from Cardstream callback/webhook
