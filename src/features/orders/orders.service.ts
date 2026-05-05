@@ -21,7 +21,7 @@ import {
   CreatePaymentResponseDto,
   WebhookNotificationDto,
 } from './dto/payment-response.dto';
-import { WorldpayPaymentService } from './services/worldpay-payment.service';
+import { CardstreamPaymentService } from './services/cardstream-payment.service';
 import { PostgrestError, PostgrestSingleResponse } from '@supabase/supabase-js';
 import { Request } from 'express';
 import { Floor } from '../floor/entities/floor.entity';
@@ -116,7 +116,7 @@ export class OrdersService {
 
   constructor(
     private readonly supabaseService: SupabaseService,
-    private readonly worldpayPaymentService: WorldpayPaymentService,
+    private readonly cardstreamPaymentService: CardstreamPaymentService,
     private readonly configService: ConfigService,
     private readonly mailService: MailService,
     private readonly zonesService: ZonesService,
@@ -1337,11 +1337,12 @@ async createPayment(
     await this.createInitialPaymentRecord(order.id, chargeTotal);
 
     // Step 10: Call Worldpay Access API — get hosted payment page URL
-    const paymentUrl = await this.worldpayPaymentService.createPaymentUrl(
+    const { gatewayUrl, fields } = this.cardstreamPaymentService.createPaymentFields(
       createPaymentDto,
       order.id,
       chargeTotal,
     );
+    const paymentUrl = `${gatewayUrl}?${new URLSearchParams(fields).toString()}`;
 
     this.logger.log('Payment order created successfully', {
       orderId: order.id,
@@ -1510,7 +1511,7 @@ if (couponCode && discountAmount > 0 && userId) {
       });
 
       // Step 1: Verify webhook authenticity
-      const isValidWebhook = this.worldpayPaymentService.verifyWebhookHash(
+      const isValidWebhook = this.cardstreamPaymentService.verifyWebhookHash(
         webhookData.approval_code,
         webhookData.chargetotal,
         webhookData.currency,
@@ -1788,7 +1789,7 @@ return {
 
     const paymentData = {
       order_id: orderId,
-      provider: 'worldpay',
+      provider: 'cardstream',
       payment_id: paymentId, // Use order ID as initial payment ID
       status: 'pending',
       amount: totalAmount,
@@ -1844,7 +1845,7 @@ return {
    * Updates payment record from webhook data
    */
   private async updatePaymentRecord(webhookData: WebhookNotificationDto) {
-    const paymentStatus = this.worldpayPaymentService.mapTylStatusToPaymentStatus(
+    const paymentStatus = this.cardstreamPaymentService.mapTylStatusToPaymentStatus(
       webhookData.status,
     );
 
@@ -1883,7 +1884,7 @@ return {
   private async updateOrderStatusFromWebhook(
     webhookData: WebhookNotificationDto,
   ) {
-    const orderStatus = this.worldpayPaymentService.mapTylStatusToOrderStatus(
+    const orderStatus = this.cardstreamPaymentService.mapTylStatusToOrderStatus(
       webhookData.status,
     );
 

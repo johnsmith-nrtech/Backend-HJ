@@ -251,25 +251,19 @@ async handlePaymentWebhook(
   return this.ordersService.handlePaymentWebhook(webhookData);
 }
 
-@Post('/payment/success')
+@Get('/payment/success')
 @Public()
-@ApiOperation({
-  summary: 'Handle Worldpay payment success redirect',
-})
 async handlePaymentSuccess(
-  @Body() paymentData: any,
+  @Query() paymentData: any,
   @Res() res: Response,
 ): Promise<void> {
   return this.ordersService.handlePaymentSuccess(paymentData, res);
 }
 
-@Post('/payment/failure')
+@Get('/payment/failure')
 @Public()
-@ApiOperation({
-  summary: 'Handle Worldpay payment failure redirect',
-})
 async handlePaymentFailure(
-  @Body() paymentData: any,
+  @Query() paymentData: any,
   @Res() res: Response,
 ): Promise<void> {
   return this.ordersService.handlePaymentFailure(paymentData, res);
