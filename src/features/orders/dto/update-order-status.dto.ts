@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 import { OrderStatus } from '../entities/order.entity';
 
 export class UpdateOrderStatusDto {
@@ -11,4 +11,14 @@ export class UpdateOrderStatusDto {
   @IsNotEmpty()
   @IsEnum(OrderStatus)
   status: OrderStatus;
-} 
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  deposit_amount?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  deposit_percentage?: number;
+}

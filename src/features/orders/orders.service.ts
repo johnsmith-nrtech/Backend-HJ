@@ -926,6 +926,17 @@ async updateOrderStatusAdmin(
       .select(this.orderSelectWithItemDetails)
       .single();
 
+      if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED && updateOrderStatusDto.deposit_amount) {
+        await this.supabaseService
+        .getClient()
+        .from('orders')
+        .update({
+          deposit_amount: updateOrderStatusDto.deposit_amount,
+          deposit_percentage: updateOrderStatusDto.deposit_percentage,
+        })
+        .eq('id', orderId); 
+      }
+
     if (error) {
       this.handleSupabaseError(
         error,
@@ -1048,6 +1059,52 @@ async updateOrderStatusAdmin(
       this.logger.error(`Failed to send status update email for order ${orderId}: ${emailError instanceof Error ? emailError.message : String(emailError)}`);
     }
 
+    // Send loan approved email with magic link
+if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED) {
+  try {
+    const frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
+    const magicLink = `${frontendBaseUrl}/loan-approved/${orderId}`;
+
+    const userEmail = await this.supabaseService
+      .getClient()
+      .from('users')
+      .select('email')
+      .eq('id', existingOrder.user_id)
+      .limit(1);
+
+    if (userEmail.data && userEmail.data.length > 0 && userEmail.data[0].email) {
+      const loanApprovedHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #333;">🎉 Your Loan Has Been Approved!</h2>
+          <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
+          <p>Great news! Your finance application for order <strong>#${orderId}</strong> has been approved.</p>
+          <p>You can now pay your deposit to confirm your order. Click the button below:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${magicLink}" 
+               style="background-color: #22c55e; color: white; padding: 14px 28px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px;">
+              Pay Your Deposit Now
+            </a>
+          </div>
+          <p style="color: #666; font-size: 14px;">Or copy this link: ${magicLink}</p>
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p>Best regards,</p>
+            <p><strong>Sofa Deal</strong></p>
+            <p>Phone: +44 7306 127481</p>
+          </div>
+        </div>
+      `;
+
+      await this.mailService.sendEmail(
+        userEmail.data[0].email,
+        '🎉 Your Loan Has Been Approved — Pay Your Deposit Now',
+        loanApprovedHtml,
+      );
+    }
+  } catch (loanEmailError: unknown) {
+    this.logger.error(`Failed to send loan approved email for order ${orderId}: ${loanEmailError instanceof Error ? loanEmailError.message : String(loanEmailError)}`);
+  }
+}
+
     this.logger.log(
       `Order ${orderId} status updated to ${updateOrderStatusDto.status}`,
     );
@@ -1075,6 +1132,7 @@ async updateOrderStatusAdmin(
       [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
       [OrderStatus.DELIVERED]: [OrderStatus.CANCELLED],
       [OrderStatus.CANCELLED]: [], // Cannot transition from cancelled
+      [OrderStatus.LOAN_APPROVED]: [OrderStatus.PAID, OrderStatus.CANCELLED],
     };
 
     // Check if transition is valid
@@ -2174,6 +2232,30 @@ async findOrderByShortId(
     );
     return null;
   }
+}
+
+async updateDepositInfo(
+  orderId: string,
+  depositAmount: number,
+  depositPercentage: number,
+  installmentTerm?: number,
+): Promise<void> {
+  const { error } = await this.supabaseService
+    .getClient()
+    .from('orders')
+    .update({
+      deposit_amount: depositAmount,
+      deposit_percentage: depositPercentage,
+      ...(installmentTerm && { installment_term: installmentTerm }),
+    })
+    .eq('id', orderId);
+
+  if (error) {
+    this.logger.error(`Failed to update deposit info for order ${orderId}: ${error.message}`);
+    this.handleSupabaseError(error, 'Failed to update deposit info');
+  }
+
+  this.logger.log(`Deposit info saved for order ${orderId}: ${depositPercentage}% = £${depositAmount}`);
 }
 
 }

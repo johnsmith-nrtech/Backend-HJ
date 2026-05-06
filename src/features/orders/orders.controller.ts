@@ -193,6 +193,17 @@ export class OrdersController {
     return res.send(csvData);
   }
 
+  @Put(':id/deposit-info')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Save deposit info for installment order' })
+  async updateDepositInfo(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { deposit_amount: number; deposit_percentage: number; installment_term?: number },
+  ) {
+    return this.ordersService.updateDepositInfo(id, body.deposit_amount, body.deposit_percentage, body.installment_term);
+  }
+
   // Dynamic routes that expect UUIDs (placed after admin routes)
   @Get(':id')
   @Roles('customer', 'admin')

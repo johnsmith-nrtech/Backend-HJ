@@ -8,6 +8,7 @@ export enum OrderStatus {
   SHIPPED = 'shipped',
   DELIVERED = 'delivered',
   CANCELLED = 'cancelled',
+  LOAN_APPROVED = 'loan_approved',
 }
 
 /**
