@@ -925,7 +925,7 @@ async updateOrderStatusAdmin(
       .eq('id', orderId)
       .select(this.orderSelectWithItemDetails)
       .single();
-
+      
 
     if (error) {
       this.handleSupabaseError(
