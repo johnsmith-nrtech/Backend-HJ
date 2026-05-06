@@ -31,10 +31,10 @@ export class CardstreamPaymentService {
       .sort()
       .filter((k) => k !== 'signature')
       .map((k) => `${k}=${fields[k]}`)
-      .join('&');
+      .join('&') + this.signatureKey;
 
     return crypto
-      .createHmac('sha512', this.signatureKey)
+      .createHash('sha512')
       .update(message)
       .digest('hex');
   }

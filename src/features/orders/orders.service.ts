@@ -926,16 +926,6 @@ async updateOrderStatusAdmin(
       .select(this.orderSelectWithItemDetails)
       .single();
 
-      if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED && updateOrderStatusDto.deposit_amount) {
-        await this.supabaseService
-        .getClient()
-        .from('orders')
-        .update({
-          deposit_amount: updateOrderStatusDto.deposit_amount,
-          deposit_percentage: updateOrderStatusDto.deposit_percentage,
-        })
-        .eq('id', orderId); 
-      }
 
     if (error) {
       this.handleSupabaseError(
@@ -943,6 +933,17 @@ async updateOrderStatusAdmin(
         `Error updating order status for ${orderId}`,
         orderId,
       );
+    }
+
+    if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED && updateOrderStatusDto.deposit_amount) {
+      await this.supabaseService
+      .getClient()
+      .from('orders')
+      .update({
+        deposit_amount: updateOrderStatusDto.deposit_amount,
+        deposit_percentage: updateOrderStatusDto.deposit_percentage,
+      })
+      .eq('id', orderId); 
     }
 
     if (!data) {
@@ -1127,11 +1128,11 @@ if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED) {
   ): void {
     // Define valid transitions
     const validTransitions: Record<OrderStatus, OrderStatus[]> = {
-      [OrderStatus.PENDING]: [OrderStatus.PAID, OrderStatus.CANCELLED],
+      [OrderStatus.PENDING]: [OrderStatus.PAID, OrderStatus.CANCELLED, OrderStatus.LOAN_APPROVED],
       [OrderStatus.PAID]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
       [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
       [OrderStatus.DELIVERED]: [OrderStatus.CANCELLED],
-      [OrderStatus.CANCELLED]: [], // Cannot transition from cancelled
+      [OrderStatus.CANCELLED]: [],
       [OrderStatus.LOAN_APPROVED]: [OrderStatus.PAID, OrderStatus.CANCELLED],
     };
 
