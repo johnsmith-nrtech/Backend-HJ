@@ -935,16 +935,19 @@ async updateOrderStatusAdmin(
       );
     }
 
-    if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED && updateOrderStatusDto.deposit_amount) {
-      await this.supabaseService
-      .getClient()
-      .from('orders')
-      .update({
-        deposit_amount: updateOrderStatusDto.deposit_amount,
-        deposit_percentage: updateOrderStatusDto.deposit_percentage,
-      })
-      .eq('id', orderId); 
-    }
+if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED && updateOrderStatusDto.deposit_amount) {
+  await this.supabaseService
+    .getClient()
+    .from('orders')
+    .update({
+      deposit_amount: updateOrderStatusDto.deposit_amount,
+      deposit_percentage: updateOrderStatusDto.deposit_percentage,
+      installment_term: (updateOrderStatusDto as any).installment_term,
+      admin_deposit_percentage: (updateOrderStatusDto as any).admin_deposit_percentage,
+      admin_installment_term: (updateOrderStatusDto as any).admin_installment_term,
+    })
+    .eq('id', orderId);
+}
 
     if (!data) {
       throw new NotFoundException(
@@ -1074,26 +1077,30 @@ if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED) {
       .limit(1);
 
     if (userEmail.data && userEmail.data.length > 0 && userEmail.data[0].email) {
-      const loanApprovedHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #333;">🎉 Your Loan Has Been Approved!</h2>
-          <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
-          <p>Great news! Your finance application for order <strong>#${orderId}</strong> has been approved.</p>
-          <p>You can now pay your deposit to confirm your order. Click the button below:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${magicLink}" 
-               style="background-color: #22c55e; color: white; padding: 14px 28px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px;">
-              Pay Your Deposit Now
-            </a>
-          </div>
-          <p style="color: #666; font-size: 14px;">Or copy this link: ${magicLink}</p>
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-            <p>Best regards,</p>
-            <p><strong>Sofa Deal</strong></p>
-            <p>Phone: +44 7306 127481</p>
-          </div>
-        </div>
-      `;
+const loanApprovedHtml = `
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h2 style="color: #333;">🎉 Your Loan Has Been Approved!</h2>
+    <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
+    <p>Great news! Your finance application for order <strong>#${orderId}</strong> has been approved.</p>
+    <p>You can now pay your deposit to confirm your order. Click the button below:</p>
+    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <p><strong>Deposit Required:</strong> ${updateOrderStatusDto.deposit_percentage}% — £${((updateOrderStatusDto.deposit_amount || 0)).toFixed(2)}</p>
+     <p><strong>Repayment Term:</strong> ${(updateOrderStatusDto as any).installment_term} Months</p>
+    </div>
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${magicLink}" 
+         style="background-color: #22c55e; color: white; padding: 14px 28px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px;">
+        Pay Your Deposit Now
+      </a>
+    </div>
+    <p style="color: #666; font-size: 14px;">Or copy this link: ${magicLink}</p>
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+      <p>Best regards,</p>
+      <p><strong>Sofa Deal</strong></p>
+      <p>Phone: +44 7306 127481</p>
+    </div>
+  </div>
+`;
 
       await this.mailService.sendEmail(
         userEmail.data[0].email,
