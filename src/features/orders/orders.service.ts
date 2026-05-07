@@ -2266,6 +2266,62 @@ async updateDepositInfo(
   this.logger.log(`Deposit info saved for order ${orderId}: ${depositPercentage}% = £${depositAmount}`);
 }
 
+async createDepositPayment(
+  orderId: string,
+  userId: string,
+): Promise<CreatePaymentResponseDto> {
+  // Fetch order
+  const { data: order, error } = await this.supabaseService
+    .getClient()
+    .from('orders')
+    .select('*, items:order_items(*)')
+    .eq('id', orderId)
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !order) {
+    throw new NotFoundException(`Order ${orderId} not found`);
+  }
+
+  if (order.status !== 'loan_approved') {
+    throw new BadRequestException('Order is not in loan_approved status');
+  }
+
+  if (!order.deposit_amount || order.deposit_amount <= 0) {
+    throw new BadRequestException('No deposit amount set for this order');
+  }
+
+  // Create payment fields for DEPOSIT AMOUNT ONLY
+  const depositAmount = order.deposit_amount;
+
+  const createPaymentDto: any = {
+    contact_first_name: order.contact_first_name,
+    contact_last_name: order.contact_last_name,
+    contact_email: order.contact_email,
+    contact_phone: order.contact_phone,
+    shipping_address: order.shipping_address,
+    billing_address: order.billing_address,
+    use_different_billing_address: order.use_different_billing_address,
+    cart_items: [],
+  };
+
+  const { gatewayUrl, fields } = this.cardstreamPaymentService.createPaymentFields(
+    createPaymentDto,
+    orderId,
+    depositAmount, // ✅ deposit amount only
+  );
+
+  return {
+    success: true,
+    order_id: orderId,
+    total_amount: depositAmount,
+    currency: order.currency || 'GBP',
+    payment_url: gatewayUrl,
+    payment_fields: fields,
+  };
+}
+
+
 }
 
 

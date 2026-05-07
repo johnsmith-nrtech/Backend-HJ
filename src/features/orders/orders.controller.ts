@@ -325,4 +325,14 @@ async findOrderByShortId(
   return order;
 }
 
+
+@Post(':orderId/deposit-payment')
+@UseGuards(JwtAuthGuard)
+async createDepositPayment(
+  @Param('orderId') orderId: string,
+  @Req() req: any,
+  ) {
+  return this.ordersService.createDepositPayment(orderId, req.user.id);
+}
+
 }
