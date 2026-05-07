@@ -21,21 +21,39 @@ export class CardstreamPaymentService {
     this.backendBaseUrl = this.configService.getOrThrow<string>('BACKEND_BASE_URL');
     this.frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
     this.logger.log('Cardstream payment service initialized');
+    this.logger.log(`Signature key loaded: "${this.signatureKey}"`);
   }
 
   /**
-   * Generate SHA-512 HMAC signature required by Cardstream
+   * Generate signature required by Cardstream
    */
   private generateSignature(fields: Record<string, string>): string {
-    const message = Object.keys(fields)
+    const sortedKeys = Object.keys(fields)
       .sort()
-      .filter((k) => k !== 'signature')
-      .map((k) => `${k}=${fields[k]}`)
-      .join('&') + this.signatureKey;
+      .filter((k) => k !== 'signature');
 
+    // ✅ Step 2: URL encode like http_build_query (spaces = +)
+    const message = sortedKeys
+      .map((k) => {
+        const encodedKey = encodeURIComponent(k).replace(/%20/g, '+');
+        const encodedVal = encodeURIComponent(fields[k]).replace(/%20/g, '+');
+        return `${encodedKey}=${encodedVal}`;
+      })
+      .join('&');
+
+    // ✅ Step 3: Normalize line endings (replace %0D%0A, %0A%0D, %0D with %0A)
+    const normalized = message
+      .replace(/%0D%0A/gi, '%0A')
+      .replace(/%0A%0D/gi, '%0A')
+      .replace(/%0D/gi, '%0A');
+
+    // ✅ Step 4: Append signature key
+    const finalMessage = normalized + this.signatureKey;
+
+    // ✅ Step 5: SHA512 hash
     return crypto
       .createHash('sha512')
-      .update(message)
+      .update(finalMessage)
       .digest('hex');
   }
 
@@ -61,23 +79,27 @@ public createPaymentFields(
     merchantID: this.merchantId,
     action: 'SALE',
     type: '1',
-    currency: '826',                    // ← was currencyCode
+    currency: '826',
     amount: amountInPence,
     orderRef: orderId,
     transactionUnique: `${orderId}-${Date.now()}`,
     redirectURL: `${this.backendBaseUrl}/orders/payment/success`,
     callbackURL: `${this.backendBaseUrl}/orders/payment/webhook`,
-    // Customer fields — short names
     customerEmail: paymentData.contact_email,
     customerName: `${paymentData.contact_first_name} ${paymentData.contact_last_name}`,
-    // Billing address — correct field names
-    billingAddress: billingAddress.street_address,   // ← was customerAddress
-    billingTown: billingAddress.city,                // ← was customerTown
-    billingCounty: billingAddress.state || '',       // ← was customerCounty
-    billingPostcode: billingAddress.postal_code || '',// ← was customerPostCode
-    billingCountry: billingAddress.country,          // ← was customerCountryCode
-    billingPhone: paymentData.contact_phone || '',   // ← was customerPhone
+    billingAddress: billingAddress.street_address,
+    billingTown: billingAddress.city,
+    billingCounty: billingAddress.state || '',
+    billingPostcode: billingAddress.postal_code || '',
+    billingCountry: billingAddress.country,
+    billingPhone: paymentData.contact_phone || '',
   };
+
+  Object.keys(fields).forEach((key) => {
+    if (fields[key] === '' || fields[key] === null || fields[key] === undefined) {
+      delete fields[key];
+    }
+  });
 
   fields['signature'] = this.generateSignature(fields);
 
