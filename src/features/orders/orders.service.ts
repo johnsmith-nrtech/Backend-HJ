@@ -1097,7 +1097,6 @@ const loanApprovedHtml = `
     <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
       <p>Best regards,</p>
       <p><strong>Sofa Deal</strong></p>
-      <p>Phone: +44 7306 127481</p>
     </div>
   </div>
 `;
