@@ -1093,7 +1093,6 @@ const loanApprovedHtml = `
         Pay Your Deposit Now
       </a>
     </div>
-    <p style="color: #666; font-size: 14px;">Or copy this link: ${magicLink}</p>
     <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
       <p>Best regards,</p>
       <p><strong>Sofa Deal</strong></p>

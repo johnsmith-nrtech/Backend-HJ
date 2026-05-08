@@ -62,7 +62,7 @@ app.enableCors({
   origin: [
     'https://www.sofadeal.co.uk',
     'https://sofadeal.co.uk',           // without www, just in case
-    'https://frontend-hj.vercel.app',   // keep for staging/preview
+    // 'https://frontend-hj.vercel.app',   // keep for staging/preview
     'http://localhost:3000',
     'http://localhost:4000',
   ],
