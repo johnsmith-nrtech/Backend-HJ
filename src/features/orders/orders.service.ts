@@ -994,21 +994,77 @@ if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED && updateOrderStat
     }
 
     // ✅ Email in try/catch — failure here won't affect status update
-    try {
-      const genericHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #333;">Order Status Update - Order #${orderId}</h2>
-          <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
-          <p>Your order #${orderId} status has been updated to: <strong>${updateOrderStatusDto.status}</strong>.</p>
-          <p>We'll keep you informed of any further updates.</p>
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-            <p>Best regards,</p>
-            <p><strong>Sofa Deal</strong></p>
-            <p>Phone: +44 7306 127481</p>
-          </div>
-        </div>
-      `;
+    // try {
+    //   const genericHtml = `
+    //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    //       <h2 style="color: #333;">Order Status Update - Order #${orderId}</h2>
+    //       <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
+    //       <p>Your order #${orderId} status has been updated to: <strong>${updateOrderStatusDto.status}</strong>.</p>
+    //       <p>We'll keep you informed of any further updates.</p>
+    //       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+    //         <p>Best regards,</p>
+    //         <p><strong>Sofa Deal</strong></p>
+    //         <p>Phone: +44 7306 127481</p>
+    //       </div>
+    //     </div>
+    //   `;
 
+    //   const shippedHtml = `
+    //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    //       <h2 style="color: #333;">Good News! Your Order #${orderId} Is On Its Way 🚚</h2>
+    //       <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
+    //       <p>Your order #${orderId} has been shipped and is on its way to you. 🚀</p>
+    //       <p>We'll notify you once it's been delivered.</p>
+    //       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+    //         <p>Thanks for shopping with <strong>Sofa Deal</strong></p>
+    //         <p>Phone: +44 7306 127481</p>
+    //       </div>
+    //     </div>
+    //   `;
+
+    //   const deliveredHtml = `
+    //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    //       <h2 style="color: #333;">Your Order #${orderId} Has Been Delivered! 📦</h2>
+    //       <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
+    //       <p>Your order #${orderId} has been successfully delivered. 🎁</p>
+    //       <p>We hope you love your purchase!</p>
+    //       <p>Thank you for shopping with <strong>Sofa Deal</strong>.</p>
+    //       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+    //         <p>Warm regards,</p>
+    //         <p><strong>Sofa Deal</strong></p>
+    //         <p>Phone: +44 7306 127481</p>
+    //       </div>
+    //     </div>
+    //   `;
+
+    //   const userEmail = await this.supabaseService
+    //     .getClient()
+    //     .from('users')
+    //     .select('email')
+    //     .eq('id', existingOrder.user_id)
+    //     .limit(1);
+
+    //   if (userEmail.data && userEmail.data.length > 0 && userEmail.data[0].email) {
+    //     await this.mailService.sendEmail(
+    //       userEmail.data[0].email,
+    //       updateOrderStatusDto.status === 'shipped'
+    //         ? `Good News! Your Order #${orderId} Is On Its Way 🚚`
+    //         : updateOrderStatusDto.status === 'delivered'
+    //           ? `Your Order #${orderId} Has Been Delivered! 📦`
+    //           : 'Your Order Status Updated',
+    //       updateOrderStatusDto.status === 'shipped'
+    //         ? shippedHtml
+    //         : updateOrderStatusDto.status === 'delivered'
+    //           ? deliveredHtml
+    //           : genericHtml,
+    //     );
+    //   }
+    // } catch (emailError: unknown) {
+    //   this.logger.error(`Failed to send status update email for order ${orderId}: ${emailError instanceof Error ? emailError.message : String(emailError)}`);
+    // }
+
+    // ✅ Email in try/catch — failure here won't affect status update
+    try {
       const shippedHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2 style="color: #333;">Good News! Your Order #${orderId} Is On Its Way 🚚</h2>
@@ -1037,47 +1093,87 @@ if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED && updateOrderStat
         </div>
       `;
 
-      const userEmail = await this.supabaseService
-        .getClient()
-        .from('users')
-        .select('email')
-        .eq('id', existingOrder.user_id)
-        .limit(1);
+      // ✅ Send to contact_email directly — works for both guests and registered users
+      const recipientEmail = data.contact_email || existingOrder.contact_email;
 
-      if (userEmail.data && userEmail.data.length > 0 && userEmail.data[0].email) {
-        await this.mailService.sendEmail(
-          userEmail.data[0].email,
-          updateOrderStatusDto.status === 'shipped'
-            ? `Good News! Your Order #${orderId} Is On Its Way 🚚`
-            : updateOrderStatusDto.status === 'delivered'
-              ? `Your Order #${orderId} Has Been Delivered! 📦`
-              : 'Your Order Status Updated',
-          updateOrderStatusDto.status === 'shipped'
-            ? shippedHtml
-            : updateOrderStatusDto.status === 'delivered'
-              ? deliveredHtml
-              : genericHtml,
-        );
-      }
+      if (recipientEmail && updateOrderStatusDto.status === OrderStatus.SHIPPED) {
+    await this.mailService.sendEmail(
+      recipientEmail,
+      `Good News! Your Order #${orderId} Is On Its Way 🚚`,
+      shippedHtml,
+    );
+  } else if (recipientEmail && updateOrderStatusDto.status === OrderStatus.DELIVERED) {
+    await this.mailService.sendEmail(
+      recipientEmail,
+      `Your Order #${orderId} Has Been Delivered! 📦`,
+      deliveredHtml,
+    );
+  }
     } catch (emailError: unknown) {
       this.logger.error(`Failed to send status update email for order ${orderId}: ${emailError instanceof Error ? emailError.message : String(emailError)}`);
     }
 
+
+
     // Send loan approved email with magic link
+// if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED) {
+//   try {
+//     const frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
+//     const magicLink = `${frontendBaseUrl}/loan-approved/${orderId}`;
+
+//     const userEmail = await this.supabaseService
+//       .getClient()
+//       .from('users')
+//       .select('email')
+//       .eq('id', existingOrder.user_id)
+//       .limit(1);
+
+//     if (userEmail.data && userEmail.data.length > 0 && userEmail.data[0].email) {
+// const loanApprovedHtml = `
+//   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+//     <h2 style="color: #333;">🎉 Your Loan Has Been Approved!</h2>
+//     <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
+//     <p>Great news! Your finance application for order <strong>#${orderId}</strong> has been approved.</p>
+//     <p>You can now pay your deposit to confirm your order. Click the button below:</p>
+//     <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+//       <p><strong>Deposit Required:</strong> ${updateOrderStatusDto.deposit_percentage}% — £${((updateOrderStatusDto.deposit_amount || 0)).toFixed(2)}</p>
+//      <p><strong>Repayment Term:</strong> ${(updateOrderStatusDto as any).installment_term} Months</p>
+//     </div>
+//     <div style="text-align: center; margin: 30px 0;">
+//       <a href="${magicLink}" 
+//          style="background-color: #22c55e; color: white; padding: 14px 28px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px;">
+//         Pay Your Deposit Now
+//       </a>
+//     </div>
+//     <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+//       <p>Best regards,</p>
+//       <p><strong>Sofa Deal</strong></p>
+//     </div>
+//   </div>
+// `;
+
+//       await this.mailService.sendEmail(
+//         userEmail.data[0].email,
+//         '🎉 Your Loan Has Been Approved — Pay Your Deposit Now',
+//         loanApprovedHtml,
+//       );
+//     }
+//   } catch (loanEmailError: unknown) {
+//     this.logger.error(`Failed to send loan approved email for order ${orderId}: ${loanEmailError instanceof Error ? loanEmailError.message : String(loanEmailError)}`);
+//   }
+// }
+
+
 if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED) {
   try {
     const frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
     const magicLink = `${frontendBaseUrl}/loan-approved/${orderId}`;
 
-    const userEmail = await this.supabaseService
-      .getClient()
-      .from('users')
-      .select('email')
-      .eq('id', existingOrder.user_id)
-      .limit(1);
+    // ✅ Use contact_email directly — works for guests and registered users
+    const loanRecipientEmail = data.contact_email || existingOrder.contact_email;
 
-    if (userEmail.data && userEmail.data.length > 0 && userEmail.data[0].email) {
-const loanApprovedHtml = `
+    if (loanRecipientEmail) {
+      const loanApprovedHtml = `
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
     <h2 style="color: #333;">🎉 Your Loan Has Been Approved!</h2>
     <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
@@ -1085,7 +1181,7 @@ const loanApprovedHtml = `
     <p>You can now pay your deposit to confirm your order. Click the button below:</p>
     <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
       <p><strong>Deposit Required:</strong> ${updateOrderStatusDto.deposit_percentage}% — £${((updateOrderStatusDto.deposit_amount || 0)).toFixed(2)}</p>
-     <p><strong>Repayment Term:</strong> ${(updateOrderStatusDto as any).installment_term} Months</p>
+      <p><strong>Repayment Term:</strong> ${(updateOrderStatusDto as any).installment_term} Months</p>
     </div>
     <div style="text-align: center; margin: 30px 0;">
       <a href="${magicLink}" 
@@ -1093,6 +1189,7 @@ const loanApprovedHtml = `
         Pay Your Deposit Now
       </a>
     </div>
+    <p style="color: #666; font-size: 14px;">Or copy this link: ${magicLink}</p>
     <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
       <p>Best regards,</p>
       <p><strong>Sofa Deal</strong></p>
@@ -1101,7 +1198,7 @@ const loanApprovedHtml = `
 `;
 
       await this.mailService.sendEmail(
-        userEmail.data[0].email,
+        loanRecipientEmail,
         '🎉 Your Loan Has Been Approved — Pay Your Deposit Now',
         loanApprovedHtml,
       );
@@ -1110,6 +1207,7 @@ const loanApprovedHtml = `
     this.logger.error(`Failed to send loan approved email for order ${orderId}: ${loanEmailError instanceof Error ? loanEmailError.message : String(loanEmailError)}`);
   }
 }
+
 
     this.logger.log(
       `Order ${orderId} status updated to ${updateOrderStatusDto.status}`,
@@ -2264,18 +2362,39 @@ async updateDepositInfo(
   this.logger.log(`Deposit info saved for order ${orderId}: ${depositPercentage}% = £${depositAmount}`);
 }
 
+// async createDepositPayment(
+//   orderId: string,
+//   userId: string,
+// ): Promise<CreatePaymentResponseDto> {
+//   // Fetch order
+//   const { data: order, error } = await this.supabaseService
+//     .getClient()
+//     .from('orders')
+//     .select('*, items:order_items(*)')
+//     .eq('id', orderId)
+//     .eq('user_id', userId)
+//     .single();
+
+//   if (error || !order) {
+//     throw new NotFoundException(`Order ${orderId} not found`);
+//   }
+
 async createDepositPayment(
   orderId: string,
-  userId: string,
+  userId: string | null,
 ): Promise<CreatePaymentResponseDto> {
-  // Fetch order
-  const { data: order, error } = await this.supabaseService
+  // ✅ For guests userId is null — just look up by orderId alone
+  let query = this.supabaseService
     .getClient()
     .from('orders')
     .select('*, items:order_items(*)')
-    .eq('id', orderId)
-    .eq('user_id', userId)
-    .single();
+    .eq('id', orderId);
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+
+  const { data: order, error } = await query.single();
 
   if (error || !order) {
     throw new NotFoundException(`Order ${orderId} not found`);

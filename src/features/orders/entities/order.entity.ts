@@ -88,6 +88,14 @@ export class Order {
   updated_at: Date;
 
   @ApiProperty({
+    description: 'Contact email for the order',
+    example: 'customer@example.com',
+    type: String,
+    required: false,
+  })
+  contact_email?: string;
+
+  @ApiProperty({
     description: 'List of items in this order',
     type: () => [OrderItem],
     isArray: true,

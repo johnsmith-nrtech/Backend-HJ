@@ -21,4 +21,8 @@ export class UpdateOrderStatusDto {
   @IsOptional()
   @IsNumber()
   deposit_percentage?: number;
+
+  @IsOptional()
+  @IsNumber()
+  installment_term?: number;
 }

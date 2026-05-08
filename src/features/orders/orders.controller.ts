@@ -204,13 +204,25 @@ export class OrdersController {
     return this.ordersService.updateDepositInfo(id, body.deposit_amount, body.deposit_percentage, body.installment_term);
   }
 
-  @Post(':orderId/deposit-payment')
-@UseGuards(JwtAuthGuard)
+//   @Post(':orderId/deposit-payment')
+// @UseGuards(JwtAuthGuard)
+// async createDepositPayment(
+//   @Param('orderId') orderId: string,
+//   @Req() req: any,
+// ) {
+//   return this.ordersService.createDepositPayment(orderId, req.user.id);
+// }
+
+@Post(':orderId/deposit-payment')
+@Public()
+@HttpCode(HttpStatus.OK)
 async createDepositPayment(
   @Param('orderId') orderId: string,
   @Req() req: any,
 ) {
-  return this.ordersService.createDepositPayment(orderId, req.user.id);
+  // works for both guests (null) and logged-in users
+  const userId = req.user?.id || null;
+  return this.ordersService.createDepositPayment(orderId, userId);
 }
 
   // Dynamic routes that expect UUIDs (placed after admin routes)
