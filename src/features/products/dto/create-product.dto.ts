@@ -198,6 +198,19 @@ export class CreateProductDto {
   is_visible?: boolean;
 
   /**
+   * Whether the product is visible in the catalog
+   */
+  @ApiProperty({
+  description: 'Whether to show installments on this product',
+  example: true,
+  default: true,
+  required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  show_installments?: boolean;
+
+  /**
    * Tags associated with the product (comma-separated)
    */
   @ApiProperty({

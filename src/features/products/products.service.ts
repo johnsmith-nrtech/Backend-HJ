@@ -1307,6 +1307,7 @@ if (
         base_price: createProductDto.base_price,
         discount_offer: createProductDto.discount_offer,
         related_product_ids: createProductDto.related_product_ids || [],
+        show_installments: createProductDto.show_installments ?? true,
         // material_info: createProductDto.material_info || {},
       })
       .select()
@@ -1571,6 +1572,9 @@ async update(
         // ...(updateProductDto.warranty_info !== undefined && {
         //   warranty_info: updateProductDto.warranty_info,
         // }),
+        ...(updateProductDto.show_installments !== undefined && {
+  show_installments: updateProductDto.show_installments,
+}),
         ...(updateProductDto.care_instructions !== undefined && {
           care_instructions: updateProductDto.care_instructions,
         }),

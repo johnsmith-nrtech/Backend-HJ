@@ -18,6 +18,7 @@ interface DeliveryInfo {
   text: string;
   shipping_method?: string;
   free_shipping_threshold?: number;
+  show_installments?: boolean;
 }
 
 /**
@@ -221,6 +222,18 @@ export class UpdateProductDto {
   @IsBoolean()
   @IsOptional()
   is_visible?: boolean;
+
+    /**
+   * Whether the installments is visible in the catalog
+   */
+  @ApiProperty({
+  description: 'Whether to show installments on this product',
+  example: true,
+  required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  show_installments?: boolean;
 
 
   @ApiProperty({
