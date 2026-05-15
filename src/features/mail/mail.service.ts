@@ -73,7 +73,8 @@ export class MailService {
       </p>
 
       <p>Thanks for shopping with us!</p>
-      <p><strong>The Brand Name Team</strong></p>
+      <p><strong>Best regards,</strong></p>
+      <p><strong>Sofa Deal</strong></p>
     `;
 
     return this.sendEmail(to, subject, html);
