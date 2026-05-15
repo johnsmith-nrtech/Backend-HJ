@@ -126,4 +126,33 @@ export class MailService {
     await this.sendEmail(recipientEmail, subject, html);
     this.logger.log(`Coupon email sent to ${recipientEmail} for code ${couponCode}`);
   }
+
+async sendLoanApprovedEmail(params: {
+  toEmail: string;
+  recipientName: string;
+  orderId: string;
+  depositPercentage: number;
+  depositAmount: number;
+  installmentTerm: number;
+  magicLink: string;
+}): Promise<void> {
+  const template = this.loadTemplate('emails/loan-approved');
+  const html = this.renderTemplate(template, {
+    recipientName: params.recipientName,
+    orderId: params.orderId,
+    depositPercentage: String(params.depositPercentage),
+    depositAmount: params.depositAmount.toFixed(2),
+    installmentTerm: String(params.installmentTerm),
+    magicLink: params.magicLink,
+    phoneNumber: process.env.PUBLIC_SUPPORT_PHONE || '+44 7306 127481',
+  });
+
+  await this.sendEmail(
+    params.toEmail,
+    '🎉 Your Loan Has Been Approved — Pay Your Deposit Now',
+    html,
+  );
+}
+
+
 }

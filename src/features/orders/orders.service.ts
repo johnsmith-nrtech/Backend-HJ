@@ -1115,21 +1115,17 @@ if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED && updateOrderStat
 
 
 
-    // Send loan approved email with magic link
+
 // if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED) {
 //   try {
 //     const frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
 //     const magicLink = `${frontendBaseUrl}/loan-approved/${orderId}`;
 
-//     const userEmail = await this.supabaseService
-//       .getClient()
-//       .from('users')
-//       .select('email')
-//       .eq('id', existingOrder.user_id)
-//       .limit(1);
+//     // ✅ Use contact_email directly — works for guests and registered users
+//     const loanRecipientEmail = data.contact_email || existingOrder.contact_email;
 
-//     if (userEmail.data && userEmail.data.length > 0 && userEmail.data[0].email) {
-// const loanApprovedHtml = `
+//     if (loanRecipientEmail) {
+//       const loanApprovedHtml = `
 //   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
 //     <h2 style="color: #333;">🎉 Your Loan Has Been Approved!</h2>
 //     <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
@@ -1137,7 +1133,7 @@ if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED && updateOrderStat
 //     <p>You can now pay your deposit to confirm your order. Click the button below:</p>
 //     <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
 //       <p><strong>Deposit Required:</strong> ${updateOrderStatusDto.deposit_percentage}% — £${((updateOrderStatusDto.deposit_amount || 0)).toFixed(2)}</p>
-//      <p><strong>Repayment Term:</strong> ${(updateOrderStatusDto as any).installment_term} Months</p>
+//       <p><strong>Repayment Term:</strong> ${(updateOrderStatusDto as any).installment_term} Months</p>
 //     </div>
 //     <div style="text-align: center; margin: 30px 0;">
 //       <a href="${magicLink}" 
@@ -1153,7 +1149,7 @@ if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED && updateOrderStat
 // `;
 
 //       await this.mailService.sendEmail(
-//         userEmail.data[0].email,
+//         loanRecipientEmail,
 //         '🎉 Your Loan Has Been Approved — Pay Your Deposit Now',
 //         loanApprovedHtml,
 //       );
@@ -1168,42 +1164,26 @@ if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED) {
   try {
     const frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
     const magicLink = `${frontendBaseUrl}/loan-approved/${orderId}`;
-
-    // ✅ Use contact_email directly — works for guests and registered users
     const loanRecipientEmail = data.contact_email || existingOrder.contact_email;
+    const recipientName = data.shipping_address?.recipient_name || 'there';
 
     if (loanRecipientEmail) {
-      const loanApprovedHtml = `
-  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h2 style="color: #333;">🎉 Your Loan Has Been Approved!</h2>
-    <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
-    <p>Great news! Your finance application for order <strong>#${orderId}</strong> has been approved.</p>
-    <p>You can now pay your deposit to confirm your order. Click the button below:</p>
-    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <p><strong>Deposit Required:</strong> ${updateOrderStatusDto.deposit_percentage}% — £${((updateOrderStatusDto.deposit_amount || 0)).toFixed(2)}</p>
-      <p><strong>Repayment Term:</strong> ${(updateOrderStatusDto as any).installment_term} Months</p>
-    </div>
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="${magicLink}" 
-         style="background-color: #22c55e; color: white; padding: 14px 28px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px;">
-        Pay Your Deposit Now
-      </a>
-    </div>
-    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-      <p>Best regards,</p>
-      <p><strong>Sofa Deal</strong></p>
-    </div>
-  </div>
-`;
-
-      await this.mailService.sendEmail(
-        loanRecipientEmail,
-        '🎉 Your Loan Has Been Approved — Pay Your Deposit Now',
-        loanApprovedHtml,
-      );
+      await this.mailService.sendLoanApprovedEmail({
+        toEmail: loanRecipientEmail,
+        recipientName,
+        orderId,
+        depositPercentage: updateOrderStatusDto.deposit_percentage ?? 0,
+        depositAmount: updateOrderStatusDto.deposit_amount ?? 0,
+        installmentTerm: (updateOrderStatusDto as any).installment_term ?? 0,
+        magicLink,
+      });
     }
   } catch (loanEmailError: unknown) {
-    this.logger.error(`Failed to send loan approved email for order ${orderId}: ${loanEmailError instanceof Error ? loanEmailError.message : String(loanEmailError)}`);
+    this.logger.error(
+      `Failed to send loan approved email for order ${orderId}: ${
+        loanEmailError instanceof Error ? loanEmailError.message : String(loanEmailError)
+      }`,
+    );
   }
 }
 

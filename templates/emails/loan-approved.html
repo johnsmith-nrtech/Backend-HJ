@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Loan Has Been Approved</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,sans-serif;color:#333333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#0000FF;padding:32px 40px;text-align:center;">
+              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">🎉 Your Loan Has Been Approved!</h1>
+              <p style="margin:8px 0 0;color:rgba(255,255,255,0.9);font-size:15px;">Great news — your finance application was successful.</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:36px 40px;">
+              <p style="font-size:15px;line-height:1.6;margin:0 0 16px;color:#444444;">Hi {{recipientName}},</p>
+
+              <p style="font-size:15px;line-height:1.6;margin:0 0 16px;color:#444444;">
+                We're pleased to confirm that your finance application for order
+                <strong>#{{orderId}}</strong> has been approved. You're just one step
+                away from confirming your order — please pay your deposit using the button below.
+              </p>
+
+              <!-- Order Summary Box -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;margin:24px 0;">
+                <tr>
+                  <td style="padding:20px 24px;">
+                    <p style="margin:0 0 10px;font-size:14px;color:#555555;"><strong style="color:#111827;">Order ID:</strong> #{{orderId}}</p>
+                    <p style="margin:0 0 10px;font-size:14px;color:#555555;"><strong style="color:#111827;">Deposit Required:</strong> {{depositPercentage}}% — £{{depositAmount}}</p>
+                    <p style="margin:0;font-size:14px;color:#555555;"><strong style="color:#111827;">Repayment Term:</strong> {{installmentTerm}} Months</p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size:15px;line-height:1.6;margin:0 0 24px;color:#444444;">
+                Click the button below to securely pay your deposit and confirm your order.
+              </p>
+
+              <!-- CTA Button -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding:8px 0 32px;">
+                    <a href="{{magicLink}}"
+                       style="display:inline-block;background-color:#0000FF;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:16px;font-family:Arial,sans-serif;">
+                      Pay Your Deposit Now
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f9fafb;border-top:1px solid #e5e7eb;padding:24px 40px;text-align:center;">
+              <p style="margin:0 0 6px;font-size:13px;color:#888888;">Best regards,<br /><strong style="color:#333;">Sofa Deal</strong></p>
+              <p style="margin:0 0 6px;font-size:13px;color:#888888;">
+                Call us at <a href="tel:{{phoneNumber}}" style="color:#0000FF;text-decoration:none;">{{phoneNumber}}</a>
+              </p>
+              <p style="margin:12px 0 0;font-size:12px;color:#aaaaaa;">© Sofa Deal. All rights reserved.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
