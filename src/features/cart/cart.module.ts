@@ -3,16 +3,21 @@ import { SupabaseModule } from '../supabase/supabase.module';
 import { CartController } from './cart.controller';
 import { CartService } from './cart.service';
 import { AuthModule } from '../auth/auth.module';
-import { MailModule } from '../mail/mail.module'; // 👈 import MailModule
+import { MailModule } from '../mail/mail.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CartScheduler } from './cart.scheduler';
+
+
 
 @Module({
   imports: [
     SupabaseModule,
     AuthModule,
-    MailModule, // 👈 now MailService will be available
+    MailModule,
+    ScheduleModule.forRoot()
   ],
   controllers: [CartController],
-  providers: [CartService],
+  providers: [CartService, CartScheduler],
   exports: [CartService],
 })
 export class CartModule {}

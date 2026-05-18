@@ -10,6 +10,7 @@ export interface HeroSettings {
   width: number;
   height: number;
   label: string;
+  hero_text: string;
   updated_at: string;
 }
 
@@ -75,6 +76,7 @@ export class DimensionsService {
         width: 1200,
         height: 800,
         label: 'Hero Image',
+        hero_text: '', 
         updated_at: new Date().toISOString(),
       };
     }
@@ -195,4 +197,23 @@ export class DimensionsService {
 
     return { message: 'Image deleted successfully' };
   }
+
+  async updateHeroText(heroText: string, adminId: string): Promise<HeroSettings> {
+    await this.ensureSetup();
+
+    const { data, error } = await this.supabaseAdmin
+      .from('hero_settings')
+      .update({
+        hero_text: heroText,
+        updated_at: new Date().toISOString(),
+        updated_by: adminId,
+      })
+      .eq('id', SETTINGS_ROW_ID)
+      .select()
+      .single();
+
+    if (error) throw new BadRequestException(error.message);
+    return data;
+  }
+
 }

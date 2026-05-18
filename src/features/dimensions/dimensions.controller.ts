@@ -58,4 +58,13 @@ export class DimensionsController {
   deleteImage(@Request() req) {
     return this.dimensionsService.deleteImage(req.user?.id);
   }
+
+  @Patch('hero-text')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  updateHeroText(@Body() body: { hero_text: string }, @Request() req) {
+    return this.dimensionsService.updateHeroText(body.hero_text, req.user?.id);
+  }
+
+  
 }

@@ -126,7 +126,7 @@ export class CartService {
         items: itemsWithImages || [],
       };
     } catch (error) {
-      this.logger.error(`Error in getUserCart: ${error.message}`);
+      this.logger.error(`Error in getUserCart: ${(error as Error).message}`);
       throw error;
     }
   }
@@ -204,7 +204,7 @@ export class CartService {
       }
     } catch (error) {
       this.logger.error(
-        `Error in removePurchasedItemsFromCart: ${error.message}`,
+        `Error in removePurchasedItemsFromCart: ${(error as Error).message}`,
       );
     }
   }
@@ -352,7 +352,7 @@ export class CartService {
         item: result,
       };
     } catch (error) {
-      this.logger.error(`Error in addToCart: ${error.message}`);
+      this.logger.error(`Error in addToCart: ${(error as Error).message}`);
       throw error;
     }
   }
@@ -441,10 +441,10 @@ export class CartService {
           );
         }
       }
-    } catch (emailError) {
+    } catch (error) {
       // Log but never throw — email failure must not break cart sync
       this.logger.error(
-        `Abandoned cart email failed (non-critical): ${emailError.message}`,
+        `Abandoned cart email failed (non-critical): ${(error as Error).message}`,
       );
     }
 
@@ -560,7 +560,7 @@ export class CartService {
         item: updatedItem,
       };
     } catch (error) {
-      this.logger.error(`Error in updateCartItem: ${error.message}`);
+      this.logger.error(`Error in updateCartItem: ${(error as Error).message}`);
       throw error;
     }
   }
@@ -608,7 +608,7 @@ export class CartService {
         message: 'Item removed from cart',
       };
     } catch (error) {
-      this.logger.error(`Error in removeCartItem: ${error.message}`);
+      this.logger.error(`Error in removeCartItem: ${(error as Error).message}`);
       throw error;
     }
   }
@@ -664,7 +664,7 @@ export class CartService {
         deleted_items: deletedItems || [],
       };
     } catch (error) {
-      this.logger.error(`Error in removeCartItems: ${error.message}`);
+      this.logger.error(`Error in removeCartItems: ${(error as Error).message}`);
       throw error;
     }
   }
@@ -701,7 +701,7 @@ export class CartService {
         message: 'Cart cleared successfully',
       };
     } catch (error) {
-      this.logger.error(`Error in clearCart: ${error.message}`);
+      this.logger.error(`Error in clearCart: ${(error as Error).message}`);
       throw error;
     }
   }

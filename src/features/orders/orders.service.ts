@@ -993,77 +993,14 @@ if (updateOrderStatusDto.status === OrderStatus.LOAN_APPROVED && updateOrderStat
       }
     }
 
-    // ✅ Email in try/catch — failure here won't affect status update
-    // try {
-    //   const genericHtml = `
-    //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-    //       <h2 style="color: #333;">Order Status Update - Order #${orderId}</h2>
-    //       <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
-    //       <p>Your order #${orderId} status has been updated to: <strong>${updateOrderStatusDto.status}</strong>.</p>
-    //       <p>We'll keep you informed of any further updates.</p>
-    //       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-    //         <p>Best regards,</p>
-    //         <p><strong>Sofa Deal</strong></p>
-    //         <p>Phone: +44 7306 127481</p>
-    //       </div>
-    //     </div>
-    //   `;
+    // Reset abandoned cart email flag so future abandonments still trigger email
+    await this.supabaseService
+      .getClient()
+      .from('carts')
+      .update({ abandoned_email_sent_at: null })
+      .eq('user_id', existingOrder.user_id);
 
-    //   const shippedHtml = `
-    //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-    //       <h2 style="color: #333;">Good News! Your Order #${orderId} Is On Its Way 🚚</h2>
-    //       <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
-    //       <p>Your order #${orderId} has been shipped and is on its way to you. 🚀</p>
-    //       <p>We'll notify you once it's been delivered.</p>
-    //       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-    //         <p>Thanks for shopping with <strong>Sofa Deal</strong></p>
-    //         <p>Phone: +44 7306 127481</p>
-    //       </div>
-    //     </div>
-    //   `;
 
-    //   const deliveredHtml = `
-    //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-    //       <h2 style="color: #333;">Your Order #${orderId} Has Been Delivered! 📦</h2>
-    //       <p>Hi ${data.shipping_address?.recipient_name || 'there'},</p>
-    //       <p>Your order #${orderId} has been successfully delivered. 🎁</p>
-    //       <p>We hope you love your purchase!</p>
-    //       <p>Thank you for shopping with <strong>Sofa Deal</strong>.</p>
-    //       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-    //         <p>Warm regards,</p>
-    //         <p><strong>Sofa Deal</strong></p>
-    //         <p>Phone: +44 7306 127481</p>
-    //       </div>
-    //     </div>
-    //   `;
-
-    //   const userEmail = await this.supabaseService
-    //     .getClient()
-    //     .from('users')
-    //     .select('email')
-    //     .eq('id', existingOrder.user_id)
-    //     .limit(1);
-
-    //   if (userEmail.data && userEmail.data.length > 0 && userEmail.data[0].email) {
-    //     await this.mailService.sendEmail(
-    //       userEmail.data[0].email,
-    //       updateOrderStatusDto.status === 'shipped'
-    //         ? `Good News! Your Order #${orderId} Is On Its Way 🚚`
-    //         : updateOrderStatusDto.status === 'delivered'
-    //           ? `Your Order #${orderId} Has Been Delivered! 📦`
-    //           : 'Your Order Status Updated',
-    //       updateOrderStatusDto.status === 'shipped'
-    //         ? shippedHtml
-    //         : updateOrderStatusDto.status === 'delivered'
-    //           ? deliveredHtml
-    //           : genericHtml,
-    //     );
-    //   }
-    // } catch (emailError: unknown) {
-    //   this.logger.error(`Failed to send status update email for order ${orderId}: ${emailError instanceof Error ? emailError.message : String(emailError)}`);
-    // }
-
-    // ✅ Email in try/catch — failure here won't affect status update
     try {
       const shippedHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -2052,6 +1989,24 @@ return {
         'Failed to update order status',
         webhookData.oid,
       );
+    }
+
+    // Reset abandoned cart email flag on successful card payment
+    if (orderStatus === 'paid') {
+      const { data: order } = await this.supabaseService
+        .getClient()
+        .from('orders')
+        .select('user_id')
+        .eq('id', webhookData.oid)
+        .single();
+
+      if (order?.user_id) {
+        await this.supabaseService
+          .getClient()
+          .from('carts')
+          .update({ abandoned_email_sent_at: null })
+          .eq('user_id', order.user_id);
+      }
     }
   }
 
