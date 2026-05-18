@@ -204,26 +204,17 @@ export class OrdersController {
     return this.ordersService.updateDepositInfo(id, body.deposit_amount, body.deposit_percentage, body.installment_term);
   }
 
-//   @Post(':orderId/deposit-payment')
-// @UseGuards(JwtAuthGuard)
-// async createDepositPayment(
-//   @Param('orderId') orderId: string,
-//   @Req() req: any,
-// ) {
-//   return this.ordersService.createDepositPayment(orderId, req.user.id);
-// }
-
-@Post(':orderId/deposit-payment')
-@Public()
-@HttpCode(HttpStatus.OK)
-async createDepositPayment(
-  @Param('orderId') orderId: string,
-  @Req() req: any,
-) {
-  // works for both guests (null) and logged-in users
-  const userId = req.user?.id || null;
-  return this.ordersService.createDepositPayment(orderId, userId);
-}
+  @Post(':orderId/deposit-payment')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  async createDepositPayment(
+    @Param('orderId') orderId: string,
+    @Req() req: any,
+  ) {
+    // works for both guests (null) and logged-in users
+    const userId = req.user?.id || null;
+    return this.ordersService.createDepositPayment(orderId, userId);
+  }
 
   // Dynamic routes that expect UUIDs (placed after admin routes)
   @Get(':id')
@@ -283,6 +274,17 @@ async handlePaymentWebhook(
   return this.ordersService.handlePaymentWebhook(webhookData);
 }
 
+// Support both GET and POST for payment success
+@Post('/payment/success')
+@Public()
+@HttpCode(HttpStatus.OK)
+async handlePaymentSuccessPost(
+  @Body() paymentData: any,
+  @Res() res: Response,
+): Promise<void> {
+  return this.ordersService.handlePaymentSuccess(paymentData, res);
+}
+
 @Get('/payment/success')
 @Public()
 async handlePaymentSuccess(
@@ -290,6 +292,17 @@ async handlePaymentSuccess(
   @Res() res: Response,
 ): Promise<void> {
   return this.ordersService.handlePaymentSuccess(paymentData, res);
+}
+
+
+@Post('/payment/failure')
+@Public()
+@HttpCode(HttpStatus.OK)
+async handlePaymentFailurePost(
+  @Body() paymentData: any,
+  @Res() res: Response,
+): Promise<void> {
+  return this.ordersService.handlePaymentFailure(paymentData, res);
 }
 
 @Get('/payment/failure')

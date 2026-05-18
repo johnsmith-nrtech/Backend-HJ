@@ -2012,117 +2012,193 @@ return {
 
 
 /**
- * Handles payment success redirect from Tyl
+ * Handles payment success redirect from cardstream
  */
+// async handlePaymentSuccess(paymentData: any, res: any): Promise<void> {
+//   try {
+//     this.logger.log('Received payment success redirect', {
+//       orderId: paymentData.oid,
+//       status: paymentData.status,
+//     });
+
+//     const frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
+//     const redirectUrl = `${frontendBaseUrl}/payment/success?orderId=${paymentData.oid}`;
+
+//     // Get order details
+//     const { data: orderDetails, error: orderError } = await this.supabaseService
+//       .getClient()
+//       .from('orders')
+//       .select('user_id, coupon_code, discount_amount')
+//       .eq('id', paymentData.oid)
+//       .single();
+
+//     if (orderError || !orderDetails) {
+//       this.logger.warn('Order not found');
+//       res.redirect(302, redirectUrl);
+//       return;
+//     }
+
+//     this.logger.log(`🔍 Order details:`, {
+//       coupon_code: orderDetails.coupon_code,
+//       discount_amount: orderDetails.discount_amount,
+//       order_id: paymentData.oid
+//     });
+
+//     // ✅ FIX: INCREMENT COUPON USAGE FOR CARD PAYMENTS
+//     // Process referral reward if it's a referral code
+// if (orderDetails.coupon_code && orderDetails.discount_amount > 0 && orderDetails.user_id) {
+//   try {
+//     const { data: referrer } = await this.supabaseService
+//       .getClient()
+//       .from('users')
+//       .select('id')
+//       .eq('referral_code', orderDetails.coupon_code)
+//       .single();
+
+//     if (referrer) {
+//       // Get order total for percentage reward calculation
+//       const { data: fullOrder } = await this.supabaseService
+//         .getClient()
+//         .from('orders')
+//         .select('total_amount')
+//         .eq('id', paymentData.oid)
+//         .single();
+
+//       await this.couponService.processReferralReward(
+//         orderDetails.user_id,
+//         orderDetails.coupon_code,
+//         paymentData.oid,
+//         orderDetails.discount_amount,
+//         fullOrder?.total_amount || 0,
+//       );
+//       this.logger.log(`✅ Referral reward processed for card order ${paymentData.oid}`);
+//     }
+//   } catch (err) {
+//     this.logger.error('❌ Failed to process referral reward for card payment:', err);
+//   }
+// }
+
+//     // Get user email for notification
+//     const { data: userEmail } = await this.supabaseService
+//       .getClient()
+//       .from('users')
+//       .select('email')
+//       .eq('id', orderDetails.user_id)
+//       .limit(1);
+
+//     if (!userEmail || userEmail.length === 0) {
+//       this.logger.warn('User email not found for order');
+//       res.redirect(302, redirectUrl);
+//       return;
+//     }
+
+//     // Get full order data for email
+//     const { data: orderData } = await this.supabaseService
+//       .getClient()
+//       .from('orders')
+//       .select('*')
+//       .eq('id', paymentData.oid)
+//       .single();
+
+//     const html = `
+//       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+//         <h2 style="color: #333;">Your Order #${paymentData.oid} Has Been Successfully Placed! 🛍</h2>
+//         <p>Hi there,</p>
+//         <p>Thank you for shopping with us! 🎉</p>
+//         <p>Your order has been successfully placed and is now being processed.</p>
+//         <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+//           <h3 style="color: #333; margin-top: 0;">Order Summary:</h3>
+//           <p><strong>Order ID:</strong> ${paymentData.oid}</p>
+//           <p><strong>Total Amount:</strong> ${orderData?.total_amount || 0} ${orderData?.currency || 'GBP'}</p>
+//         </div>
+//         <p>Thanks for choosing us!</p>
+//       </div>
+//     `;
+
+//     await this.mailService.sendEmail(
+//       userEmail[0].email,
+//       'Order Placed Successfully',
+//       html
+//     );
+
+//     res.redirect(302, redirectUrl);
+//   } catch (error) {
+//     this.logger.error('Failed to handle payment success:', error);
+//     const frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
+//     res.redirect(302, `${frontendBaseUrl}/payment/failure`);
+//   }
+// }
+
+
 async handlePaymentSuccess(paymentData: any, res: any): Promise<void> {
   try {
-    this.logger.log('Received payment success redirect', {
-      orderId: paymentData.oid,
-      status: paymentData.status,
-    });
+    this.logger.log('Raw payment data received:', JSON.stringify(paymentData));
 
+    const orderId = paymentData.oid || paymentData.orderRef || paymentData.order_id;
     const frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
-    const redirectUrl = `${frontendBaseUrl}/payment/success?orderId=${paymentData.oid}`;
+    const redirectUrl = `${frontendBaseUrl}/payment/success?orderId=${orderId}`;
 
-    // Get order details
     const { data: orderDetails, error: orderError } = await this.supabaseService
       .getClient()
       .from('orders')
-      .select('user_id, coupon_code, discount_amount')
-      .eq('id', paymentData.oid)
+      .select('user_id, coupon_code, discount_amount, contact_email, total_amount, currency')
+      .eq('id', orderId)
       .single();
 
     if (orderError || !orderDetails) {
-      this.logger.warn('Order not found');
+      this.logger.warn('Order not found for ID:', orderId);
       res.redirect(302, redirectUrl);
       return;
     }
 
-    this.logger.log(`🔍 Order details:`, {
-      coupon_code: orderDetails.coupon_code,
-      discount_amount: orderDetails.discount_amount,
-      order_id: paymentData.oid
-    });
+    // Process referral reward
+    if (orderDetails.coupon_code && orderDetails.discount_amount > 0 && orderDetails.user_id) {
+      try {
+        const { data: referrer } = await this.supabaseService
+          .getClient()
+          .from('users')
+          .select('id')
+          .eq('referral_code', orderDetails.coupon_code)
+          .single();
 
-    // ✅ FIX: INCREMENT COUPON USAGE FOR CARD PAYMENTS
-    // Process referral reward if it's a referral code
-if (orderDetails.coupon_code && orderDetails.discount_amount > 0 && orderDetails.user_id) {
-  try {
-    const { data: referrer } = await this.supabaseService
-      .getClient()
-      .from('users')
-      .select('id')
-      .eq('referral_code', orderDetails.coupon_code)
-      .single();
-
-    if (referrer) {
-      // Get order total for percentage reward calculation
-      const { data: fullOrder } = await this.supabaseService
-        .getClient()
-        .from('orders')
-        .select('total_amount')
-        .eq('id', paymentData.oid)
-        .single();
-
-      await this.couponService.processReferralReward(
-        orderDetails.user_id,
-        orderDetails.coupon_code,
-        paymentData.oid,
-        orderDetails.discount_amount,
-        fullOrder?.total_amount || 0,
-      );
-      this.logger.log(`✅ Referral reward processed for card order ${paymentData.oid}`);
-    }
-  } catch (err) {
-    this.logger.error('❌ Failed to process referral reward for card payment:', err);
-  }
-}
-
-    // Get user email for notification
-    const { data: userEmail } = await this.supabaseService
-      .getClient()
-      .from('users')
-      .select('email')
-      .eq('id', orderDetails.user_id)
-      .limit(1);
-
-    if (!userEmail || userEmail.length === 0) {
-      this.logger.warn('User email not found for order');
-      res.redirect(302, redirectUrl);
-      return;
+        if (referrer) {
+          await this.couponService.processReferralReward(
+            orderDetails.user_id,
+            orderDetails.coupon_code,
+            orderId,
+            orderDetails.discount_amount,
+            orderDetails.total_amount || 0,
+          );
+        }
+      } catch (err) {
+        this.logger.error('Failed to process referral reward:', err);
+      }
     }
 
-    // Get full order data for email
-    const { data: orderData } = await this.supabaseService
-      .getClient()
-      .from('orders')
-      .select('*')
-      .eq('id', paymentData.oid)
-      .single();
+    // Send confirmation email using contact_email (works for guests + registered)
+    const recipientEmail = orderDetails.contact_email;
 
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #333;">Your Order #${paymentData.oid} Has Been Successfully Placed! 🛍</h2>
-        <p>Hi there,</p>
-        <p>Thank you for shopping with us! 🎉</p>
-        <p>Your order has been successfully placed and is now being processed.</p>
-        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-          <h3 style="color: #333; margin-top: 0;">Order Summary:</h3>
-          <p><strong>Order ID:</strong> ${paymentData.oid}</p>
-          <p><strong>Total Amount:</strong> ${orderData?.total_amount || 0} ${orderData?.currency || 'GBP'}</p>
+    if (recipientEmail) {
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #333;">Your Order #${orderId} Has Been Successfully Placed! 🛍</h2>
+          <p>Hi there,</p>
+          <p>Thank you for shopping with us! 🎉</p>
+          <p>Your order has been successfully placed and is now being processed.</p>
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="color: #333; margin-top: 0;">Order Summary:</h3>
+            <p><strong>Order ID:</strong> ${orderId}</p>
+            <p><strong>Total Amount:</strong> ${orderDetails.total_amount || 0} ${orderDetails.currency || 'GBP'}</p>
+          </div>
+          <p>Thanks for choosing us!</p>
         </div>
-        <p>Thanks for choosing us!</p>
-      </div>
-    `;
+      `;
 
-    await this.mailService.sendEmail(
-      userEmail[0].email,
-      'Order Placed Successfully',
-      html
-    );
+      await this.mailService.sendEmail(recipientEmail, 'Order Placed Successfully', html);
+    }
 
-    res.redirect(302, redirectUrl);
-  } catch (error) {
+      res.redirect(302, redirectUrl);
+    } catch (error) {
     this.logger.error('Failed to handle payment success:', error);
     const frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
     res.redirect(302, `${frontendBaseUrl}/payment/failure`);
