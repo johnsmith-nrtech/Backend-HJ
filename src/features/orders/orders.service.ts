@@ -2141,7 +2141,7 @@ async handlePaymentSuccess(paymentData: any, res: any): Promise<void> {
     const { data: orderDetails, error: orderError } = await this.supabaseService
       .getClient()
       .from('orders')
-      .select('user_id, coupon_code, discount_amount, contact_email, total_amount, currency')
+      .select('user_id, coupon_code, discount_amount, contact_email, total_amount, currency, tracking_id')
       .eq('id', orderId)
       .single();
 
@@ -2179,17 +2179,26 @@ async handlePaymentSuccess(paymentData: any, res: any): Promise<void> {
     const recipientEmail = orderDetails.contact_email;
 
     if (recipientEmail) {
+      // const html = `
+      //   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      //     <h2 style="color: #333;">Your Order #${orderId} Has Been Successfully Placed! 🛍</h2>
+      //     <p>Hi there,</p>
+      //     <p>Thank you for shopping with us! 🎉</p>
+      //     ...
+      //   </div>
+      // `;
       const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #333;">Your Order #${orderId} Has Been Successfully Placed! 🛍</h2>
+          <h2 style="color: #333;">Your Order Has Been Successfully Placed! 🛍</h2>
           <p>Hi there,</p>
           <p>Thank you for shopping with us! 🎉</p>
           <p>Your order has been successfully placed and is now being processed.</p>
           <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <h3 style="color: #333; margin-top: 0;">Order Summary:</h3>
-            <p><strong>Order ID:</strong> ${orderId}</p>
+            <p><strong>Order Tracking ID:</strong> #${orderDetails.tracking_id}</p>
             <p><strong>Total Amount:</strong> ${orderDetails.total_amount || 0} ${orderDetails.currency || 'GBP'}</p>
           </div>
+          <p>You can use your tracking ID <strong>#${orderDetails.tracking_id}</strong> to track your order.</p>
           <p>Thanks for choosing us!</p>
         </div>
       `;
