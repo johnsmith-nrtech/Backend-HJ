@@ -216,6 +216,27 @@ export class OrdersController {
     return this.ordersService.createDepositPayment(orderId, userId);
   }
 
+  @Get('track/:shortId')
+  @Public()
+  @ApiOperation({ summary: 'Find order by short display ID' })
+  async findOrderByShortId(
+    @Param('shortId') shortId: string,
+    @Req() req,
+  ): Promise<Order> {
+    const order = await this.ordersService.findOrderByShortId(
+      shortId,
+      req.user?.id,
+    );
+
+    if (!order) {
+      throw new NotFoundException(
+        `No order found with ID #${shortId.toUpperCase()}`,
+      );
+    }
+
+    return order;
+  }
+
   // Dynamic routes that expect UUIDs (placed after admin routes)
   @Get(':id')
   @Roles('customer', 'admin')
@@ -249,114 +270,82 @@ export class OrdersController {
   }
 
 
-@Post('/create-payment')
-@Public()
-@HttpCode(HttpStatus.OK)
-@ApiOperation({
-  summary: 'Create payment and generate Worldpay payment form',
-})
-async createPayment(
-  @Body() createPaymentDto: CreatePaymentDto,
-  @Req() req,
-): Promise<CreatePaymentResponseDto> {
-  return this.ordersService.createPayment(createPaymentDto, req);
-}
-
-@Post('/payment/webhook')
-@Public()
-@HttpCode(HttpStatus.OK)
-@ApiOperation({
-  summary: 'Handle Worldpay payment webhook notifications',
-})
-async handlePaymentWebhook(
-  @Body() webhookData: WebhookNotificationDto,
-): Promise<void> {
-  return this.ordersService.handlePaymentWebhook(webhookData);
-}
-
-// Support both GET and POST for payment success
-@Post('/payment/success')
-@Public()
-@HttpCode(HttpStatus.OK)
-async handlePaymentSuccessPost(
-  @Body() paymentData: any,
-  @Res() res: Response,
-): Promise<void> {
-  return this.ordersService.handlePaymentSuccess(paymentData, res);
-}
-
-@Get('/payment/success')
-@Public()
-async handlePaymentSuccess(
-  @Query() paymentData: any,
-  @Res() res: Response,
-): Promise<void> {
-  return this.ordersService.handlePaymentSuccess(paymentData, res);
-}
-
-
-@Post('/payment/failure')
-@Public()
-@HttpCode(HttpStatus.OK)
-async handlePaymentFailurePost(
-  @Body() paymentData: any,
-  @Res() res: Response,
-): Promise<void> {
-  return this.ordersService.handlePaymentFailure(paymentData, res);
-}
-
-@Get('/payment/failure')
-@Public()
-async handlePaymentFailure(
-  @Query() paymentData: any,
-  @Res() res: Response,
-): Promise<void> {
-  return this.ordersService.handlePaymentFailure(paymentData, res);
-}
-
-@Post('/create-cod-order')
-@Public()
-@HttpCode(HttpStatus.OK)
-@ApiOperation({
-  summary: 'Create Cash on Delivery (COD) order',
-})
-async createCodOrder(
-  @Body() createPaymentDto: CreatePaymentDto,
-  @Req() req,
-) {
-  return this.ordersService.createCodOrder(createPaymentDto, req);
-}
-
-// Add this route to OrdersController in orders.controller.ts
-// Place it BEFORE the existing @Get(':id') route
-
-@Get('track/:shortId')
-@Roles('customer', 'admin')
-@ApiBearerAuth()
-@ApiOperation({ summary: 'Find order by short display ID (e.g. BED88F46)' })
-@ApiParam({
-  name: 'shortId',
-  type: 'string',
-  description: 'First 8 characters of order UUID (shown in UI as #BED88F46)',
-})
-@ApiResponse({ status: 200, description: 'Order found', type: Order })
-@ApiResponse({ status: 404, description: 'Order not found' })
-async findOrderByShortId(
-  @Param('shortId') shortId: string,
-  @Req() req,
-): Promise<Order> {
-  const order = await this.ordersService.findOrderByShortId(
-    shortId,
-    req.user.id,
-  );
-
-  if (!order) {
-    throw new NotFoundException(
-      `No order found with ID #${shortId.toUpperCase()}`,
-    );
+  @Post('/create-payment')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Create payment and generate Worldpay payment form',
+  })
+  async createPayment(
+    @Body() createPaymentDto: CreatePaymentDto,
+    @Req() req,
+  ): Promise<CreatePaymentResponseDto> {
+    return this.ordersService.createPayment(createPaymentDto, req);
   }
 
-  return order;
-}
+  @Post('/payment/webhook')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Handle Worldpay payment webhook notifications',
+  })
+  async handlePaymentWebhook(
+    @Body() webhookData: WebhookNotificationDto,
+  ): Promise<void> {
+    return this.ordersService.handlePaymentWebhook(webhookData);
+  }
 
+  // Support both GET and POST for payment success
+  @Post('/payment/success')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  async handlePaymentSuccessPost(
+    @Body() paymentData: any,
+    @Res() res: Response,
+  ): Promise<void> {
+    return this.ordersService.handlePaymentSuccess(paymentData, res);
+  }
+
+  @Get('/payment/success')
+  @Public()
+  async handlePaymentSuccess(
+    @Query() paymentData: any,
+    @Res() res: Response,
+  ): Promise<void> {
+    return this.ordersService.handlePaymentSuccess(paymentData, res);
+  }
+
+
+  @Post('/payment/failure')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  async handlePaymentFailurePost(
+    @Body() paymentData: any,
+    @Res() res: Response,
+  ): Promise<void> {
+    return this.ordersService.handlePaymentFailure(paymentData, res);
+  }
+
+  @Get('/payment/failure')
+  @Public()
+  async handlePaymentFailure(
+    @Query() paymentData: any,
+    @Res() res: Response,
+  ): Promise<void> {
+    return this.ordersService.handlePaymentFailure(paymentData, res);
+  }
+
+  @Post('/create-cod-order')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Create Cash on Delivery (COD) order',
+  })
+  async createCodOrder(
+    @Body() createPaymentDto: CreatePaymentDto,
+    @Req() req,
+  ) {
+    return this.ordersService.createCodOrder(createPaymentDto, req);
+  }
+  
 }
