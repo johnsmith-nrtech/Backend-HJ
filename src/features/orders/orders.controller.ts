@@ -239,16 +239,14 @@ export class OrdersController {
 
   // Dynamic routes that expect UUIDs (placed after admin routes)
   @Get(':id')
-  @Roles('customer', 'admin')
-  @ApiBearerAuth()
+  @Public()
   @ApiOperation({ summary: 'Get details of a specific order' })
   @ApiParam({ name: 'id', type: 'string', description: 'Order ID (UUID)' })
   @ApiResponse({ status: 200, description: 'Order details', type: Order })
-  @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Order not found' })
   getOrderDetails(@Param('id', ParseUUIDPipe) id: string, @Req() req) {
-    const isAdmin = req.user.role === 'admin';
-    return this.ordersService.getOrderDetails(id, req.user.id, isAdmin);
+    const isAdmin = req.user?.role === 'admin';
+    return this.ordersService.getOrderDetails(id, req.user?.id, isAdmin);
   }
 
   @Put(':id/cancel')

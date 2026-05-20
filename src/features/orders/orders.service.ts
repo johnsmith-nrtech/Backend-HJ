@@ -2075,10 +2075,14 @@ async handlePaymentSuccess(paymentData: any, res: any): Promise<void> {
             <p><strong>Total Amount:</strong> ${orderDetails.total_amount || 0} ${orderDetails.currency || 'GBP'}</p>
           </div>
           <p>You can use your tracking ID <strong>#${orderDetails.tracking_id}</strong> to track your order.</p>
-          <div style="text-align: center; margin: 30px 0;">
+          <div style="text-align: center; margin: 30px 0; display: flex; gap: 12px; justify-content: center;">
             <a href="${this.configService.getOrThrow<string>('FRONTEND_BASE_URL')}/trackorder?id=${orderDetails.tracking_id}"
             style="background-color: #2563eb; color: white; padding: 12px 28px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; display: inline-block;">
               Track Order
+            </a>
+            <a href="${this.configService.getOrThrow<string>('FRONTEND_BASE_URL')}/login"
+            style="background-color: #ffffff; color: #2563eb; padding: 12px 28px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; display: inline-block; border: 2px solid #2563eb;">
+              Login
             </a>
           </div>
           <p>Thanks for choosing us!</p>
