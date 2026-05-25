@@ -96,6 +96,18 @@ export class CartItemDto {
   @IsNumber()
   @Min(0)
   unit_price_override?: number;
+
+  @IsOptional()
+  @IsString()
+  'loxa-insurance-code'?: string;
+ 
+  @IsOptional()
+  @IsString()
+  'loxa-inclusive-code'?: string;
+ 
+  @IsOptional()
+  @IsNumber()
+  insurance_price?: number;
 }
 
 export class CreatePaymentDto {

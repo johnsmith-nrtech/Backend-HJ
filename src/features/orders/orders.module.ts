@@ -8,6 +8,7 @@ import { AuthModule } from '../auth/auth.module';
 import { MailModule } from '../mail/mail.module';
 import { ZonesModule } from '../zones/zones.module';
 import { CouponModule } from '../coupons/coupon.module';
+import { LoxaModule } from '../loxa/loxa.module'; 
 // Import ProductsModule if OrdersService needs to interact with ProductsService (e.g., for stock checking, price fetching)
 // import { ProductsModule } from '../products/products.module';
 
@@ -19,6 +20,7 @@ import { CouponModule } from '../coupons/coupon.module';
     MailModule,
     ZonesModule,
     CouponModule,
+    LoxaModule,
     // ProductsModule, // Uncomment if ProductsService is needed
   ],
   controllers: [OrdersController],

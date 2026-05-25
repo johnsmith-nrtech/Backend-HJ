@@ -29,6 +29,7 @@ import { Zone } from '../zones/entities/zones.entity';
 import { ZonesService } from '../zones/zones.service';
 import { CouponService } from '../coupons/coupon.service';
 import { v4 as uuidv4 } from 'uuid'; 
+import { LoxaService } from '../loxa/loxa.service';
 // Import other necessary services like ProductsService, CartService if needed for logic
 
 /**
@@ -121,6 +122,7 @@ export class OrdersService {
     private readonly mailService: MailService,
     private readonly zonesService: ZonesService,
     private readonly couponService: CouponService,
+    private readonly loxaService: LoxaService,
   ) {}
 
   /**
@@ -692,6 +694,18 @@ export class OrdersService {
         `Order ${orderId} cancelled by ${isAdmin ? 'admin' : `user ${userId}`}`,
       );
 
+      try {
+        await this.loxaService.cancelOrder(
+          orderId,
+          new Date().toISOString().split('T')[0],
+          'Order cancelled',
+        );
+      } catch (loxaError) {
+        this.logger.error(
+        `Loxa cancellation failed for order ${orderId}: ${loxaError instanceof Error ? loxaError.message : String(loxaError)}`,
+        );
+      }
+
       return data as Order;
     } catch (error: unknown) {
       this.logger.error(`Error cancelling order: ${error instanceof Error ? error.message : String(error)}`, error instanceof Error ? error.stack : '');
@@ -759,6 +773,19 @@ export class OrdersService {
       this.logger.log(
         `Order ${orderId} cancelled by admin with reason: ${cancelDto.reason}`,
       );
+
+      try {
+  await this.loxaService.cancelOrder(
+    orderId,
+    new Date().toISOString().split('T')[0], // cancellation_date: YYYY-MM-DD
+    cancelDto.reason || 'Order cancelled',
+  );
+} catch (loxaError) {
+  // Never block cancellation if Loxa fails
+  this.logger.error(
+    `Loxa cancellation failed for order ${orderId}: ${loxaError instanceof Error ? loxaError.message : String(loxaError)}`,
+  );
+}
 
       return data as Order;
     } catch (error: unknown) {
@@ -1412,6 +1439,58 @@ async createPayment(
     );
     this.logger.log(`Step 7 done`);
 
+    // ─── Loxa: Submit insurance order if any items have insurance ────────────
+// Add this after createOrderItems() in both createPayment() and createCodOrder()
+// Place it right before Step 8 (chargeTotal calculation)
+
+const loxaItems = createPaymentDto.cart_items.filter(
+  (item) => item['loxa-insurance-code'] || item['loxa-inclusive-code'],
+);
+
+if (loxaItems.length > 0) {
+  try {
+    // Build Loxa order items from cart items that have insurance
+    const loxaOrderItems = await Promise.all(
+      loxaItems.map(async (item) => {
+        // Get variant details to find SKU and price
+        const { data: variant } = await this.supabaseService
+          .getClient()
+          .from('product_variants')
+          .select('sku, price, product:products(name)')
+          .eq('id', item.variant_id)
+          .single();
+
+        return {
+          sku: variant?.sku || item.variant_id,
+          product_title: (variant?.product as any)?.name || 'Product',
+          product_price: variant?.price || 0,
+          quantity: item.quantity,
+          ...(item['loxa-insurance-code'] && {
+            'loxa-insurance-code': item['loxa-insurance-code'],
+          }),
+          ...(item['loxa-inclusive-code'] && {
+            'loxa-inclusive-code': item['loxa-inclusive-code'],
+          }),
+          insurance_price: item['insurance_price'] || 0,
+        };
+      }),
+    );
+
+    await this.loxaService.submitOrder({
+      order_id: order.id,
+      contact_email: createPaymentDto.contact_email,
+      contact_first_name: createPaymentDto.contact_first_name,
+      contact_last_name: createPaymentDto.contact_last_name,
+      items: loxaOrderItems,
+    });
+  } catch (loxaError) {
+    // Never block order creation if Loxa fails
+    this.logger.error(
+      `Loxa order submission failed for order ${order.id}: ${loxaError instanceof Error ? loxaError.message : String(loxaError)}`,
+    );
+  }
+}
+
     // Step 8: Calculate final charge total
     // totalAmount (products) + floor charges + zone delivery charges - coupon discount
     const chargeTotal =
@@ -1527,6 +1606,58 @@ async createCodOrder(
       createPaymentDto.cart_items,
       variants,
     );
+
+    // ─── Loxa: Submit insurance order if any items have insurance ────────────
+// Add this after createOrderItems() in both createPayment() and createCodOrder()
+// Place it right before Step 8 (chargeTotal calculation)
+
+const loxaItems = createPaymentDto.cart_items.filter(
+  (item) => item['loxa-insurance-code'] || item['loxa-inclusive-code'],
+);
+
+if (loxaItems.length > 0) {
+  try {
+    // Build Loxa order items from cart items that have insurance
+    const loxaOrderItems = await Promise.all(
+      loxaItems.map(async (item) => {
+        // Get variant details to find SKU and price
+        const { data: variant } = await this.supabaseService
+          .getClient()
+          .from('product_variants')
+          .select('sku, price, product:products(name)')
+          .eq('id', item.variant_id)
+          .single();
+
+        return {
+          sku: variant?.sku || item.variant_id,
+          product_title: (variant?.product as any)?.name || 'Product',
+          product_price: variant?.price || 0,
+          quantity: item.quantity,
+          ...(item['loxa-insurance-code'] && {
+            'loxa-insurance-code': item['loxa-insurance-code'],
+          }),
+          ...(item['loxa-inclusive-code'] && {
+            'loxa-inclusive-code': item['loxa-inclusive-code'],
+          }),
+          insurance_price: item['insurance_price'] || 0,
+        };
+      }),
+    );
+
+    await this.loxaService.submitOrder({
+      order_id: order.id,
+      contact_email: createPaymentDto.contact_email,
+      contact_first_name: createPaymentDto.contact_first_name,
+      contact_last_name: createPaymentDto.contact_last_name,
+      items: loxaOrderItems,
+    });
+  } catch (loxaError) {
+    // Never block order creation if Loxa fails
+    this.logger.error(
+      `Loxa order submission failed for order ${order.id}: ${loxaError instanceof Error ? loxaError.message : String(loxaError)}`,
+    );
+  }
+}
     
     // Create payment record
     await this.createInitialCodPaymentRecord(

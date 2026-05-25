@@ -22,6 +22,7 @@ import { SalesModule } from './features/sales/sales.module';
 import { BestSellersModule } from './features/best-sellers/best-sellers.module';
 import { TestimonialsModule } from './features/testimonials/testimonials.module';
 import { WhyChooseUsModule } from './features/why-choose-us/why-choose-us.module';
+import { LoxaModule } from './features/loxa/loxa.module';
 
 
 
@@ -49,6 +50,7 @@ import { WhyChooseUsModule } from './features/why-choose-us/why-choose-us.module
     BestSellersModule,
     TestimonialsModule,
     WhyChooseUsModule,
+    LoxaModule,
   ],
   controllers: [HealthController],
   providers: [],
