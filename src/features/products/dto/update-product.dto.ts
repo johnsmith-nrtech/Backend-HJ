@@ -236,9 +236,9 @@ export class UpdateProductDto {
   show_installments?: boolean;
 
   @ApiProperty({
-  description: 'Whether to show Loxa insurance on this product',
-  example: true,
-  required: false,
+    description: 'Whether to show Loxa insurance on this product',
+    example: true,
+    required: false,
   })
   @IsBoolean()
   @IsOptional()
