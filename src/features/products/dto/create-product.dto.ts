@@ -201,14 +201,24 @@ export class CreateProductDto {
    * Whether the product is visible in the catalog
    */
   @ApiProperty({
-  description: 'Whether to show installments on this product',
-  example: true,
-  default: true,
-  required: false,
+    description: 'Whether to show installments on this product',
+    example: true,
+    default: true,
+    required: false,
   })
   @IsBoolean()
   @IsOptional()
   show_installments?: boolean;
+
+  @ApiProperty({
+    description: 'Whether to show Loxa insurance on this product',
+    example: true,
+    default: true,
+    required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  enable_loxa?: boolean;
 
   /**
    * Tags associated with the product (comma-separated)

@@ -235,6 +235,15 @@ export class UpdateProductDto {
   @IsOptional()
   show_installments?: boolean;
 
+  @ApiProperty({
+  description: 'Whether to show Loxa insurance on this product',
+  example: true,
+  required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  enable_loxa?: boolean;
+
 
   @ApiProperty({
   description: 'Related product IDs',
@@ -242,25 +251,23 @@ export class UpdateProductDto {
   required: false,
   nullable: true,
   type: [String]
-})
-@IsArray()
-@IsUUID('4', { each: true })
-@IsOptional()
-related_product_ids?: string[];
+  })
+  @IsArray()
+  @IsUUID('4', { each: true })
+  @IsOptional()
+  related_product_ids?: string[];
 
 
-@ApiProperty({ description: 'Material info for variant', required: false, nullable: true })
-@IsOptional()
-material_info?: {
-  scatter_cushion_cover?: string;
-  scatter_cushion_filling?: string;
-  frame_info?: string;
-  seat_base_info?: string;
-  seat_cushion_info?: string;
-  back_support_info?: string;
-  back_cushion_info?: string;
-  feet_info?: string;
-};
-
-
+  @ApiProperty({ description: 'Material info for variant', required: false, nullable: true })
+  @IsOptional()
+  material_info?: {
+    scatter_cushion_cover?: string;
+    scatter_cushion_filling?: string;
+    frame_info?: string;
+    seat_base_info?: string;
+    seat_cushion_info?: string;
+    back_support_info?: string;
+    back_cushion_info?: string;
+    feet_info?: string;
+  };
 } 

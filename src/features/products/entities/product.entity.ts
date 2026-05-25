@@ -110,6 +110,13 @@ export class Product {
   })
   is_visible: boolean;
 
+  @ApiProperty({
+    description: 'Whether to show Loxa insurance on this product',
+    example: true,
+    default: true,
+  })
+  enable_loxa?: boolean;
+
   /**
    * Assembly instructions
    */
