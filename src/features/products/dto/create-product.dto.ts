@@ -218,7 +218,7 @@ export class CreateProductDto {
   })
   @IsBoolean()
   @IsOptional()
-  enable_loxa?: boolean;
+  show_loxa?: boolean;
 
   /**
    * Tags associated with the product (comma-separated)

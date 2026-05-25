@@ -242,7 +242,7 @@ export class UpdateProductDto {
   })
   @IsBoolean()
   @IsOptional()
-  enable_loxa?: boolean;
+  show_loxa?: boolean;
 
 
   @ApiProperty({

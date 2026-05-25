@@ -115,7 +115,7 @@ export class Product {
     example: true,
     default: true,
   })
-  enable_loxa?: boolean;
+  show_loxa?: boolean;
 
   /**
    * Assembly instructions
