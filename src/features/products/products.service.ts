@@ -1592,7 +1592,7 @@ async update(
       throw error;
     }
 
-    // ✅ PERMANENT FIX: Sync discount_offer to variants whenever it changes
+    // PERMANENT FIX: Sync discount_offer to variants whenever it changes
     if (updateProductDto.discount_offer !== undefined) {
       if (updateProductDto.discount_offer > 0) {
         // Apply discount to variants that have no compare_price
@@ -1613,6 +1613,23 @@ async update(
       }
     }
 
+    if (updateProductDto.base_price !== undefined) {
+  const { data: variants } = await this.supabaseService
+    .getClient()
+    .from('product_variants')
+    .select('id')
+    .eq('product_id', id)
+    .order('created_at', { ascending: true })
+    .limit(1);
+
+  if (variants && variants.length > 0) {
+    await this.supabaseService
+      .getClient()
+      .from('product_variants')
+      .update({ price: updateProductDto.base_price })
+      .eq('id', variants[0].id);
+  }
+}
     return updatedProduct;
   }
 
