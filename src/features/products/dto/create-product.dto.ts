@@ -220,6 +220,11 @@ export class CreateProductDto {
   @IsOptional()
   show_loxa?: boolean;
 
+  @IsNumber()
+  @Min(1)
+  @IsOptional()
+  loxa_complimentary_years?: number | null;
+
   /**
    * Tags associated with the product (comma-separated)
    */

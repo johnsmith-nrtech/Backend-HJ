@@ -244,6 +244,11 @@ export class UpdateProductDto {
   @IsOptional()
   show_loxa?: boolean;
 
+  @IsNumber()
+  @Min(1)
+  @IsOptional()
+  loxa_complimentary_years?: number | null;
+
 
   @ApiProperty({
   description: 'Related product IDs',

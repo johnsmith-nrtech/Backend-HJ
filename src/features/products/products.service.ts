@@ -1309,6 +1309,7 @@ if (
         related_product_ids: createProductDto.related_product_ids || [],
         show_installments: createProductDto.show_installments ?? true,
         show_loxa: createProductDto.show_loxa ?? true,
+        loxa_complimentary_years: createProductDto.loxa_complimentary_years ?? null,
         // material_info: createProductDto.material_info || {},
       })
       .select()
@@ -1578,6 +1579,9 @@ async update(
         }),
         ...(updateProductDto.show_loxa !== undefined && {
           show_loxa: updateProductDto.show_loxa,
+        }),
+        ...(updateProductDto.loxa_complimentary_years !== undefined && {
+          loxa_complimentary_years: updateProductDto.loxa_complimentary_years,
         }),
         ...(updateProductDto.care_instructions !== undefined && {
           care_instructions: updateProductDto.care_instructions,
