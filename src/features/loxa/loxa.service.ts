@@ -54,6 +54,8 @@ export class LoxaService {
   constructor(private readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('LOXA_API') || '';
     this.baseUrl = this.configService.get<string>('LOXA_BASE_URL') || 'https://api.loxacover.com/test/2026-02';
+    console.log('🔑 LOXA_API key loaded:', this.apiKey ? `YES (${this.apiKey.substring(0, 8)}...)` : '❌ MISSING');
+    console.log('🌐 LOXA_BASE_URL:', this.baseUrl);
   }
 
   private get headers() {
