@@ -78,23 +78,31 @@ export class LoxaService {
         product_title: productTitle,
       });
 
-      const response = await fetch(
-        `${this.baseUrl}/products/insurance-information?${params.toString()}`,
-        {
-          method: 'GET',
-          headers: this.headers,
-        },
-      );
+      const fullUrl = `${this.baseUrl}/products/insurance-information?${params.toString()}`;
+      console.log('📤 Loxa Request URL:', fullUrl);
+      console.log('📤 Loxa Headers:', {
+        'x-api-key': this.apiKey ? `${this.apiKey.substring(0, 8)}...` : '❌ MISSING',
+        'Content-Type': 'application/json',
+      });
+
+      const response = await fetch(fullUrl, {
+        method: 'GET',
+        headers: this.headers,
+      });
+
+      console.log('📥 Loxa Response Status:', response.status);
+      const rawText = await response.text();
+      console.log('📥 Loxa Raw Response:', rawText);
 
       if (!response.ok) {
         this.logger.warn(`Loxa insurance info failed: ${response.status} for SKU ${sku}`);
         return null;
       }
 
-      const data = await response.json();
+      const data = JSON.parse(rawText);
 
       // Only return if product is insurable and active
-      if (!data.insurable || !data.active) {
+      if (!data.insurable) {
         this.logger.log(`Product SKU ${sku} is not insurable or not active`);
         return null;
       }
