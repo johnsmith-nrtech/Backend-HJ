@@ -117,6 +117,13 @@ export class Product {
   })
   show_loxa?: boolean;
 
+  @ApiProperty({
+    description: 'Whether SofaDeal provides full coverage for this product',
+    example: false,
+    default: false,
+  })
+  show_sofadeal_coverage?: boolean;
+
   /**
    * Assembly instructions
    */

@@ -225,6 +225,10 @@ export class CreateProductDto {
   @IsOptional()
   loxa_complimentary_years?: number | null;
 
+  @IsBoolean()
+  @IsOptional()
+  show_sofadeal_coverage?: boolean;
+
   /**
    * Tags associated with the product (comma-separated)
    */

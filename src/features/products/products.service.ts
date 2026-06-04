@@ -1310,6 +1310,7 @@ if (
         show_installments: createProductDto.show_installments ?? true,
         show_loxa: createProductDto.show_loxa ?? true,
         loxa_complimentary_years: createProductDto.loxa_complimentary_years ?? null,
+        show_sofadeal_coverage: createProductDto.show_sofadeal_coverage ?? false,
         // material_info: createProductDto.material_info || {},
       })
       .select()
@@ -1582,6 +1583,9 @@ async update(
         }),
         ...(updateProductDto.loxa_complimentary_years !== undefined && {
           loxa_complimentary_years: updateProductDto.loxa_complimentary_years,
+        }),
+        ...(updateProductDto.show_sofadeal_coverage !== undefined && {
+          show_sofadeal_coverage: updateProductDto.show_sofadeal_coverage,
         }),
         ...(updateProductDto.care_instructions !== undefined && {
           care_instructions: updateProductDto.care_instructions,
