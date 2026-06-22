@@ -5,6 +5,7 @@ import {
   Patch,
   Delete,
   Body,
+  Param,
   UseGuards,
   Request,
   UseInterceptors,
@@ -59,11 +60,29 @@ export class DimensionsController {
     return this.dimensionsService.deleteImage(req.user?.id);
   }
 
-  @Patch('hero-text')
+  // ─── Admin: Upload one slideshow image ────────────────────────────────────
+  @Post('hero-images')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  updateHeroText(@Body() body: { hero_text: string }, @Request() req) {
-    return this.dimensionsService.updateHeroText(body.hero_text, req.user?.id);
+  @UseInterceptors(FileInterceptor('file'))
+  uploadHeroImage(@UploadedFile() file: Express.Multer.File, @Request() req) {
+    return this.dimensionsService.uploadHeroImage(file, req.user?.id);
+  }
+
+  // ─── Admin: Delete one slideshow image by index ───────────────────────────
+  @Delete('hero-images/:index')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  deleteHeroImage(@Param('index') index: string, @Request() req) {
+    return this.dimensionsService.deleteHeroImage(Number(index), req.user?.id);
+  }
+
+  // ─── Admin: Reorder slideshow images ──────────────────────────────────────
+  @Patch('hero-images/reorder')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  reorderHeroImages(@Body() body: { images: string[] }, @Request() req) {
+    return this.dimensionsService.reorderHeroImages(body.images, req.user?.id);
   }
 
   

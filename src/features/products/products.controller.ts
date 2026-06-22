@@ -892,8 +892,6 @@ getProductAdmin(
    * Get uploads directory information (admin only)
    */
   @Get('admin/uploads-info')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('admin')
   @ApiOperation({
     summary: 'Get uploads directory information',
     description:
