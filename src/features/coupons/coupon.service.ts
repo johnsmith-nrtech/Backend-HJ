@@ -218,30 +218,31 @@ export class CouponService {
 
   // ─── User: Apply coupon or referral code ──────────────────────────────────
   async applyCoupon(
-    userId: string | undefined,
-    applyCouponDto: ApplyCouponDto,
-  ) {
-    const { code } = applyCouponDto;
+  userId: string | undefined,
+  applyCouponDto: ApplyCouponDto,
+  guestEmail?: string | null,
+) {
+  const { code } = applyCouponDto;
 
-    // 1. First check if it's a referral code
-    const { data: referrer, error: referrerError } = await this.supabaseAdmin
-      .from('users')
-      .select('id, referral_code, wallet_balance')
-      .eq('referral_code', code)
-      .single();
+  // 1. Check if it's a referral code
+  const { data: referrer, error: referrerError } = await this.supabaseAdmin
+    .from('users')
+    .select('id, referral_code, wallet_balance')
+    .eq('referral_code', code)
+    .single();
 
-    if (referrer && !referrerError) {
-      // It's a referral code — validate it
-      if (!userId) {
-        throw new BadRequestException(
-          'You must be logged in to use a referral code',
-        );
-      }
+  if (referrer && !referrerError) {
+    if (userId && referrer.id === userId) {
+      throw new BadRequestException('You cannot use your own referral code');
+    }
 
-      if (referrer.id === userId) {
-        throw new BadRequestException('You cannot use your own referral code');
-      }
+    if (!userId && !guestEmail) {
+      throw new BadRequestException(
+        'Please provide your email to use a referral code as a guest',
+      );
+    }
 
+    if (userId) {
       const { data: existingUse } = await this.supabaseAdmin
         .from('referral_uses')
         .select('id')
@@ -250,59 +251,68 @@ export class CouponService {
         .single();
 
       if (existingUse) {
+        throw new BadRequestException('You have already used this referral code');
+      }
+    } else if (guestEmail) {
+      const { data: existingGuestUse } = await this.supabaseAdmin
+        .from('referral_uses')
+        .select('id')
+        .eq('referral_code', code)
+        .eq('used_by_email', guestEmail)
+        .single();
+
+      if (existingGuestUse) {
         throw new BadRequestException(
-          'You have already used this referral code',
+          'This referral code has already been used with this email',
         );
       }
-
-      const settings = await this.getReferralSettings();
-
-      return {
-        id: `referral_${referrer.id}`,
-        code: code,
-        discount_type: settings.receiverDiscountType,  // WAS 'percentage'
-        discount_value: settings.receiverDiscount,
-        is_referral: true,
-        referrer_id: referrer.id,
-      };
     }
 
-    // 2. ✅ Not a referral code — check regular coupons table
-    const { data: coupon, error: couponError } = await this.supabaseAdmin
-      .from('coupons')
-      .select('*')
-      .eq('code', code)
-      .eq('is_active', true)
-      .single();
+    const settings = await this.getReferralSettings();
 
-    if (couponError || !coupon) {
-      throw new BadRequestException('Invalid or expired coupon code');
-    }
-
-    // Check expiry
-    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
-      throw new BadRequestException('This coupon has expired');
-    }
-
-    // Check usage limit
-    if (coupon.max_uses && coupon.used_count >= coupon.max_uses) {
-      throw new BadRequestException('This coupon has reached its usage limit');
-    }
-
-    // Check if coupon is assigned to a specific user
-    if (coupon.assigned_to_user_id && coupon.assigned_to_user_id !== userId) {
-      throw new BadRequestException('This coupon is not valid for your account');
-    }
-
-    // ✅ Valid regular coupon — return it
     return {
-      id: coupon.id,
-      code: coupon.code,
-      discount_type: coupon.discount_type,
-      discount_value: coupon.discount_value,
-      is_referral: false,
+      id: `referral_${referrer.id}`,
+      code: code,
+      discount_type: settings.receiverDiscountType,
+      discount_value: settings.receiverDiscount,
+      is_referral: true,
+      referrer_id: referrer.id,
+      guest_email: guestEmail ?? null,
     };
   }
+
+  // 2. Not a referral code — check regular coupons table
+  const { data: coupon, error: couponError } = await this.supabaseAdmin
+    .from('coupons')
+    .select('*')
+    .eq('code', code)
+    .eq('is_active', true)
+    .single();
+
+  if (couponError || !coupon) {
+    throw new BadRequestException('Invalid or expired coupon code');
+  }
+
+  if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+    throw new BadRequestException('This coupon has expired');
+  }
+
+  if (coupon.max_uses && coupon.used_count >= coupon.max_uses) {
+    throw new BadRequestException('This coupon has reached its usage limit');
+  }
+
+  if (coupon.assigned_to_user_id && coupon.assigned_to_user_id !== userId) {
+    throw new BadRequestException('This coupon is not valid for your account');
+  }
+
+  return {
+    id: coupon.id,
+    code: coupon.code,
+    discount_type: coupon.discount_type,
+    discount_value: coupon.discount_value,
+    is_referral: false,
+  };
+}
 
 async processReferralReward(
   userId: string,
@@ -349,16 +359,20 @@ async processReferralReward(
     .eq('id', userId)
     .single();
 
+  console.log('usedByUser fetched:', usedByUser);
+
+
+
   await this.supabaseAdmin.from('referral_uses').insert({
-    referral_code: referralCode,
-    referrer_user_id: referrer.id,
-    used_by_user_id: userId,
-    used_by_email: usedByUser?.email || null,
-    used_by_name: usedByUser?.name || null,
-    order_id: orderId,
-    reward_given: rewardAmount,
-    discount_given: discountGiven,
-  });
+  referral_code: referralCode,
+  referrer_user_id: referrer.id,
+  used_by_user_id: userId,
+  used_by_email: usedByUser?.email || null,
+  used_by_name: usedByUser?.name || usedByUser?.email?.split('@')[0] || null, // fallback
+  order_id: orderId,
+  reward_given: rewardAmount,
+  discount_given: discountGiven,
+});
 
   const currentBalance = referrer.wallet_balance || 0;
   const currentTotalEarned = referrer.total_wallet_earned || 0;
@@ -749,6 +763,80 @@ async updateReferralSettings(settingsDto: UpdateReferralSettingsDto, adminId: st
       maxDiscountAmount: data.max_discount_amount,
     },
   };
+}
+
+async processGuestReferralReward(
+  referralCode: string,
+  orderId: string,
+  discountGiven: number,
+  orderTotal: number,
+  guestEmail: string,
+  guestName: string,
+): Promise<void> {
+  const { data: referrer, error } = await this.supabaseAdmin
+    .from('users')
+    .select('id, wallet_balance, total_wallet_earned')
+    .eq('referral_code', referralCode)
+    .single();
+
+  if (error || !referrer) {
+    console.error('Referrer not found for code:', referralCode);
+    return;
+  }
+
+  const { data: existing } = await this.supabaseAdmin
+    .from('referral_uses')
+    .select('id')
+    .eq('order_id', orderId)
+    .single();
+    
+
+  if (existing) return;
+
+  // Check if same email already used this ref code before
+const { data: existingEmailUse } = await this.supabaseAdmin
+  .from('referral_uses')
+  .select('id')
+  .eq('referral_code', referralCode)
+  .eq('used_by_email', guestEmail)
+  .single();
+
+if (existingEmailUse) {
+  console.log('Guest referral already used for email:', guestEmail);
+  return; // silently skip — discount was already given at apply time
+}
+
+  const settings = await this.getReferralSettings();
+
+  let rewardAmount: number;
+  if (settings.referrerRewardType === 'percentage') {
+    rewardAmount = parseFloat(((settings.referrerReward / 100) * orderTotal).toFixed(2));
+  } else {
+    rewardAmount = settings.referrerReward;
+  }
+
+  await this.supabaseAdmin.from('referral_uses').insert({
+    referral_code: referralCode,
+    referrer_user_id: referrer.id,
+    used_by_user_id: null,
+    used_by_email: guestEmail,
+    used_by_name: guestName,
+    order_id: orderId,
+    reward_given: rewardAmount,
+    discount_given: discountGiven,
+  });
+
+  const currentBalance = referrer.wallet_balance || 0;
+  const currentTotalEarned = referrer.total_wallet_earned || 0;
+
+  await this.supabaseAdmin
+    .from('users')
+    .update({
+      wallet_balance: currentBalance + rewardAmount,
+      total_wallet_earned: currentTotalEarned + rewardAmount,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', referrer.id);
 }
 
   clearSettingsCache() {

@@ -104,10 +104,57 @@ export class CouponController {
 
   // ─── User: Apply coupon or referral code ───────────────────────────────────
   @Post('apply')
-  @UseGuards(JwtAuthGuard)
   applyCoupon(@Body() applyCouponDto: ApplyCouponDto, @Request() req) {
-    return this.couponService.applyCoupon(req.user?.id, applyCouponDto);
+    const userId = req.user?.id ?? null;
+    const guestEmail = applyCouponDto.guest_email ?? null;
+    return this.couponService.applyCoupon(userId, applyCouponDto, guestEmail);
   }
+
+  @Get('admin/referral-history')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async getAdminReferralHistory() {
+    return this.couponService.getAdminReferralHistory();
+  }
+
+  @Get('admin/settings')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async getReferralSettings() {
+    return this.couponService.getReferralSettings();
+  }
+
+  @Post('admin/settings')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async updateReferralSettings(
+    @Body() settingsDto: UpdateReferralSettingsDto,
+    @Request() req
+  ) {
+    return this.couponService.updateReferralSettings(settingsDto, req.user?.id);
+  }
+
+    // ─── Guest: Process referral reward after guest order ──────────────────────
+@Post('process-guest-referral')
+processGuestReferralReward(
+  @Body() body: {
+    referral_code: string;
+    order_id: string;
+    discount_given: number;
+    order_total: number;
+    guest_email: string;
+    guest_name: string;
+  },
+) {
+  return this.couponService.processGuestReferralReward(
+    body.referral_code,
+    body.order_id,
+    body.discount_given,
+    body.order_total,
+    body.guest_email,
+    body.guest_name,
+  );
+}
 
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -141,27 +188,25 @@ export class CouponController {
     return this.couponService.assignCoupon(id, assignCouponDto);
   }
 
-  @Get('admin/referral-history')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  async getAdminReferralHistory() {
-    return this.couponService.getAdminReferralHistory();
-  }
-
-  @Get('admin/settings')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  async getReferralSettings() {
-    return this.couponService.getReferralSettings();
-  }
-
-  @Post('admin/settings')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  async updateReferralSettings(
-    @Body() settingsDto: UpdateReferralSettingsDto,
-    @Request() req
-  ) {
-    return this.couponService.updateReferralSettings(settingsDto, req.user?.id);
-  }
+//   // ─── Guest: Process referral reward after guest order ──────────────────────
+// @Post('process-guest-referral')
+// processGuestReferralReward(
+//   @Body() body: {
+//     referral_code: string;
+//     order_id: string;
+//     discount_given: number;
+//     order_total: number;
+//     guest_email: string;
+//     guest_name: string;
+//   },
+// ) {
+//   return this.couponService.processGuestReferralReward(
+//     body.referral_code,
+//     body.order_id,
+//     body.discount_given,
+//     body.order_total,
+//     body.guest_email,
+//     body.guest_name,
+//   );
+// }
 }

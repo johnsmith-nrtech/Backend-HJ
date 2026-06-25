@@ -2153,12 +2153,12 @@ async handlePaymentSuccess(paymentData: any, res: any): Promise<void> {
     const frontendBaseUrl = this.configService.getOrThrow<string>('FRONTEND_BASE_URL');
     const redirectUrl = `${frontendBaseUrl}/payment/success?orderId=${orderId}`;
 
-    const { data: orderDetails, error: orderError } = await this.supabaseService
-      .getClient()
-      .from('orders')
-      .select('user_id, coupon_code, discount_amount, contact_email, total_amount, currency, tracking_id')
-      .eq('id', orderId)
-      .single();
+   const { data: orderDetails, error: orderError } = await this.supabaseService
+     .getClient()
+     .from('orders')
+     .select('user_id, coupon_code, discount_amount, contact_email, contact_first_name, contact_last_name, total_amount, currency, tracking_id')
+     .eq('id', orderId)
+     .single();
 
     if (orderError || !orderDetails) {
       this.logger.warn('Order not found for ID:', orderId);
@@ -2189,6 +2189,30 @@ async handlePaymentSuccess(paymentData: any, res: any): Promise<void> {
         this.logger.error('Failed to process referral reward:', err);
       }
     }
+
+    if (orderDetails.coupon_code && orderDetails.discount_amount > 0 && !orderDetails.user_id) {
+  try {
+    const { data: referrer } = await this.supabaseService
+      .getClient()
+      .from('users')
+      .select('id')
+      .eq('referral_code', orderDetails.coupon_code)
+      .single();
+
+    if (referrer) {
+      await this.couponService.processGuestReferralReward(
+        orderDetails.coupon_code,
+        orderId,
+        orderDetails.discount_amount,
+        orderDetails.total_amount || 0,
+        orderDetails.contact_email,          // guest email
+        `${orderDetails.contact_first_name} ${orderDetails.contact_last_name}`.trim(),
+      );
+    }
+  } catch (err) {
+    this.logger.error('Failed to process guest referral reward:', err);
+  }
+}
 
     // Send confirmation email using contact_email (works for guests + registered)
     const recipientEmail = orderDetails.contact_email;
