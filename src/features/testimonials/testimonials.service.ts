@@ -35,6 +35,48 @@ export interface UpdateTestimonialDto {
   order_index?: number;
 }
 
+// In Testimonial interface
+export interface Testimonial {
+  id: string;
+  time_ago: string;
+  rating: number;
+  title: string;
+  description: string;
+  author: string;
+  role: string;
+  order_index: number;
+  image_url?: string;
+  video_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// In CreateTestimonialDto
+export interface CreateTestimonialDto {
+  time_ago: string;
+  rating: number;
+  title: string;
+  description: string;
+  author: string;
+  role: string;
+  order_index?: number;
+  image_url?: string;
+  video_url?: string;
+}
+
+// In UpdateTestimonialDto
+export interface UpdateTestimonialDto {
+  time_ago?: string;
+  rating?: number;
+  title?: string;
+  description?: string;
+  author?: string;
+  role?: string;
+  order_index?: number;
+  image_url?: string;
+  video_url?: string;
+}
+
 @Injectable()
 export class TestimonialsService {
   constructor(private readonly supabaseService: SupabaseService) {}
