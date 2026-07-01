@@ -792,14 +792,19 @@ async processGuestReferralReward(
     return;
   }
 
-  const { data: existing } = await this.supabaseAdmin
-    .from('referral_uses')
-    .select('id')
-    .eq('order_id', orderId)
-    .single();
-    
+console.log('[processGuestReferralReward] START', { referralCode, orderId, normalizedEmail });
 
-  if (existing) return;
+const { data: existing } = await this.supabaseAdmin
+  .from('referral_uses')
+  .select('id')
+  .eq('order_id', orderId)
+  .single();
+  
+
+if (existing) {
+  console.log('[processGuestReferralReward] BLOCKED - order already has a referral_uses row', orderId);
+  return;
+}
 
 const { data: existingEmailUse } = await this.supabaseAdmin
   .from('referral_uses')
@@ -809,7 +814,7 @@ const { data: existingEmailUse } = await this.supabaseAdmin
   .single();
 
 if (existingEmailUse) {
-  console.log('Guest referral already used for email:', normalizedEmail);
+  console.log('[processGuestReferralReward] BLOCKED - email already used this code:', normalizedEmail, referralCode);
   return;
 }
 
@@ -822,7 +827,7 @@ if (existingEmailUse) {
     rewardAmount = settings.referrerReward;
   }
 
-  await this.supabaseAdmin.from('referral_uses').insert({
+const { error: insertError } = await this.supabaseAdmin.from('referral_uses').insert({
   referral_code: referralCode,
   referrer_user_id: referrer.id,
   used_by_user_id: null,
@@ -832,6 +837,13 @@ if (existingEmailUse) {
   reward_given: rewardAmount,
   discount_given: discountGiven,
 });
+
+if (insertError) {
+  console.error('[processGuestReferralReward] INSERT FAILED', insertError);
+  return;
+} else {
+  console.log('[processGuestReferralReward] SUCCESS - row inserted for', normalizedEmail, referralCode);
+}
 
   const currentBalance = referrer.wallet_balance || 0;
   const currentTotalEarned = referrer.total_wallet_earned || 0;
