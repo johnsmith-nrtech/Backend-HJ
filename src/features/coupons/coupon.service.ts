@@ -237,9 +237,9 @@ export class CouponService {
     }
 
     if (!userId && !guestEmail) {
-      throw new BadRequestException(
-        'Please provide your email to use a referral code as a guest',
-      );
+      // throw new BadRequestException(
+      //   'Please provide your email to use a referral code as a guest',
+      // );
     }
 
     if (userId) {
@@ -253,20 +253,21 @@ export class CouponService {
       if (existingUse) {
         throw new BadRequestException('You have already used this referral code');
       }
-    } else if (guestEmail) {
-      const { data: existingGuestUse } = await this.supabaseAdmin
-        .from('referral_uses')
-        .select('id')
-        .eq('referral_code', code)
-        .eq('used_by_email', guestEmail)
-        .single();
+} else if (guestEmail) {
+  const normalizedGuestEmail = guestEmail.trim().toLowerCase();
+  const { data: existingGuestUse } = await this.supabaseAdmin
+    .from('referral_uses')
+    .select('id')
+    .eq('referral_code', code)
+    .eq('used_by_email', normalizedGuestEmail)
+    .single();
 
-      if (existingGuestUse) {
-        throw new BadRequestException(
-          'This referral code has already been used with this email',
-        );
-      }
-    }
+  if (existingGuestUse) {
+    throw new BadRequestException(
+      'This referral code has already been used with this email',
+    );
+  }
+}
 
     const settings = await this.getReferralSettings();
 
@@ -773,6 +774,13 @@ async processGuestReferralReward(
   guestEmail: string,
   guestName: string,
 ): Promise<void> {
+  const normalizedEmail = guestEmail?.trim().toLowerCase();
+
+  if (!normalizedEmail) {
+    console.error('Guest email missing in processGuestReferralReward');
+    return;
+  }
+
   const { data: referrer, error } = await this.supabaseAdmin
     .from('users')
     .select('id, wallet_balance, total_wallet_earned')
@@ -793,17 +801,16 @@ async processGuestReferralReward(
 
   if (existing) return;
 
-  // Check if same email already used this ref code before
 const { data: existingEmailUse } = await this.supabaseAdmin
   .from('referral_uses')
   .select('id')
   .eq('referral_code', referralCode)
-  .eq('used_by_email', guestEmail)
+  .eq('used_by_email', normalizedEmail)
   .single();
 
 if (existingEmailUse) {
-  console.log('Guest referral already used for email:', guestEmail);
-  return; // silently skip — discount was already given at apply time
+  console.log('Guest referral already used for email:', normalizedEmail);
+  return;
 }
 
   const settings = await this.getReferralSettings();
@@ -816,15 +823,15 @@ if (existingEmailUse) {
   }
 
   await this.supabaseAdmin.from('referral_uses').insert({
-    referral_code: referralCode,
-    referrer_user_id: referrer.id,
-    used_by_user_id: null,
-    used_by_email: guestEmail,
-    used_by_name: guestName,
-    order_id: orderId,
-    reward_given: rewardAmount,
-    discount_given: discountGiven,
-  });
+  referral_code: referralCode,
+  referrer_user_id: referrer.id,
+  used_by_user_id: null,
+  used_by_email: normalizedEmail,
+  used_by_name: guestName || normalizedEmail.split('@')[0],
+  order_id: orderId,
+  reward_given: rewardAmount,
+  discount_given: discountGiven,
+});
 
   const currentBalance = referrer.wallet_balance || 0;
   const currentTotalEarned = referrer.total_wallet_earned || 0;
