@@ -104,11 +104,12 @@ export class CouponController {
 
   // ─── User: Apply coupon or referral code ───────────────────────────────────
   @Post('apply')
-  applyCoupon(@Body() applyCouponDto: ApplyCouponDto, @Request() req) {
-    const userId = req.user?.id ?? null;
-    const guestEmail = applyCouponDto.guest_email ?? null;
-    return this.couponService.applyCoupon(userId, applyCouponDto, guestEmail);
-  }
+@UseGuards(JwtAuthGuard)
+applyCoupon(@Body() applyCouponDto: ApplyCouponDto, @Request() req) {
+  const userId = req.user?.id ?? null;
+  const guestEmail = applyCouponDto.guest_email ?? null;
+  return this.couponService.applyCoupon(userId, applyCouponDto, guestEmail);
+}
 
   @Get('admin/referral-history')
   @UseGuards(JwtAuthGuard, RolesGuard)

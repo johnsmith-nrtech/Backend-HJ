@@ -243,16 +243,15 @@ export class CouponService {
     }
 
     if (userId) {
-      const { data: existingUse } = await this.supabaseAdmin
-        .from('referral_uses')
-        .select('id')
-        .eq('referral_code', code)
-        .eq('used_by_user_id', userId)
-        .single();
+  const { data: existingUses } = await this.supabaseAdmin
+    .from('referral_uses')
+    .select('id')
+    .eq('used_by_user_id', userId)
+    .limit(1);
 
-      if (existingUse) {
-        throw new BadRequestException('You have already used this referral code');
-      }
+  if (existingUses && existingUses.length > 0) {
+    throw new BadRequestException('You have already used a referral code before');
+  }
 } else if (guestEmail) {
   const normalizedGuestEmail = guestEmail.trim().toLowerCase();
   const { data: existingGuestUse } = await this.supabaseAdmin
@@ -333,6 +332,8 @@ async processReferralReward(
     return;
   }
 
+console.log('[processReferralReward] START', { referralCode, orderId, userId });
+
   const { data: existing } = await this.supabaseAdmin
     .from('referral_uses')
     .select('id')
@@ -340,13 +341,28 @@ async processReferralReward(
     .single();
 
   if (existing) {
-    console.log('Referral reward already given for order:', orderId);
+    console.log('[processReferralReward] BLOCKED - order already has a referral_uses row', orderId);
     return;
   }
 
+  // Same safeguard as the guest path: has THIS user already redeemed THIS
+  // referral code before, on any other order? Without this, a stale
+  // appliedCoupon on the client, a retried order, or a re-POST to
+  // place-order can bypass the apply-time check in applyCoupon() and pay
+  // the referrer out repeatedly for the same user.
+  const { data: existingUserUses } = await this.supabaseAdmin
+  .from('referral_uses')
+  .select('id')
+  .eq('used_by_user_id', userId)
+  .limit(1);
+
+if (existingUserUses && existingUserUses.length > 0) {
+  console.log('[processReferralReward] BLOCKED - user already used a referral code before:', userId);
+  return;
+}
+
   const settings = await this.getReferralSettings();
 
-  // Calculate actual reward based on type
   let rewardAmount: number;
   if (settings.referrerRewardType === 'percentage') {
     rewardAmount = parseFloat(((settings.referrerReward / 100) * orderTotal).toFixed(2));
@@ -361,6 +377,24 @@ async processReferralReward(
     .single();
 
   console.log('usedByUser fetched:', usedByUser);
+
+  // Extra safeguard mirroring the guest path: also block if this EMAIL has
+  // already used this code under a different user_id — e.g. the same
+  // person used it as a guest first, or has two accounts on one email.
+  if (usedByUser?.email) {
+    const normalizedEmail = usedByUser.email.trim().toLowerCase();
+    const { data: existingEmailUse } = await this.supabaseAdmin
+      .from('referral_uses')
+      .select('id')
+      .eq('referral_code', referralCode)
+      .eq('used_by_email', normalizedEmail)
+      .single();
+
+    if (existingEmailUse) {
+      console.log('[processReferralReward] BLOCKED - email already used this code:', normalizedEmail, referralCode);
+      return;
+    }
+  }
 
 
 
