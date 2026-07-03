@@ -18,6 +18,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UpdateReferralSettingsDto } from './dto/update-referral-settings.dto';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
+
 
 @Controller('coupons')
 export class CouponController {
@@ -103,8 +105,8 @@ export class CouponController {
   }
 
   // ─── User: Apply coupon or referral code ───────────────────────────────────
-  @Post('apply')
-@UseGuards(JwtAuthGuard)
+ @Post('apply')
+@UseGuards(OptionalJwtAuthGuard)   // was: @UseGuards(JwtAuthGuard)
 applyCoupon(@Body() applyCouponDto: ApplyCouponDto, @Request() req) {
   const userId = req.user?.id ?? null;
   const guestEmail = applyCouponDto.guest_email ?? null;
