@@ -24,6 +24,7 @@ import { TestimonialsModule } from './features/testimonials/testimonials.module'
 import { WhyChooseUsModule } from './features/why-choose-us/why-choose-us.module';
 import { LoxaModule } from './features/loxa/loxa.module';
 import { ProductsHeroModule } from './features/products-hero/products-hero.module';
+import { FaqModule } from './features/faq/faq.module';
 
 
 
@@ -53,6 +54,7 @@ import { ProductsHeroModule } from './features/products-hero/products-hero.modul
     TestimonialsModule,
     WhyChooseUsModule,
     LoxaModule,
+    FaqModule,
   ],
   controllers: [HealthController],
   providers: [],
