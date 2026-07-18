@@ -51,35 +51,44 @@ export class FaqService {
     return data;
   }
 
-  // ─── Admin: Create FAQ ───────────────────────────────────────────────────────
-  async create(createFaqDto: CreateFaqDto) {
-    let order = createFaqDto.order;
+async create(createFaqDto: CreateFaqDto) {
+  const { count, error: countError } = await this.supabaseAdmin
+    .from('faqs')
+    .select('*', { count: 'exact', head: true });
 
-    if (order === undefined) {
-      const { data: maxOrderRow } = await this.supabaseAdmin
-        .from('faqs')
-        .select('order')
-        .order('order', { ascending: false })
-        .limit(1)
-        .single();
+  if (countError) throw new BadRequestException(countError.message);
 
-      order = (maxOrderRow?.order ?? -1) + 1;
-    }
+  if ((count ?? 0) >= 4) {
+    throw new BadRequestException('Maximum of 4 FAQs allowed. Please delete an existing FAQ before adding a new one.');
+  }
 
-    const { data, error } = await this.supabaseAdmin
+  let order = createFaqDto.order;
+
+  if (order === undefined) {
+    const { data: maxOrderRow } = await this.supabaseAdmin
       .from('faqs')
-      .insert({
-        question: createFaqDto.question,
-        answer: createFaqDto.answer,
-        order,
-        is_active: createFaqDto.is_active ?? true,
-      })
-      .select()
+      .select('order')
+      .order('order', { ascending: false })
+      .limit(1)
       .single();
 
-    if (error) throw new BadRequestException(error.message);
-    return data;
+    order = (maxOrderRow?.order ?? -1) + 1;
   }
+
+  const { data, error } = await this.supabaseAdmin
+    .from('faqs')
+    .insert({
+      question: createFaqDto.question,
+      answer: createFaqDto.answer,
+      order,
+      is_active: createFaqDto.is_active ?? true,
+    })
+    .select()
+    .single();
+
+  if (error) throw new BadRequestException(error.message);
+  return data;
+}
 
   // ─── Admin: Update FAQ ────────────────────────────────────────────────────────
   async update(id: string, updateFaqDto: UpdateFaqDto) {
