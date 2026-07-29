@@ -12,13 +12,13 @@ export class SalesService {
       .from('sale_products')
       .select(
         `
-        *,
-        product:products(
-          id, name, base_price, discount_offer,
-          images:product_images(id, url, type, "order"),
-          variants:product_variants(id, price, color, size, stock, delivery_time_days, assemble_charges, featured)
-        )
-      `,
+          *,
+          product:products(
+            id, name, base_price, discount_offer,
+            images:product_images(id, url, type, "order"),
+            variants:product_variants(id, price, compare_price, color, size, stock, delivery_time_days, assemble_charges, featured)
+          )
+        `,
       )
       .order('created_at', { ascending: false });
 
@@ -45,13 +45,13 @@ export class SalesService {
       .insert({ product_id: productId })
       .select(
         `
-        *,
-        product:products(
-          id, name, base_price, discount_offer,
-          images:product_images(id, url, type, "order"),
-          variants:product_variants(id, price, color, size, stock, delivery_time_days, assemble_charges, featured)
-        )
-      `,
+          *,
+          product:products(
+            id, name, base_price, discount_offer,
+            images:product_images(id, url, type, "order"),
+            variants:product_variants(id, price, compare_price, color, size, stock, delivery_time_days, assemble_charges, featured)
+          )
+        `,
       )
       .single();
 

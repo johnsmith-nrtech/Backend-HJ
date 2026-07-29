@@ -16,7 +16,7 @@ export class BestSellersService {
         product:products(
           id, name, base_price, discount_offer,
           images:product_images(id, url, type, "order"),
-          variants:product_variants(id, price, color, size, stock, delivery_time_days, assemble_charges, featured)
+          variants:product_variants(id, price, compare_price, color, size, stock, delivery_time_days, assemble_charges, featured)
         )
       `,
       )
@@ -44,13 +44,13 @@ export class BestSellersService {
       .insert({ product_id: productId })
       .select(
         `
-        *,
-        product:products(
-          id, name, base_price, discount_offer,
-          images:product_images(id, url, type, "order"),
-          variants:product_variants(id, price, color, size, stock, delivery_time_days, assemble_charges, featured)
-        )
-      `,
+          *,
+          product:products(
+            id, name, base_price, discount_offer,
+            images:product_images(id, url, type, "order"),
+            variants:product_variants(id, price, compare_price, color, size, stock, delivery_time_days, assemble_charges, featured)
+          )
+        `,
       )
       .single();
 
