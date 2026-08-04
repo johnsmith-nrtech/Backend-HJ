@@ -57,55 +57,57 @@ export class ProductsService {
    * @param options Query options for filtering, pagination, and sorting
    * @returns Array of products with pagination metadata
    */
-  async findAll(
-    options: {
-      categoryId?: string;
-      size?: string;
-      material?: string;
-      search?: string;
-      page?: number;
-      limit?: number;
-      sortBy?: 'price_low_high' | 'price_high_low' | 'rating' | 'created_at';
-      priceRange?:
-        | 'all'
-        | `under-${number}`
-        | `${number}-${number}`
-        | `over-${number}`;
-      includeVariants?: boolean;
-      includeImages?: boolean;
-      includeCategory?: boolean;
-    } = {},
-  ) {
-    const {
-      categoryId,
-      size,
-      material,
-      search,
-      page = 1,
-      limit,
-      sortBy = 'created_at',
-      priceRange = 'all',
-      includeVariants = true,
-      includeImages = false,
-      includeCategory = false,
-    } = options;
+async findAll(
+  options: {
+    categoryId?: string;
+    size?: string;
+    material?: string;
+    color?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+    sortBy?: 'price_low_high' | 'price_high_low' | 'rating' | 'created_at';
+    priceRange?:
+      | 'all'
+      | `under-${number}`
+      | `${number}-${number}`
+      | `over-${number}`;
+    includeVariants?: boolean;
+    includeImages?: boolean;
+    includeCategory?: boolean;
+  } = {},
+) {
+  const {
+    categoryId,
+    size,
+    material,
+    color,
+    search,
+    page = 1,
+    limit,
+    sortBy = 'created_at',
+    priceRange = 'all',
+    includeVariants = true,
+    includeImages = false,
+    includeCategory = false,
+  } = options;
 
     // Determine sort order based on sortBy (always desc unless price_low_high)
     const sortOrder = sortBy === 'price_low_high' ? 'asc' : 'desc';
 
     // When search is provided, ignore all other filters and use search-only logic
     if (search && search.trim()) {
-      return this.findProductsWithSearch({
-        search: search.trim(),
-        page,
-        limit,
-        sortBy,
-        sortOrder,
-        includeVariants,
-        includeImages,
-        includeCategory,
-      });
-    }
+  return this.findProductsWithSearch({
+    search: search.trim(),
+    page,
+    limit,
+    sortBy,
+    sortOrder,
+    includeVariants,
+    includeImages,
+    includeCategory,
+  });
+}
 
     // Step 1: Handle hierarchical category filtering
     let categoryIds: string[] | null = null;
@@ -117,14 +119,15 @@ export class ProductsService {
       );
     }
 
-    // Step 2: Handle size/material filtering by finding matching product IDs from variants
-    let filteredProductIds: string[] | null = null;
+    // Step 2: Handle size/material/color filtering by finding matching product IDs from variants
+let filteredProductIds: string[] | null = null;
 
-    if (size || material) {
-      filteredProductIds = await this.getProductIdsByVariantFilters({
-        size,
-        material,
-      });
+if (size || material || color) {
+  filteredProductIds = await this.getProductIdsByVariantFilters({
+    size,
+    material,
+    color,
+  });
 
       // If no products match the variant filters, return empty results
       if (filteredProductIds.length === 0) {
@@ -140,16 +143,8 @@ export class ProductsService {
       .getClient()
       .from('products')
       .select(
-        // `*${includeVariants ? ', variants:product_variants(*)' : ''}${
-        //   includeImages ? ', images:product_images(*)' : ''
-        // }${includeCategory ? ', category:categories!inner(*)' : ''}`,
-
-
         `*${includeVariants ? ', variants:product_variants(*, images:product_images(*))' : ''}${
           includeImages ? ', images:product_images(*)' : ''}`,
-
-        // `*${includeVariants ? ', variants:product_variants(*, images:product_images(*))' : ''}${
-        //   includeImages ? ', images:product_images(order.asc())' : ''}`,
         { count: 'exact' },
       );
 
@@ -195,12 +190,13 @@ export class ProductsService {
     // Step 4: Post-process products to filter variants if size/material was specified
     let processedProducts = products || [];
 
-    if ((size || material) && includeVariants) {
-      processedProducts = this.filterProductVariants(processedProducts, {
-        size,
-        material,
-      });
-    }
+    if ((size || material || color) && includeVariants) {
+  processedProducts = this.filterProductVariants(processedProducts, {
+    size,
+    material,
+    color,
+  });
+}
 
     // Step 5: Enhance with category details if requested
     if (includeCategory && processedProducts.length > 0) {
@@ -287,38 +283,44 @@ export class ProductsService {
    * @param filters Object containing size and/or material filters
    * @returns Array of product IDs that have matching variants
    */
-  private async getProductIdsByVariantFilters(filters: {
-    size?: string;
-    material?: string;
-  }): Promise<string[]> {
-    const { size, material } = filters;
+private async getProductIdsByVariantFilters(filters: {
+  size?: string;
+  material?: string;
+  color?: string;
+}): Promise<string[]> {
+  const { size, material, color } = filters;
 
-    // Build variant query with filters
-    let variantQuery = this.supabaseService
-      .getClient()
-      .from('product_variants')
-      .select('product_id');
+  // Build variant query with filters
+  let variantQuery = this.supabaseService
+    .getClient()
+    .from('product_variants')
+    .select('product_id');
 
-    // Apply size filter if provided
-    if (size && size.trim()) {
-      variantQuery = variantQuery.ilike('size', `%${size.trim()}%`);
-    }
-
-    // Apply material filter if provided
-    if (material && material.trim()) {
-      variantQuery = variantQuery.ilike('material', `%${material.trim()}%`);
-    }
-
-    const { data: variants, error } = await variantQuery;
-
-    if (error) {
-      throw error;
-    }
-
-    // Extract unique product IDs
-    const productIds = [...new Set((variants || []).map((v) => v.product_id))];
-    return productIds;
+  // Apply size filter if provided
+  if (size && size.trim()) {
+    variantQuery = variantQuery.ilike('size', `%${size.trim()}%`);
   }
+
+  // Apply material filter if provided
+  if (material && material.trim()) {
+    variantQuery = variantQuery.ilike('material', `%${material.trim()}%`);
+  }
+
+  // Apply color filter if provided
+  if (color && color.trim()) {
+    variantQuery = variantQuery.ilike('color', `%${color.trim()}%`);
+  }
+
+  const { data: variants, error } = await variantQuery;
+
+  if (error) {
+    throw error;
+  }
+
+  // Extract unique product IDs
+  const productIds = [...new Set((variants || []).map((v) => v.product_id))];
+  return productIds;
+}
 
   /**
    * Helper: Handle search-only queries (ignores other filters when search is provided)
@@ -467,48 +469,56 @@ export class ProductsService {
    * @param filters Size and material filters
    * @returns Products with filtered variants
    */
-  private filterProductVariants(
-    products: any[],
-    filters: {
-      size?: string;
-      material?: string;
-    },
-  ): any[] {
-    const { size, material } = filters;
+private filterProductVariants(
+  products: any[],
+  filters: {
+    size?: string;
+    material?: string;
+    color?: string;
+  },
+): any[] {
+  const { size, material, color } = filters;
 
-    return products.map((product) => {
-      if (!product.variants || !Array.isArray(product.variants)) {
-        return product;
+  return products.map((product) => {
+    if (!product.variants || !Array.isArray(product.variants)) {
+      return product;
+    }
+
+    // Filter variants to only include those matching the criteria
+    const filteredVariants = product.variants.filter((variant: any) => {
+      let matches = true;
+
+      // Check size match
+      if (size && size.trim()) {
+        const variantSize = variant.size || '';
+        matches =
+          matches && variantSize.toLowerCase().includes(size.toLowerCase());
       }
 
-      // Filter variants to only include those matching the criteria
-      const filteredVariants = product.variants.filter((variant: any) => {
-        let matches = true;
+      // Check material match
+      if (material && material.trim()) {
+        const variantMaterial = variant.material || '';
+        matches =
+          matches &&
+          variantMaterial.toLowerCase().includes(material.toLowerCase());
+      }
 
-        // Check size match
-        if (size && size.trim()) {
-          const variantSize = variant.size || '';
-          matches =
-            matches && variantSize.toLowerCase().includes(size.toLowerCase());
-        }
+      // Check color match
+      if (color && color.trim()) {
+        const variantColor = variant.color || '';
+        matches =
+          matches && variantColor.toLowerCase().includes(color.toLowerCase());
+      }
 
-        // Check material match
-        if (material && material.trim()) {
-          const variantMaterial = variant.material || '';
-          matches =
-            matches &&
-            variantMaterial.toLowerCase().includes(material.toLowerCase());
-        }
-
-        return matches;
-      });
-
-      return {
-        ...product,
-        variants: filteredVariants,
-      };
+      return matches;
     });
-  }
+
+    return {
+      ...product,
+      variants: filteredVariants,
+    };
+  });
+}
 
   async findProductsBySize(options: {
     size: string;

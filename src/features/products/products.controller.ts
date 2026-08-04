@@ -452,39 +452,41 @@ getProductAdmin(
   /**
    * Get all products with optional filtering, pagination, and sorting
    */
-  @Get()
-  @ApiGetAllProducts()
-  async findAll(
-    @Query('categoryId', new DefaultValuePipe(undefined)) categoryId?: string,
-    @Query('size', new DefaultValuePipe(undefined)) size?: string,
-    @Query('material', new DefaultValuePipe(undefined)) material?: string,
-    @Query('search') search?: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
-    @Query('limit') limit?: string,
-    @Query('sortBy', new DefaultValuePipe('id')) sortBy?: string,
-    @Query('sortOrder', new DefaultValuePipe('asc')) sortOrder?: 'asc' | 'desc',
-    @Query('priceRange', new DefaultValuePipe(undefined)) priceRange?: string,
-    @Query('includeVariants', new DefaultValuePipe(true))
-    includeVariants?: boolean,
-    @Query('includeImages', new DefaultValuePipe(false))
-    includeImages?: boolean,
-    @Query('includeCategory', new DefaultValuePipe(true))
-    includeCategory?: boolean,
-  ) {
-    return this.productsService.findAll({
-      categoryId,
-      material,
-      size,
-      search,
-      page,
-      limit: limit ? parseInt(limit, 10) : undefined,
-      sortBy: sortBy as any,
-      priceRange: priceRange as any,
-      includeVariants,
-      includeImages,
-      includeCategory,
-    });
-  }
+@Get()
+@ApiGetAllProducts()
+async findAll(
+  @Query('categoryId', new DefaultValuePipe(undefined)) categoryId?: string,
+  @Query('size', new DefaultValuePipe(undefined)) size?: string,
+  @Query('material', new DefaultValuePipe(undefined)) material?: string,
+  @Query('color', new DefaultValuePipe(undefined)) color?: string,
+  @Query('search') search?: string,
+  @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
+  @Query('limit') limit?: string,
+  @Query('sortBy', new DefaultValuePipe('id')) sortBy?: string,
+  @Query('sortOrder', new DefaultValuePipe('asc')) sortOrder?: 'asc' | 'desc',
+  @Query('priceRange', new DefaultValuePipe(undefined)) priceRange?: string,
+  @Query('includeVariants', new DefaultValuePipe(true))
+  includeVariants?: boolean,
+  @Query('includeImages', new DefaultValuePipe(false))
+  includeImages?: boolean,
+  @Query('includeCategory', new DefaultValuePipe(true))
+  includeCategory?: boolean,
+) {
+  return this.productsService.findAll({
+    categoryId,
+    material,
+    size,
+    color,
+    search,
+    page,
+    limit: limit ? parseInt(limit, 10) : undefined,
+    sortBy: sortBy as any,
+    priceRange: priceRange as any,
+    includeVariants,
+    includeImages,
+    includeCategory,
+  });
+}
 
   /**
    * Get product variants
