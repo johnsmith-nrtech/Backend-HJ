@@ -776,6 +776,9 @@ private filterProductVariants(
 
     const productData = data as unknown as ProductWithCategory;
 
+    // Attach full category_ids list from the join table
+    (productData as any).category_ids = await this.getProductCategoryIds(id);
+
     if (productData.variants && Array.isArray(productData.variants)) {
       productData.variants.sort((a: any, b: any) =>
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -1327,18 +1330,29 @@ if (
       .single();
 
     if (error) {
-      throw error;
-    }
+  throw error;
+}
 
-    // If category_id was provided, fetch and include category details in response
-    if (createProductDto.category_id) {
-      const categoryDetails = await this.getCategoryWithParent(
-        createProductDto.category_id,
-      );
-      if (categoryDetails) {
-        (product as any).category = categoryDetails;
-      }
-    }
+// Sync multi-category join table — combine category_ids with the
+// legacy single category_id so both stay consistent
+const allCategoryIds = new Set<string>();
+if (createProductDto.category_id) allCategoryIds.add(createProductDto.category_id);
+(createProductDto.category_ids || []).forEach((id) => allCategoryIds.add(id));
+
+if (allCategoryIds.size > 0) {
+  await this.syncProductCategories(product.id, Array.from(allCategoryIds));
+}
+(product as any).category_ids = Array.from(allCategoryIds);
+
+// If category_id was provided, fetch and include category details in response
+if (createProductDto.category_id) {
+  const categoryDetails = await this.getCategoryWithParent(
+    createProductDto.category_id,
+  );
+  if (categoryDetails) {
+    (product as any).category = categoryDetails;
+  }
+}
 
     // Automatically create a default variant
     // Generate a SKU if one wasn't provided
@@ -1608,6 +1622,17 @@ async update(
 
     if (error) {
       throw error;
+    }
+
+    // Sync multi-category join table whenever category_ids is explicitly provided
+    if (updateProductDto.category_ids !== undefined) {
+      const allCategoryIds = new Set<string>();
+      const finalCategoryId = updateProductDto.category_id ?? updatedProduct.category_id;
+      if (finalCategoryId) allCategoryIds.add(finalCategoryId);
+      (updateProductDto.category_ids || []).forEach((cid) => allCategoryIds.add(cid));
+
+      await this.syncProductCategories(id, Array.from(allCategoryIds));
+      (updatedProduct as any).category_ids = Array.from(allCategoryIds);
     }
 
     // PERMANENT FIX: Sync discount_offer to variants whenever it changes
@@ -4425,6 +4450,59 @@ private calculateVariantDiscount(variant: any): number {
   
   // No discount
   return 0;
+}
+
+/**
+ * Sync a product's categories into the product_categories join table
+ * @param productId Product ID
+ * @param categoryIds Full list of category IDs this product should belong to
+ */
+private async syncProductCategories(
+  productId: string,
+  categoryIds: string[],
+): Promise<void> {
+  // Remove existing links
+  await this.supabaseService
+    .getClient()
+    .from('product_categories')
+    .delete()
+    .eq('product_id', productId);
+
+  if (!categoryIds || categoryIds.length === 0) return;
+
+  const uniqueIds = [...new Set(categoryIds)];
+  const rows = uniqueIds.map((categoryId) => ({
+    product_id: productId,
+    category_id: categoryId,
+  }));
+
+  const { error } = await this.supabaseService
+    .getClient()
+    .from('product_categories')
+    .insert(rows);
+
+  if (error) {
+    console.error('Error syncing product_categories:', error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch all category IDs for a product from the join table
+ */
+private async getProductCategoryIds(productId: string): Promise<string[]> {
+  const { data, error } = await this.supabaseService
+    .getClient()
+    .from('product_categories')
+    .select('category_id')
+    .eq('product_id', productId);
+
+  if (error) {
+    console.error('Error fetching product_categories:', error);
+    return [];
+  }
+
+  return (data || []).map((row) => row.category_id);
 }
 }
 

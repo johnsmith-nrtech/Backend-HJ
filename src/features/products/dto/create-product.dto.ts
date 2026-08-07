@@ -93,6 +93,17 @@ export class CreateProductDto {
   @IsOptional()
   category_id?: string;
 
+  @ApiProperty({
+    description: 'Category IDs the product belongs to (multiple allowed)',
+    example: ['123e4567-e89b-12d3-a456-426614174000'],
+    required: false,
+    type: [String],
+  })
+  @IsArray()
+  @IsUUID('4', { each: true })
+  @IsOptional()
+  category_ids?: string[];
+
   /**
    * Base price of the product
    */
