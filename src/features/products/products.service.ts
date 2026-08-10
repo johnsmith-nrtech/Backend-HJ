@@ -97,17 +97,17 @@ async findAll(
 
     // When search is provided, ignore all other filters and use search-only logic
     if (search && search.trim()) {
-  return this.findProductsWithSearch({
-    search: search.trim(),
-    page,
-    limit,
-    sortBy,
-    sortOrder,
-    includeVariants,
-    includeImages,
-    includeCategory,
-  });
-}
+      return this.findProductsWithSearch({
+        search: search.trim(),
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        includeVariants,
+        includeImages,
+        includeCategory,
+      });
+    }
 
     // Step 1: Handle hierarchical category filtering
     let categoryIds: string[] | null = null;
@@ -120,14 +120,14 @@ async findAll(
     }
 
     // Step 2: Handle size/material/color filtering by finding matching product IDs from variants
-let filteredProductIds: string[] | null = null;
+    let filteredProductIds: string[] | null = null;
 
-if (size || material || color) {
-  filteredProductIds = await this.getProductIdsByVariantFilters({
-    size,
-    material,
-    color,
-  });
+    if (size || material || color) {
+      filteredProductIds = await this.getProductIdsByVariantFilters({
+        size,
+        material,
+        color,
+    });
 
       // If no products match the variant filters, return empty results
       if (filteredProductIds.length === 0) {
@@ -140,21 +140,40 @@ if (size || material || color) {
 
     // Step 3: Build main products query with all filters
     let query = this.supabaseService
-      .getClient()
-      .from('products')
-      .select(
-        `*${includeVariants ? ', variants:product_variants(*, images:product_images(*))' : ''}${
-          includeImages ? ', images:product_images(*)' : ''}`,
-        { count: 'exact' },
-      );
+    .getClient()
+    .from('products')
+    .select(
+      `*${includeVariants ? ', variants:product_variants(*, images:product_images(*))' : ''}${
+        includeImages ? ', images:product_images(*)' : ''}`,
+      { count: 'exact' },
+    );
 
-    // Apply hierarchical category filter (category + all descendants)
+    // Apply category filter — match products via EITHER the legacy
+    // category_id column OR the multi-category join table, so a product
+    // assigned to multiple categories appears under all of them
     if (categoryIds && categoryIds.length > 0) {
-      if (categoryIds.length === 1) {
-        // Single category - use eq for better performance
+      const { data: joinMatches, error: joinError } = await this.supabaseService
+        .getClient()
+        .from('product_categories')
+        .select('product_id')
+        .in('category_id', categoryIds);
+
+      if (joinError) {
+        throw joinError;
+      }
+
+      const joinProductIds = [
+        ...new Set((joinMatches || []).map((row) => row.product_id)),
+      ];
+
+      if (joinProductIds.length > 0) {
+        // Products matched via join table OR via legacy category_id column
+        query = query.or(
+          `category_id.in.(${categoryIds.join(',')}),id.in.(${joinProductIds.join(',')})`,
+        );
+      } else if (categoryIds.length === 1) {
         query = query.eq('category_id', categoryIds[0]);
       } else {
-        // Multiple categories (parent + descendants) - use in
         query = query.in('category_id', categoryIds);
       }
     }
@@ -191,12 +210,12 @@ if (size || material || color) {
     let processedProducts = products || [];
 
     if ((size || material || color) && includeVariants) {
-  processedProducts = this.filterProductVariants(processedProducts, {
-    size,
-    material,
-    color,
-  });
-}
+      processedProducts = this.filterProductVariants(processedProducts, {
+        size,
+        material,
+        color,
+      });
+    }
 
     // Step 5: Enhance with category details if requested
     if (includeCategory && processedProducts.length > 0) {
