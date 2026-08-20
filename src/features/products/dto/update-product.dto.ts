@@ -210,7 +210,7 @@ export class UpdateProductDto {
   @IsOptional()
   brand?: string | null;
 
-  /**
+    /**
    * Whether the product is featured
    */
   @ApiProperty({
@@ -221,6 +221,30 @@ export class UpdateProductDto {
   @IsBoolean()
   @IsOptional()
   featured?: boolean;
+
+  /**
+   * Whether the product is a sofa (affects which dimension fields apply)
+   */
+  @ApiProperty({
+    description: 'Whether the product is a sofa',
+    example: true,
+    required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  is_sofa?: boolean;
+
+  /**
+   * Whether the product is a bed (affects which dimension fields apply)
+   */
+  @ApiProperty({
+    description: 'Whether the product is a bed',
+    example: false,
+    required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  is_bed?: boolean;
 
   /**
    * Whether the product is visible in the catalog

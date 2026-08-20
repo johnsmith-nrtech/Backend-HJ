@@ -276,7 +276,7 @@ export class CreateProductDto {
   @IsOptional()
   brand?: string;
 
-  /**
+    /**
    * Whether the product is featured
    */
   @ApiProperty({
@@ -288,6 +288,32 @@ export class CreateProductDto {
   @IsBoolean()
   @IsOptional()
   featured?: boolean;
+
+  /**
+   * Whether the product is a sofa (affects which dimension fields apply)
+   */
+  @ApiProperty({
+    description: 'Whether the product is a sofa',
+    example: true,
+    default: true,
+    required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  is_sofa?: boolean;
+
+  /**
+   * Whether the product is a bed (affects which dimension fields apply)
+   */
+  @ApiProperty({
+    description: 'Whether the product is a bed',
+    example: false,
+    default: false,
+    required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  is_bed?: boolean;
 
   /**
    * Default color for the initial variant

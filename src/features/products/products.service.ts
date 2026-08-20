@@ -1343,6 +1343,8 @@ if (
         show_loxa: createProductDto.show_loxa ?? true,
         loxa_complimentary_years: createProductDto.loxa_complimentary_years ?? null,
         show_sofadeal_coverage: createProductDto.show_sofadeal_coverage ?? false,
+        is_sofa: createProductDto.is_sofa ?? true,
+        is_bed: createProductDto.is_bed ?? false,
         // material_info: createProductDto.material_info || {},
       })
       .select()
@@ -1632,6 +1634,12 @@ async update(
         }),
         ...(updateProductDto.care_instructions !== undefined && {
           care_instructions: updateProductDto.care_instructions,
+        }),
+        ...(updateProductDto.is_sofa !== undefined && {
+          is_sofa: updateProductDto.is_sofa,
+        }),
+        ...(updateProductDto.is_bed !== undefined && {
+          is_bed: updateProductDto.is_bed,
         }),
         updated_at: new Date(),
       })
