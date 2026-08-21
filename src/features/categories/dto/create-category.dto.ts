@@ -1,5 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsNumber, Min, MaxLength, IsUUID, IsBoolean, IsUrl } from 'class-validator';
+import { Transform } from 'class-transformer';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  Min,
+  MaxLength,
+  IsUUID,
+  IsBoolean,
+  IsUrl,
+} from 'class-validator';
 
 /**
  * Data Transfer Object for creating a new category
@@ -41,11 +52,14 @@ export class CreateCategoryDto {
     example: '123e4567-e89b-12d3-a456-426614174000',
     required: false,
     nullable: true,
-    type: String
+    type: String,
   })
+  @Transform(({ value }) =>
+    value === null || value === 'null' || value === '' ? null : value,
+  )
   @IsUUID('4')
   @IsOptional()
-  parent_id?: string;
+  parent_id?: string | null;
 
   /**
    * Description of the category
@@ -97,4 +111,17 @@ export class CreateCategoryDto {
   @IsBoolean()
   @IsOptional()
   featured?: boolean;
-} 
+
+  /**
+   * Whether this category is a bed category
+   */
+  @ApiProperty({
+    description: 'Whether this category is bed or not',
+    example: true,
+    required: false,
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  is_bed?: boolean;
+}

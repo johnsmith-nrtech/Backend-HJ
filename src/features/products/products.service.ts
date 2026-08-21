@@ -72,6 +72,7 @@ async findAll(
       | `under-${number}`
       | `${number}-${number}`
       | `over-${number}`;
+    isBed?: boolean;
     includeVariants?: boolean;
     includeImages?: boolean;
     includeCategory?: boolean;
@@ -87,6 +88,7 @@ async findAll(
     limit,
     sortBy = 'created_at',
     priceRange = 'all',
+    isBed,
     includeVariants = true,
     includeImages = false,
     includeCategory = false,
@@ -185,6 +187,11 @@ async findAll(
 
     // Only show visible products
     query = query.eq('is_visible', true);
+
+    // Apply is_bed filter (for the "Beds & More" page)
+    if (isBed !== undefined) {
+      query = query.eq('is_bed', isBed);
+    }
 
     // Apply price range filter on base_price
     query = this.applyPriceRangeFilter(query, priceRange);

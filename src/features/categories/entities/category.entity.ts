@@ -112,4 +112,11 @@ export class Category {
     required: false,
   })
   subcategories?: Category[];
+
+  @ApiProperty({
+    description: 'Whether this category is bed',
+    example: true,
+    default: false,
+  })
+  is_bed: boolean;
 } 

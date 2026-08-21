@@ -21,36 +21,43 @@ export class CategoriesService {
   ) {}
 
   /**
-   * Find all categories with optional nesting
-   * @param nested Whether to include nested subcategories
-   * @returns Array of categories
-   */
-  async findAll(nested: boolean = false): Promise<Category[]> {
-    const { data: categories, error } = await this.supabaseService
-      .getClient()
-      .from('categories')
-      .select('*')
-      .order('order', { ascending: true });
+ * Find all categories with optional nesting and filters
+ * @param nested Whether to include nested subcategories
+ * @param isBed When provided, only categories flagged is_bed match this value
+ * @returns Array of categories
+ */
+async findAll(nested: boolean = false, isBed?: boolean): Promise<Category[]> {
+  let query = this.supabaseService
+    .getClient()
+    .from('categories')
+    .select('*')
+    .order('order', { ascending: true });
 
-    if (error) {
-      throw error;
-    }
-
-    // If not nested, return flat list
-    if (!nested) {
-      return categories;
-    }
-
-    // If nested, only return top-level categories with their subcategories
-    const topLevelCategories = categories.filter(
-      (category) => category.parent_id === null
-    );
-
-    // Populate subcategories for each top-level category
-    return topLevelCategories.map((category) => 
-      this.populateSubcategories(category, categories)
-    );
+  if (isBed !== undefined) {
+    query = query.eq('is_bed', isBed);
   }
+
+  const { data: categories, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  // If not nested, return flat list
+  if (!nested) {
+    return categories;
+  }
+
+  // If nested, only return top-level categories with their subcategories
+  const topLevelCategories = categories.filter(
+    (category) => category.parent_id === null
+  );
+
+  // Populate subcategories for each top-level category
+  return topLevelCategories.map((category) =>
+    this.populateSubcategories(category, categories)
+  );
+}
 
   /**
    * Find popular categories for featured display
@@ -253,6 +260,7 @@ export class CategoriesService {
         order,
         image_url: createCategoryDto.image_url || null,
         featured: createCategoryDto.featured || false,
+        is_bed: createCategoryDto.is_bed || false,
       })
       .select()
       .single();
@@ -318,6 +326,7 @@ export class CategoriesService {
         order: updateCategoryDto.order,
         image_url: updateCategoryDto.image_url,
         featured: updateCategoryDto.featured,
+        is_bed: updateCategoryDto.is_bed,
       })
       .eq('id', id)
       .select()
@@ -447,20 +456,23 @@ export class CategoriesService {
    * @returns Next order value
    */
   private async getNextOrder(parentId: string | null): Promise<number> {
-    const { data: categories, error } = await this.supabaseService
-      .getClient()
-      .from('categories')
-      .select('order')
-      .eq('parent_id', parentId)
-      .order('order', { ascending: false })
-      .limit(1);
-    
-    if (error) {
-      throw error;
-    }
-    
-    return categories.length > 0 ? categories[0].order + 1 : 0;
+  let query = this.supabaseService
+    .getClient()
+    .from('categories')
+    .select('order');
+
+  query = parentId === null ? query.is('parent_id', null) : query.eq('parent_id', parentId);
+
+  const { data: categories, error } = await query
+    .order('order', { ascending: false })
+    .limit(1);
+
+  if (error) {
+    throw error;
   }
+
+  return categories.length > 0 ? categories[0].order + 1 : 0;
+}
 
   /**
    * Check if setting a new parent would create a cyclic hierarchy
@@ -803,8 +815,8 @@ export class CategoriesService {
           );
           
         } catch (optimizationError) {
-          // If optimization fails, log warning but continue with original image
-          console.warn(`Image optimization failed for ${filename}: ${optimizationError.message}`);
+          const message = optimizationError instanceof Error ? optimizationError.message : String(optimizationError);
+          console.warn(`Image optimization failed for ${filename}: ${message}`);
           console.warn('Continuing with original image...');
         }
       } else {
@@ -850,7 +862,8 @@ export class CategoriesService {
       
     } catch (error) {
       console.error('Error uploading file to Supabase storage:', error);
-      throw new Error(`File upload failed: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`File upload failed: ${message}`);
     } finally {
       // Always clean up the temporary file if it was read from disk
       if (shouldCleanup && actualFilePath) {
@@ -860,7 +873,8 @@ export class CategoriesService {
             console.log(`✅ Cleaned up temporary file: ${actualFilePath}`);
           }
         } catch (cleanupError) {
-          console.error(`❌ Failed to clean up temporary file ${actualFilePath}:`, cleanupError.message);
+          const message = cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
+          console.error(`❌ Failed to clean up temporary file ${actualFilePath}:`, message);
         }
       }
     }
@@ -981,8 +995,9 @@ export class CategoriesService {
         console.log(`✅ Successfully deleted old image: ${filePath}`);
       }
     } catch (error) {
-      console.error(`Error deleting image from storage: ${error.message}`);
-      // Don't throw error - the main operation (updating category) already succeeded
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`Error deleting image from storage: ${message}`);
+        // Don't throw error - the main operation (updating category) already succeeded
     }
   }
 
@@ -1031,7 +1046,8 @@ export class CategoriesService {
       
       return null;
     } catch (error) {
-      console.error(`Error extracting file path from URL: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Error extracting file path from URL: ${message}`);
       return null;
     }
   }
@@ -1140,7 +1156,8 @@ export class CategoriesService {
       
     } catch (error) {
       console.error('Error during orphaned images cleanup:', error);
-      throw new Error(`Cleanup failed: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Cleanup failed: ${message}`);
     }
   }
 } 

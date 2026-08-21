@@ -94,8 +94,10 @@ export class CategoriesController {
   @ApiGetCategories
   findAll(
     @Query('nested', new DefaultValuePipe(false), ParseBoolPipe) nested: boolean,
+    @Query('isBed') isBed?: string,
   ) {
-    return this.categoriesService.findAll(nested);
+    const isBedFilter = isBed === undefined ? undefined : isBed === 'true';
+    return this.categoriesService.findAll(nested, isBedFilter);
   }
 
   /**

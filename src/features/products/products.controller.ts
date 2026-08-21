@@ -465,6 +465,7 @@ async findAll(
   @Query('sortBy', new DefaultValuePipe('id')) sortBy?: string,
   @Query('sortOrder', new DefaultValuePipe('asc')) sortOrder?: 'asc' | 'desc',
   @Query('priceRange', new DefaultValuePipe(undefined)) priceRange?: string,
+  @Query('isBed') isBed?: string,
   @Query('includeVariants', new DefaultValuePipe(true))
   includeVariants?: boolean,
   @Query('includeImages', new DefaultValuePipe(false))
@@ -482,6 +483,7 @@ async findAll(
     limit: limit ? parseInt(limit, 10) : undefined,
     sortBy: sortBy as any,
     priceRange: priceRange as any,
+    isBed: isBed === undefined ? undefined : isBed === 'true',
     includeVariants,
     includeImages,
     includeCategory,
