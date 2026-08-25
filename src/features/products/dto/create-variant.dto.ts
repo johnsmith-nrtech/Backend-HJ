@@ -290,14 +290,10 @@ export class CreateVariantDto {
   @IsObject()
   bed_options?: {
     headboard?: string;
-    wings?: string;
-    storage?: string;
     base?: string;
-    mattress?: string;
-    mattress_firmness?: string;
-    headboard_height?: string;
-    headboard_height_charge?: number;
-    custom_requirements?: string;
-    assembly_included?: boolean;
+    headboard_heights?: { label: string; charge: number }[];
+    storage_options?: { label: string; charge: number }[];
+    wing_options?: { label: string; charge: number }[];
+    mattress_options?: { label: string; charge: number }[];
   };
 } 
