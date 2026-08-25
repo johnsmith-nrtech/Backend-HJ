@@ -1427,6 +1427,7 @@ if (createProductDto.category_id) {
           delivery_time_days: createProductDto.delivery_time_days || '',
           material_info: createProductDto.material_info || {},
           warranty_info: createProductDto.warranty_info || null,
+          bed_options: createProductDto.is_bed ? (createProductDto.bed_options || {}) : {},
         })
         .select()
         .single();

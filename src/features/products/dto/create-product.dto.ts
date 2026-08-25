@@ -302,7 +302,7 @@ export class CreateProductDto {
   @IsOptional()
   is_sofa?: boolean;
 
-  /**
+    /**
    * Whether the product is a bed (affects which dimension fields apply)
    */
   @ApiProperty({
@@ -314,6 +314,28 @@ export class CreateProductDto {
   @IsBoolean()
   @IsOptional()
   is_bed?: boolean;
+
+  /**
+   * Bed-specific configuration options for the default variant
+   */
+  @ApiProperty({
+    description: 'Bed-specific configuration options for the default variant',
+    required: false,
+  })
+  @IsOptional()
+  @IsObject()
+  bed_options?: {
+    headboard?: string;
+    wings?: string;
+    storage?: string;
+    base?: string;
+    mattress?: string;
+    mattress_firmness?: string;
+    headboard_height?: string;
+    headboard_height_charge?: number;
+    custom_requirements?: string;
+    assembly_included?: boolean;
+  };
 
   /**
    * Default color for the initial variant

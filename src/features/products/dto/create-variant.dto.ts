@@ -262,8 +262,42 @@ export class CreateVariantDto {
   @IsBoolean()
   featured?: boolean;
 
-  // warranty_info
+    // warranty_info
   @IsOptional()
   @IsString()
   warranty_info?: string;
+
+  /**
+   * Bed-specific configuration options for this variant (only relevant when the parent product is_bed = true)
+   */
+  @ApiProperty({
+    description: 'Bed-specific configuration options for this variant',
+    example: {
+      headboard: 'Wingback',
+      wings: 'Yes',
+      storage: 'Ottoman',
+      base: 'Slatted',
+      mattress: 'Memory Foam',
+      mattress_firmness: 'Medium',
+      headboard_height: 'Tall',
+      headboard_height_charge: 20.0,
+      custom_requirements: '',
+      assembly_included: true,
+    },
+    required: false,
+  })
+  @IsOptional()
+  @IsObject()
+  bed_options?: {
+    headboard?: string;
+    wings?: string;
+    storage?: string;
+    base?: string;
+    mattress?: string;
+    mattress_firmness?: string;
+    headboard_height?: string;
+    headboard_height_charge?: number;
+    custom_requirements?: string;
+    assembly_included?: boolean;
+  };
 } 
