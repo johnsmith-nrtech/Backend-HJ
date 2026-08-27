@@ -324,13 +324,14 @@ export class CreateProductDto {
   })
   @IsOptional()
   @IsObject()
-  bed_options?: {
+    bed_options?: {
     headboard?: string;
-    base?: string;
     headboard_heights?: { label: string; charge: number }[];
     storage_options?: { label: string; charge: number }[];
     wing_options?: { label: string; charge: number }[];
     mattress_options?: { label: string; charge: number }[];
+    base_options?: { label: string; charge: number }[];
+    custom_requirements_enabled?: boolean;
   };
 
   /**
