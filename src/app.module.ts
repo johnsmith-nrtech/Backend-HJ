@@ -25,6 +25,7 @@ import { WhyChooseUsModule } from './features/why-choose-us/why-choose-us.module
 import { LoxaModule } from './features/loxa/loxa.module';
 import { ProductsHeroModule } from './features/products-hero/products-hero.module';
 import { FaqModule } from './features/faq/faq.module';
+import { BedOptionsModule } from './features/bed-options/bed-options.module'
 
 
 
@@ -55,6 +56,7 @@ import { FaqModule } from './features/faq/faq.module';
     WhyChooseUsModule,
     LoxaModule,
     FaqModule,
+    BedOptionsModule,
   ],
   controllers: [HealthController],
   providers: [],
