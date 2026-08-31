@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateMattressDto {
   @ApiProperty({ description: 'Parent mattress type ID' })
@@ -26,6 +26,11 @@ export class CreateMattressDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   price: number;
+
+  @ApiProperty({ description: 'Stock quantity', example: 10, default: 0 })
+  @IsInt()
+  @Min(0)
+  stock: number;
 
   @ApiProperty({ description: 'Whether this mattress is active', default: true, required: false })
   @IsOptional()

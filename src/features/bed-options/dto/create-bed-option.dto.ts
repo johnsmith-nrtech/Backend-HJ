@@ -4,10 +4,10 @@ import { IsBoolean, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from
 export class CreateBedOptionDto {
   @ApiProperty({
     description: 'Bed option category',
-    enum: ['headboard_height', 'storage', 'wings', 'mattress', 'base'],
+    enum: ['headboard_height', 'storage', 'wings', 'mattress', 'base', 'mattress_section'],
   })
-  @IsIn(['headboard_height', 'storage', 'wings', 'mattress', 'base'])
-  type: 'headboard_height' | 'storage' | 'wings' | 'mattress' | 'base';
+  @IsIn(['headboard_height', 'storage', 'wings', 'mattress', 'base', 'mattress_section'])
+  type: 'headboard_height' | 'storage' | 'wings' | 'mattress' | 'base' | 'mattress_section';
 
   @ApiProperty({ description: 'Display label', example: 'Ottoman Storage' })
   @IsString()

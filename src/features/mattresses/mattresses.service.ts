@@ -130,6 +130,7 @@ export class MattressesService {
     return data as Mattress;
   }
 
+
   async createMattress(dto: CreateMattressDto): Promise<Mattress> {
     await this.findOneType(dto.mattress_type_id);
     const { data, error } = await this.supabaseService
@@ -141,6 +142,7 @@ export class MattressesService {
         height_cm: dto.height_cm ?? null,
         size: dto.size ?? null,
         price: dto.price,
+        stock: dto.stock ?? 0,
         is_active: dto.is_active ?? true,
       })
       .select()
@@ -149,6 +151,7 @@ export class MattressesService {
     if (error) throw error;
     return data as Mattress;
   }
+
 
   async updateMattress(id: string, dto: UpdateMattressDto): Promise<Mattress> {
     await this.findOneMattress(id);
@@ -160,6 +163,7 @@ export class MattressesService {
         ...(dto.height_cm !== undefined && { height_cm: dto.height_cm }),
         ...(dto.size !== undefined && { size: dto.size }),
         ...(dto.price !== undefined && { price: dto.price }),
+        ...(dto.stock !== undefined && { stock: dto.stock }),
         ...(dto.is_active !== undefined && { is_active: dto.is_active }),
         updated_at: new Date(),
       })
@@ -171,10 +175,39 @@ export class MattressesService {
     return data as Mattress;
   }
 
-  async removeMattress(id: string): Promise<Mattress> {
+    async removeMattress(id: string): Promise<Mattress> {
     const mattress = await this.findOneMattress(id);
     const { error } = await this.supabaseService.getClient().from('mattresses').delete().eq('id', id);
     if (error) throw error;
     return mattress;
+  }
+
+  /**
+   * Decrement a mattress's stock when it's included in a placed order.
+   * Never goes below 0. Silently no-ops if the mattress no longer exists,
+   * so a deleted mattress doesn't block order placement.
+   * @param id Mattress ID
+   * @param quantity Amount to decrement (default 1)
+   */
+  async decrementStock(id: string, quantity: number = 1): Promise<void> {
+    const { data: mattress, error: findError } = await this.supabaseService
+      .getClient()
+      .from('mattresses')
+      .select('stock')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (findError) throw findError;
+    if (!mattress) return; // mattress deleted since order was placed — skip silently
+
+    const newStock = Math.max(0, (mattress.stock ?? 0) - quantity);
+
+    const { error: updateError } = await this.supabaseService
+      .getClient()
+      .from('mattresses')
+      .update({ stock: newStock, updated_at: new Date() })
+      .eq('id', id);
+
+    if (updateError) throw updateError;
   }
 }
