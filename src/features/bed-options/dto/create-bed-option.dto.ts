@@ -29,4 +29,9 @@ export class CreateBedOptionDto {
   @IsOptional()
   @IsBoolean()
   is_active?: boolean = true;
+
+  @ApiProperty({ description: 'Image URL for this option', required: false })
+  @IsOptional()
+  @IsString()
+  image_url?: string;
 }

@@ -9,8 +9,13 @@ import {
   Query,
   ParseUUIDPipe,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   DefaultValuePipe,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { BedOptionsService } from './bed-options.service';
 import { CreateBedOptionDto } from './dto/create-bed-option.dto';
@@ -58,11 +63,31 @@ export class BedOptionsController {
     return this.bedOptionsService.update(id, dto);
   }
 
-  @Delete('admin/:id')
+    @Delete('admin/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @ApiOperation({ summary: 'Delete a bed option (Admin only)' })
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.bedOptionsService.remove(id);
+  }
+
+  @Post('admin/:id/image')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @UseInterceptors(
+    FileInterceptor('imageFile', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `bed-option-${unique}${extname(file.originalname)}`);
+        },
+      }),
+      limits: { fileSize: 10 * 1024 * 1024 },
+    }),
+  )
+  @ApiOperation({ summary: 'Upload image for a bed option (Admin only)' })
+  uploadImage(@Param('id', ParseUUIDPipe) id: string, @UploadedFile() file: Express.Multer.File) {
+    return this.bedOptionsService.uploadImage(id, file);
   }
 }

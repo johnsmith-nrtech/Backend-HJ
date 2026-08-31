@@ -51,6 +51,7 @@ export class BedOptionsService {
         label: dto.label,
         charge: dto.charge ?? 0,
         height_cm: dto.type === 'headboard_height' ? (dto.height_cm ?? null) : null,
+        image_url: dto.image_url ?? null,
         is_active: dto.is_active ?? true,
       })
       .select()
@@ -60,7 +61,7 @@ export class BedOptionsService {
     return data as BedOption;
   }
 
-  async update(id: string, dto: UpdateBedOptionDto): Promise<BedOption> {
+    async update(id: string, dto: UpdateBedOptionDto): Promise<BedOption> {
     await this.findOne(id);
 
     const { data, error } = await this.supabaseService
@@ -71,6 +72,7 @@ export class BedOptionsService {
         ...(dto.label !== undefined && { label: dto.label }),
         ...(dto.charge !== undefined && { charge: dto.charge }),
         ...(dto.height_cm !== undefined && { height_cm: dto.height_cm }),
+        ...(dto.image_url !== undefined && { image_url: dto.image_url }),
         ...(dto.is_active !== undefined && { is_active: dto.is_active }),
         updated_at: new Date(),
       })
@@ -80,6 +82,36 @@ export class BedOptionsService {
 
     if (error) throw error;
     return data as BedOption;
+  }
+
+  /**
+   * Upload an image for a bed option and save its public URL
+   */
+  async uploadImage(id: string, file: Express.Multer.File): Promise<BedOption> {
+    await this.findOne(id);
+    const fs = await import('fs');
+
+    const fileBuffer = fs.readFileSync(file.path);
+    const uniqueFilename = `bed-options/${id}-${Date.now()}-${file.originalname}`;
+
+    const { error: uploadError } = await this.supabaseService
+      .getClient()
+      .storage.from('bed-option-images')
+      .upload(uniqueFilename, fileBuffer, {
+        contentType: file.mimetype,
+        upsert: true,
+      });
+
+    fs.unlinkSync(file.path);
+
+    if (uploadError) throw uploadError;
+
+    const { data: publicUrlData } = this.supabaseService
+      .getClient()
+      .storage.from('bed-option-images')
+      .getPublicUrl(uniqueFilename);
+
+    return this.update(id, { image_url: publicUrlData.publicUrl } as any);
   }
 
   async remove(id: string): Promise<BedOption> {
