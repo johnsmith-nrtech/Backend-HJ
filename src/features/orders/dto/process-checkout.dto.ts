@@ -28,6 +28,15 @@ class CheckoutItemDto {
   @ValidateNested()
   @Type(() => PropertyDto)
   property?: PropertyDto;
+
+  @ApiProperty({
+    description: 'ID of the mattress selected as part of a bed configuration (optional)',
+    example: '123e4567-e89b-12d3-a456-426614174099',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  mattress_id?: string;
 }
 
 export class ProcessCheckoutDto {

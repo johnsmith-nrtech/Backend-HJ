@@ -108,6 +108,14 @@ export class CartItemDto {
   @IsOptional()
   @IsNumber()
   insurance_price?: number;
+
+  @ApiPropertyOptional({
+    example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    description: 'Mattress ID selected as part of a bed configuration (optional)',
+  })
+  @IsOptional()
+  @IsUUID(4)
+  mattress_id?: string;
 }
 
 export class CreatePaymentDto {

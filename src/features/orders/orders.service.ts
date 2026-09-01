@@ -17,6 +17,7 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { ListOrdersQueryDto } from './dto/list-orders-query.dto';
 import { CancelOrderReasonDto } from './dto/cancel-order-reason.dto';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import { MattressesService } from '../mattresses/mattresses.service';
 import {
   CreatePaymentResponseDto,
   WebhookNotificationDto,
@@ -123,6 +124,7 @@ export class OrdersService {
     private readonly zonesService: ZonesService,
     private readonly couponService: CouponService,
     private readonly loxaService: LoxaService,
+    private readonly mattressesService: MattressesService,
   ) {}
 
   /**
@@ -357,7 +359,7 @@ export class OrdersService {
         };
       });
 
-      try {
+            try {
         const items = await this.safeQueryExecution<OrderItem[]>(async () => {
           return await this.supabaseService
             .getClient()
@@ -365,6 +367,26 @@ export class OrdersService {
             .insert(orderItems)
             .select();
         }, 'Failed to create order items');
+
+        // Decrement stock for any mattress selected as part of a bed
+        // configuration. Best-effort: a failure here must never roll back
+        // an already-placed order, so errors are logged and swallowed.
+        const mattressItems = processedItems.filter((item: any) => item.mattress_id);
+        if (mattressItems.length > 0) {
+          await Promise.all(
+            mattressItems.map(async (item: any) => {
+              try {
+                await this.mattressesService.decrementStock(item.mattress_id, item.quantity || 1);
+              } catch (stockError) {
+                this.logger.warn(
+                  `Failed to decrement stock for mattress ${item.mattress_id}: ${
+                    stockError instanceof Error ? stockError.message : String(stockError)
+                  }`,
+                );
+              }
+            }),
+          );
+        }
 
         // Return the complete order with items
         return {
@@ -1918,6 +1940,7 @@ console.log(`Variant ${cartItem.variant_id}: compare=${variant.compare_price}, p
       quantity: number;
       assembly_required: boolean;
       unit_price_override?: number;
+      mattress_id?: string;
     }[],
     variants: Array<{
       id: string;
@@ -1930,21 +1953,14 @@ console.log(`Variant ${cartItem.variant_id}: compare=${variant.compare_price}, p
   ) {
     const variantMap = new Map(variants.map((v) => [v.id, v]));
 
-
-
     const orderItems = cartItems.map((cartItem) => {
-  const variant = variantMap.get(cartItem.variant_id)!;
-
-
-
-
-
-let originalPrice: number;
-let discountedPrice: number;
+      const variant = variantMap.get(cartItem.variant_id)!;
+      let originalPrice: number;
+      let discountedPrice: number;
 
 if (cartItem.unit_price_override) {
   discountedPrice = cartItem.unit_price_override;
-  originalPrice = variant.price;
+  originalPrice = Math.max(variant.price, cartItem.unit_price_override);
 } else if (variant.compare_price && variant.compare_price > variant.price) {
   // compare_price exists → calculate % from compare_price and apply on variant.price
   const pct = Math.round(((variant.compare_price - variant.price) / variant.compare_price) * 100);
@@ -1976,13 +1992,30 @@ return {
 };
 });
 
-    const { error } = await this.supabaseService
+        const { error } = await this.supabaseService
       .getClient()
       .from('order_items')
       .insert(orderItems);
 
     if (error) {
       this.handleSupabaseError(error, 'Failed to create order items');
+    }
+
+    const mattressItems = cartItems.filter((item) => item.mattress_id);
+    if (mattressItems.length > 0) {
+      await Promise.all(
+        mattressItems.map(async (item) => {
+          try {
+            await this.mattressesService.decrementStock(item.mattress_id!, item.quantity || 1);
+          } catch (stockError) {
+            this.logger.warn(
+              `Failed to decrement stock for mattress ${item.mattress_id}: ${
+                stockError instanceof Error ? stockError.message : String(stockError)
+              }`,
+            );
+          }
+        }),
+      );
     }
   }
 
@@ -2419,22 +2452,6 @@ async updateDepositInfo(
   this.logger.log(`Deposit info saved for order ${orderId}: ${depositPercentage}% = £${depositAmount}`);
 }
 
-// async createDepositPayment(
-//   orderId: string,
-//   userId: string,
-// ): Promise<CreatePaymentResponseDto> {
-//   // Fetch order
-//   const { data: order, error } = await this.supabaseService
-//     .getClient()
-//     .from('orders')
-//     .select('*, items:order_items(*)')
-//     .eq('id', orderId)
-//     .eq('user_id', userId)
-//     .single();
-
-//   if (error || !order) {
-//     throw new NotFoundException(`Order ${orderId} not found`);
-//   }
 
 async createDepositPayment(
   orderId: string,
