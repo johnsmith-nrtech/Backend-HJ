@@ -56,6 +56,7 @@ export class OrdersService {
     original_price,
     discount_applied,
     assembly_required,
+    bed_configuration,
     created_at,
     variant:product_variants(
       id,
@@ -1789,6 +1790,8 @@ private async validateCartAndCalculateTotal(
     quantity: number;
     assembly_required: boolean;
     unit_price_override?: number;
+    mattress_id?: string;
+    bed_configuration?: Record<string, any>;
   }[],
 ) {
   const variantIds = cartItems.map((item) => item.variant_id);
@@ -1941,6 +1944,7 @@ console.log(`Variant ${cartItem.variant_id}: compare=${variant.compare_price}, p
       assembly_required: boolean;
       unit_price_override?: number;
       mattress_id?: string;
+      bed_configuration?: Record<string, any>;
     }[],
     variants: Array<{
       id: string;
@@ -1989,6 +1993,7 @@ return {
   original_price: originalPrice,
   assembly_required: cartItem.assembly_required,
   discount_applied: 0,
+  bed_configuration: cartItem.bed_configuration ?? null,
 };
 });
 

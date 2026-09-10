@@ -109,13 +109,26 @@ export class CartItemDto {
   @IsNumber()
   insurance_price?: number;
 
-  @ApiPropertyOptional({
+    @ApiPropertyOptional({
     example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     description: 'Mattress ID selected as part of a bed configuration (optional)',
   })
   @IsOptional()
   @IsUUID(4)
   mattress_id?: string;
+
+  @ApiPropertyOptional({
+    description: 'Selected bed configuration options (headboard height, storage, wings, base, mattress, custom requirements)',
+  })
+  @IsOptional()
+  bed_configuration?: {
+    headboard_height?: { label: string; charge: number; height_cm?: number };
+    storage?: { label: string; charge: number };
+    wings?: { label: string; charge: number };
+    base?: { label: string; charge: number };
+    mattress?: { label: string; charge: number };
+    custom_requirements?: string;
+  };
 }
 
 export class CreatePaymentDto {
