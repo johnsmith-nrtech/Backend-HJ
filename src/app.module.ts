@@ -27,6 +27,7 @@ import { ProductsHeroModule } from './features/products-hero/products-hero.modul
 import { FaqModule } from './features/faq/faq.module';
 import { BedOptionsModule } from './features/bed-options/bed-options.module';
 import { MattressesModule } from './features/mattresses/mattresses.module';
+import { BedsHeroModule } from './features/beds-hero/beds-hero.module'
 
 
 
@@ -59,6 +60,7 @@ import { MattressesModule } from './features/mattresses/mattresses.module';
     FaqModule,
     BedOptionsModule,
     MattressesModule,
+    BedsHeroModule
   ],
   controllers: [HealthController],
   providers: [],
